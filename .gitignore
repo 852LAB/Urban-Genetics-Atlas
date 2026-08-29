@@ -1,0 +1,15 @@
+852LAB_V1.3_WGS84_LIVE.geojson
+Buildings - Age or Heritage Grade.geojson
+MTR_Lines_TEST.geojson
+Reclaimed Land _ V1.1.geojson
+terrain/
+
+# Local backup files
+*.backup
+*.bak
+*.tmp
+*~
+
+# Development / analysis files
+*.qmd
+*.before-r2-terrain

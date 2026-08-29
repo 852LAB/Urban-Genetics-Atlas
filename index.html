@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f5f5f5">
+
+    <title>Urban Genetics Atlas</title>
+
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.9.0/dist/maplibre-gl.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div id="map"></div>
+
+    <!-- =====================================================
+     ATLAS INITIALISATION / WARM-UP
+     ===================================================== -->
+
+<div
+    id="atlasLoader"
+    aria-live="polite"
+    aria-label="Initialising Urban Genetics Atlas"
+>
+
+    <div class="atlas-loader-card glass">
+
+        <img
+            src="assets/Logo-Mark.png"
+            alt="852LAB"
+            class="atlas-loader-logo"
+        >
+
+        <div class="atlas-loader-title">
+            Urban Genetics Atlas
+        </div>
+
+        <div
+            id="atlasLoaderStatus"
+            class="atlas-loader-status"
+        >
+            Initialising Atlas
+        </div>
+
+        <div
+            id="atlasLoaderDots"
+            class="atlas-loader-dots"
+        >
+            ···
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =====================================================
+     WELCOME / ATLAS INTRODUCTION
+     ===================================================== -->
+
+<div
+    id="welcomeOverlay"
+    class="welcome-overlay hidden"
+    aria-hidden="true"
+>
+
+    <div
+        id="welcomePanel"
+        class="welcome-panel glass"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="welcomeTitle"
+    >
+
+        <!-- Welcome header -->
+
+        <div class="welcome-header">
+
+            <div class="welcome-brand">
+
+                <img
+                    src="assets/Logo-Mark.png"
+                    alt="852LAB"
+                >
+
+                <div>
+
+                    <div
+                        id="welcomeTitle"
+                        class="welcome-title"
+                    >
+                        Welcome to the Urban Genetics Atlas
+                    </div>
+
+                    <div class="welcome-subtitle">
+                        Integrated Urban Analysis by 852LAB
+                    </div>
+
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                id="welcomeClose"
+                class="welcome-close"
+                aria-label="Close welcome message"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <!-- Welcome message -->
+
+        <div class="welcome-content">
+
+            <p>
+                The Urban Genetics Atlas brings together a range
+                of spatial datasets to explore the structure,
+                condition and transformation potential of
+                Hong Kong's urban fabric.
+            </p>
+
+            <p>
+                The Atlas is an analytical and exploratory tool
+                rather than a complete or definitive
+                representation of the city. The underlying data
+                is compiled from multiple sources, with differing
+                levels of coverage, detail and completeness.
+            </p>
+
+            <p>
+                As a result, gaps, missing values, outliers and
+                extreme observations are present. Data preparation
+                and analysis have sought to identify and minimise
+                these effects where practical, but they cannot be
+                eliminated entirely.
+            </p>
+
+            <p>
+                The Atlas should therefore be used to identify
+                patterns, relationships and emerging trends,
+                rather than interpreted as a precise statement
+                about any individual location.
+            </p>
+
+            <p class="welcome-purpose">
+                The intention is to provide a framework for
+                questioning how the city is structured, how it is
+                changing, and where further investigation may be
+                warranted.
+            </p>
+
+        </div>
+
+
+        <!-- Welcome footer -->
+
+        <div class="welcome-footer">
+
+            <label class="welcome-preference">
+
+                <input
+                    type="checkbox"
+                    id="welcomeDontShow"
+                >
+
+                <span>
+                    Do not show again
+                </span>
+
+            </label>
+
+            <button
+                type="button"
+                id="welcomeCloseButton"
+                class="welcome-close-button"
+            >
+                Close
+            </button>
+
+        </div>
+
+    </div>
+
+</div>    
+
+    <!-- Header -->
+<header id="header" class="glass">
+    <div id="brand">
+        <img src="assets/logo.png" alt="852LAB">
+        <div>
+            <h1>Urban Genetics Atlas</h1>
+            <div class="subtitle">Integrated Urban Analysis</div>
+            <div class="version">v1.0 Beta</div>
+        </div>
+    </div>
+</header>
+
+<!-- =====================================================
+     MAIN CONTROL PANEL
+     ===================================================== -->
+
+<aside id="panel" class="glass">
+
+
+    <!-- =================================================
+     ATLAS CONTROL HEADER
+     ================================================= -->
+
+<div class="atlas-control-header">
+
+    <div class="atlas-control-title">
+        Atlas Controls
+    </div>
+
+    <button
+        type="button"
+        id="panelMinimize"
+        class="panel-minimize"
+        aria-label="Minimize Atlas controls"
+        aria-expanded="true"
+    >
+
+        <span class="panel-minimize-label">
+            Hide
+        </span>
+
+        <img
+            src="assets/Logo-Mark.png"
+            alt="852LAB"
+        >
+
+    </button>
+
+</div>
+
+    <!-- =================================================
+         URBAN ANALYSIS
+         ================================================= -->
+
+    <section
+        id="analysisSection"
+        class="mode-panel expanded"
+    >
+
+        <!-- Fixed Section Header -->
+
+        <div class="mode-header">
+
+            <div class="mode-header-text">
+
+                <div class="mode-title">
+                    Urban Analysis
+                </div>
+
+                <div class="mode-description">
+                    Analytical layers derived from the urban fabric.
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="mode-chevron"
+                id="analysisSectionToggle"
+                aria-expanded="true"
+                aria-label="Collapse Urban Analysis"
+                aria-controls="analysisBody"
+            >
+                ▾
+            </button>
+
+        </div>
+
+            <!-- Analysis master visibility -->
+
+            <label class="toggle analysis-toggle">
+
+                <input
+                    type="checkbox"
+                    id="analysisToggle"
+                    checked
+                >
+
+                <span>
+                    Show Urban Analysis
+                </span>
+
+            </label>
+
+    <!-- =================================================
+    ANALYSIS BODY
+    ================================================= -->            
+
+            <div
+            id="analysisBody"
+            class="mode-body"
+        >
+
+            <!-- Analysis selector -->
+
+            <div id="analysisSelectorControl">
+
+            <label class="section-label">
+            Select Analysis Mode:
+            </label>
+
+            <select id="theme">
+
+                <option value="Development Pressure">
+                    Development Pressure
+                </option>
+
+                <option value="GFA - Saturation">
+                    GFA Saturation
+                </option>
+
+                <option value="MTR - Index (Built)">
+                    MTR Built Accessibility
+                </option>
+
+                <option value="Renewal Potential">
+                    Renewal Potential
+                </option>
+
+                <option value="Genesis Potential">
+                    Genesis Potential
+                </option>
+
+                <option value="GFA per Capita">
+                    Living Space (sqm/cap)
+                </option>
+
+                <option value="Population per Building">
+                    Population Intensity
+                </option>
+
+                <option value="Latent Urban Capacity">
+                    Latent Urban Capacity
+                </option>
+
+            </select>
+
+        </div>
+
+
+    <!-- =================================================
+     LATENT URBAN CAPACITY — CONTEXT CONTROL
+     ================================================= -->
+
+<div id="analysisControls">
+
+    <label class="section-label">
+        Select Planning Context:
+    </label>
+
+    <select id="capacityContext">
+
+        <option value="All">
+            All Contexts
+        </option>
+
+        <option value="Residential">
+            Residential
+        </option>
+
+        <option value="Commercial / Mixed">
+            Commercial / Mixed
+        </option>
+
+        <option value="Industrial">
+            Industrial
+        </option>
+
+        <option value="Comprehensive Development">
+            Comprehensive Development
+        </option>
+
+        <option value="Village / Other Development">
+            Village / Other Development
+        </option>
+
+        <option value="Constrained / Non-urban">
+            Constrained / Non-urban
+        </option>
+
+        <option value="Other / Unclassified">
+            Other / Unclassified
+        </option>
+
+    </select>
+
+</div>
+
+
+            <hr class="mode-divider">
+
+
+            <!-- =================================================
+                 ACTIVE ANALYSIS LEGEND
+                 ================================================= -->
+
+            <div id="analysisLegend">
+
+                <div id="legend">
+
+                    <h3 id="legendTitle">
+                        Development Pressure
+                    </h3>
+
+                    <p id="legendDescription">
+                        Measures redevelopment pressure using building age,
+                        density, and recent development signals.
+                    </p>
+
+                    <div id="legendScale">
+
+                        <div
+                            class="legend-gradient"
+                            id="legendGradient"
+                        ></div>
+
+                        <div class="legend-labels">
+
+                            <span id="legendLow">
+                                Low
+                            </span>
+
+                            <span id="legendHigh">
+                                High
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div id="legendInterpretation">
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         URBAN FABRIC
+         ================================================= -->
+
+    <section
+        id="fabricSection"
+        class="mode-panel expanded"
+    >
+
+        <!-- Fixed Section Header -->
+
+        <div class="mode-header">
+
+            <div class="mode-header-text">
+
+                <div class="mode-title">
+                    Urban Fabric
+                </div>
+
+                <div class="mode-description">
+                    Physical, infrastructural and historical layers
+                    describing the city and its evolution.
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="mode-chevron"
+                id="fabricSectionToggle"
+                aria-expanded="true"
+                aria-label="Collapse Urban Fabric"
+                aria-controls="fabricBody"
+            >
+                ▾
+            </button>
+
+        </div>
+
+        <!-- Fabric master visibility -->
+
+<label class="toggle fabric-master-toggle">
+
+    <input
+        type="checkbox"
+        id="fabricToggle"
+        checked
+    >
+
+    <span>
+        Show Urban Fabric
+    </span>
+
+</label>
+
+<!-- =================================================
+FABRIC BODY
+    ================================================= -->
+
+        <div
+            id="fabricBody"
+            class="mode-body"
+        >
+<hr class="mode-divider">
+
+            <!-- =================================================
+                 TERRAIN MODULE
+                 ================================================= -->
+
+            <div
+                class="fabric-module"
+                id="terrainModule"
+            >
+
+                <div class="fabric-module-header">
+
+                    <label class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="terrainToggle"
+                        >
+
+                        <button
+                        type="button"
+                        class="fabric-module-label"
+                        data-module="terrainModule"
+                        aria-expanded="false"
+                        >
+                        Terrain
+                    </button>
+
+                    <button
+                        type="button"
+                        class="module-chevron"
+                        data-module="terrainModule"
+                        aria-expanded="false"
+                        aria-label="Expand Terrain"
+                    >
+                        ▸
+                    </button>
+
+                </div>
+
+
+                <div class="fabric-module-content">
+
+                    <div class="fabric-module-description">
+
+                        Terrain provides physical context for the
+                        urban fabric, showing Hong Kong's underlying
+                        topography and terrain form.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 RECLAIMED LAND MODULE
+                 ================================================= -->
+
+            <div
+                class="fabric-module"
+                id="reclaimedModule"
+            >
+
+                <div class="fabric-module-header">
+
+                    <label class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="reclaimedToggle"
+                        >
+
+                        <button
+                        type="button"
+                        class="fabric-module-label"
+                        data-module="reclaimedModule"
+                        aria-expanded="false"
+                        >
+                        Reclaimed Land
+                    </button>
+
+                    <button
+                        type="button"
+                        class="module-chevron"
+                        data-module="reclaimedModule"
+                        aria-expanded="false"
+                        aria-label="Expand Reclaimed Land"
+                    >
+                        ▸
+                    </button>
+
+                </div>
+
+
+                <div class="fabric-module-content">
+
+                    <!-- Reclamation controls -->
+
+                    <div
+                        id="reclamation-controls"
+                        style="display:none;"
+                    >
+
+                        <div class="fabric-control-title">
+                            RECLAMATION HISTORY
+                        </div>
+
+                        <div class="reclamation-year">
+
+                            <span>
+                                Show reclamation up to:
+                            </span>
+
+                            <strong id="reclamation-year-value">
+                                2025
+                            </strong>
+
+                        </div>
+
+                        <input
+                            type="range"
+                            id="reclamation-year"
+                            min="1800"
+                            max="2025"
+                            step="1"
+                            value="2025"
+                        >
+
+                        <div class="reclamation-area">
+
+                            <span>
+                                Total reclaimed land:
+                            </span>
+
+                            <strong id="reclamation-area-value">
+                                —
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Reclamation legend -->
+
+                    <div
+                        id="reclamationLegend"
+                        class="fabric-module-legend"
+                        style="display:none;"
+                    >
+
+                        <div class="fabric-module-description">
+
+                            Historical reclamation of land from the sea,
+                            showing the physical expansion of Hong Kong's
+                            urban fabric over time.
+
+                        </div>
+
+                        <div
+                            class="legend-gradient"
+                            id="reclamationLegendGradient"
+                        ></div>
+
+                        <div class="legend-labels">
+
+                            <span>
+                                Earlier
+                            </span>
+
+                            <span>
+                                Later
+                            </span>
+
+                        </div>
+
+                        <div class="legend-item">
+
+                            <strong>
+                                Reclamation history
+                            </strong>
+
+                            — Areas are coloured according to the
+                            approximate year in which land was reclaimed.
+
+                        </div>
+
+                        <div class="legend-item">
+
+                            <strong>
+                                Slider
+                            </strong>
+
+                            — Move the year to progressively reveal
+                            the physical expansion of reclaimed land.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 BUILDING AGE MODULE
+                 ================================================= -->
+
+            <div
+                class="fabric-module"
+                id="buildingAgeModule"
+            >
+
+                <div class="fabric-module-header">
+
+                    <label class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="buildingAgeToggle"
+                        >
+
+                    <button
+                        type="button"
+                        class="fabric-module-label"
+                        data-module="buildingAgeModule"
+                        aria-expanded="false"
+                        >
+                        Building Age
+                    </button>
+
+                    <button
+                        type="button"
+                        class="module-chevron"
+                        data-module="buildingAgeModule"
+                        aria-expanded="false"
+                        aria-label="Expand Building Age"
+                    >
+                        ▸
+                    </button>
+
+                </div>
+
+
+                <div class="fabric-module-content">
+
+                    <!-- Building age controls -->
+
+                    <div
+                        id="buildingAgeControls"
+                        style="display:none;"
+                    >
+
+                        <div class="fabric-control-title">
+                            BUILDING AGE
+                        </div>
+
+                        <div class="building-age-year">
+
+                            <span>
+                                Buildings up to:
+                            </span>
+
+                            <strong id="building-age-year-value">
+                                2025
+                            </strong>
+
+                        </div>
+
+                        <input
+                            type="range"
+                            id="building-age-year"
+                            min="1945"
+                            max="2025"
+                            step="5"
+                            value="2025"
+                        >
+
+                        <div class="building-age-count">
+
+                            <span>
+                                Identified buildings:
+                            </span>
+
+                            <strong id="building-age-count-value">
+                                —
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Building age legend -->
+
+                    <div
+                        id="buildingAgeLegend"
+                        class="fabric-module-legend"
+                        style="display:none;"
+                    >
+
+                        <div class="fabric-module-description">
+
+                            Identified buildings are shown by recorded
+                            year of construction.
+
+                        </div>
+
+                        <div
+                            class="legend-gradient"
+                            id="buildingAgeLegendGradient"
+                        ></div>
+
+                        <div class="legend-labels">
+
+                            <span>
+                                1945
+                            </span>
+
+                            <span>
+                                2025
+                            </span>
+
+                        </div>
+
+                        <div class="legend-item">
+
+                            <strong>
+                                Older → newer
+                            </strong>
+
+                            — Recorded year of construction.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 HERITAGE MODULE
+                 ================================================= -->
+
+            <div
+                class="fabric-module"
+                id="heritageModule"
+            >
+
+                <div class="fabric-module-header">
+
+                    <label class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="heritageToggle"
+                        >
+
+                        <button
+                        type="button"
+                        class="fabric-module-label"
+                        data-module="heritageModule"
+                        aria-expanded="false"
+                        >
+                        Heritage
+                        </button>
+
+                    <button
+                        type="button"
+                        class="module-chevron"
+                        data-module="heritageModule"
+                        aria-expanded="false"
+                        aria-label="Expand Heritage"
+                    >
+                        ▸
+                    </button>
+
+                </div>
+
+
+                <div class="fabric-module-content">
+
+                    <!-- Heritage grade controls -->
+
+                    <div
+                        id="heritageControls"
+                        style="display:none;"
+                    >
+
+                        <div class="fabric-control-title">
+                            HERITAGE GRADES
+                        </div>
+
+                        <label class="toggle">
+
+                            <input
+                                type="checkbox"
+                                id="grade1Toggle"
+                                checked
+                            >
+
+                            <span>
+                                Grade 1
+                            </span>
+
+                        </label>
+
+                        <label class="toggle">
+
+                            <input
+                                type="checkbox"
+                                id="grade2Toggle"
+                                checked
+                            >
+
+                            <span>
+                                Grade 2
+                            </span>
+
+                        </label>
+
+                        <label class="toggle">
+
+                            <input
+                                type="checkbox"
+                                id="grade3Toggle"
+                                checked
+                            >
+
+                            <span>
+                                Grade 3
+                            </span>
+
+                        </label>
+
+                        <div class="building-age-count">
+
+                            <span>
+                                Identified heritage buildings:
+                            </span>
+
+                            <strong id="heritage-count-value">
+                                —
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Heritage legend -->
+
+                    <div
+                        id="heritageLegend"
+                        class="fabric-module-legend"
+                        style="display:none;"
+                    >
+
+                        <div class="fabric-module-description">
+
+                            Heritage designation may exist where a
+                            construction year is not recorded.
+
+                        </div>
+
+                        <div class="fabric-sublegend-title">
+                            Heritage Grade
+                        </div>
+
+                        <div class="heritage-legend-item">
+
+                            <span
+                                class="heritage-swatch grade-1"
+                            ></span>
+
+                            <span>
+                                Grade 1
+                            </span>
+
+                        </div>
+
+                        <div class="heritage-legend-item">
+
+                            <span
+                                class="heritage-swatch grade-2"
+                            ></span>
+
+                            <span>
+                                Grade 2
+                            </span>
+
+                        </div>
+
+                        <div class="heritage-legend-item">
+
+                            <span
+                                class="heritage-swatch grade-3"
+                            ></span>
+
+                            <span>
+                                Grade 3
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 MTR NETWORK MODULE
+                 ================================================= -->
+
+            <div
+                class="fabric-module"
+                id="mtrModule"
+            >
+
+                <div class="fabric-module-header">
+
+                    <label class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="mtrToggle"
+                        >
+
+                        <button
+                        type="button"
+                        class="fabric-module-label"
+                        data-module="mtrModule"
+                        aria-expanded="false"
+                        >
+                        MTR Network
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="module-chevron"
+                        data-module="mtrModule"
+                        aria-expanded="false"
+                        aria-label="Expand MTR Network"
+                    >
+                        ▸
+                    </button>
+
+                </div>
+
+
+                <div class="fabric-module-content">
+
+                    <!-- MTR colour mode -->
+
+                    <div class="mtr-module-controls">
+
+                        <label class="mtr-style-toggle">
+
+                            <input
+                                type="checkbox"
+                                id="mtrColourToggle"
+                                checked
+                            >
+
+                            <span>
+                                Line colours
+                            </span>
+
+                        </label>
+
+                    </div>
+
+
+                    <!-- MTR legend -->
+
+                    <div
+                        id="mtrLegend"
+                        class="mtr-module-legend"
+                    >
+
+                        <div class="mtr-legend-list">
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#005EB8;"
+                                ></span>
+                                <span>
+                                    Island Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#00A94F;"
+                                ></span>
+                                <span>
+                                    Kwun Tong Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#E2231A;"
+                                ></span>
+                                <span>
+                                    Tsuen Wan Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#7A3E9D;"
+                                ></span>
+                                <span>
+                                    Tseung Kwan O Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#F57C00;"
+                                ></span>
+                                <span>
+                                    Tung Chung Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#4DA6FF;"
+                                ></span>
+                                <span>
+                                    East Rail Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#9B6A4B;"
+                                ></span>
+                                <span>
+                                    Tuen Ma Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#9ACD32;"
+                                ></span>
+                                <span>
+                                    South Island Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#E78AC3;"
+                                ></span>
+                                <span>
+                                    Disneyland Resort Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#008C95;"
+                                ></span>
+                                <span>
+                                    Airport Express
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch mtr-dashed"
+                                    style="border-color:#C2188B;"
+                                ></span>
+                                <span>
+                                    Northern Link
+                                </span>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+</aside>
+
+    <!-- Floating popup -->
+    <div id="popup" class="glass"></div>
+
+    <!-- Status strip -->
+    <div id="status" class="glass">
+        Hong Kong SAR · EPSG:4326 · 100 m Hex Grid · 39,742 Active Cells
+    </div>
+
+    <div id="copyright">
+    © 852LAB · All rights reserved
+</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.9.0/dist/maplibre-gl.js"></script>
+    <script src="atlas.js"></script>
+
+</body>
+
+</html>
