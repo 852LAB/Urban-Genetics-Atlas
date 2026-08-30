@@ -3437,3 +3437,45 @@ and (orientation:landscape){
     }
 
 }
+
+/* =====================================================
+   MOBILE HEX POPUP
+   ===================================================== */
+
+@media (max-width:900px){
+
+    #popup{
+
+        min-width:0;
+
+        width:
+            225px;
+
+        max-width:
+            225px;
+
+        padding:
+            12px 14px;
+
+    }
+
+}
+
+
+@media (max-width:900px)
+and (orientation:landscape){
+
+    #popup{
+
+        width:
+            235px;
+
+        max-width:
+            235px;
+
+        padding:
+            10px 12px;
+
+    }
+
+}

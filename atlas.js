@@ -3243,7 +3243,7 @@ map.on('load', () => {
 
     map.addSource('mtr',{
         type:'geojson',
-        data:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/mtr/MTR_Lines_TEST.geojson'
+        data:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/mtr/https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/mtr/MTR_Lines_TEST.geojson'
     });
 
 
