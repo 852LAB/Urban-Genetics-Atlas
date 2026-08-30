@@ -13,3 +13,6 @@ terrain/
 # Development / analysis files
 *.qmd
 *.before-r2-terrain
+*.pmtiles
+index.html.before-og
+range_server.py

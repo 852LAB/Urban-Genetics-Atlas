@@ -27,6 +27,18 @@ function perfMark(name){
 }
 
 // =====================================================
+// PMTILES PROTOCOL
+// =====================================================
+
+const pmtilesProtocol =
+    new pmtiles.Protocol();
+
+maplibregl.addProtocol(
+    'pmtiles',
+    pmtilesProtocol.tile
+);
+
+// =====================================================
 // MAP INITIALISATION
 // =====================================================
 
@@ -2151,6 +2163,8 @@ function drawAtlas(){
 
             source:'atlas',
 
+            'source-layer':'atlas',
+
             paint:{
 
                 'fill-color':
@@ -2982,11 +2996,18 @@ map.on('load', () => {
 // Data Sources
 // -----------------------------------------------------
 
+    // -----------------------------------------------------
+    // Primary Atlas — PMTiles vector source
+    // -----------------------------------------------------
+
     map.addSource('atlas',{
-        type:'geojson',
-        data:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/atlas/852LAB_V1.3_WGS84_LIVE.geojson'
+        type:'vector',
+        url:'pmtiles://https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/atlas/852LAB_V1.3.pmtiles'
     });
 
+    // -----------------------------------------------------
+    // Primary Atlas — Other sources
+    // -----------------------------------------------------
 
     map.addSource('mtr',{
         type:'geojson',
@@ -2997,7 +3018,7 @@ map.on('load', () => {
     map.addSource('terrain',{
         type:'raster',
         tiles:[
-            'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/terrain/{z}/{x}/{y}.png?v=4'
+            'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/terrain/{z}/{x}/{y}.png?v=5'
         ],
         scheme:'tms',
         tileSize:512,
@@ -3010,10 +3031,10 @@ map.on('load', () => {
     });
 
 
-    map.addSource('reclaimed', {
-    type: 'geojson',
-    data: 'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/reclaimed/Reclaimed%20Land%20_%20V1.1.geojson'
-});
+    map.addSource('reclaimed',{
+        type:'geojson',
+        data:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/reclaimed/Reclaimed%20Land%20_%20V1.1.geojson'
+    });
 
 
     map.addSource('buildingAge',{
@@ -3516,6 +3537,8 @@ perfMark('All sources registered');
         type:'line',
 
         source:'atlas',
+
+        'source-layer':'atlas',
 
         paint:{
 
