@@ -308,6 +308,16 @@ const welcomeDontShow =
 const WELCOME_STORAGE_KEY =
     'urbanGeneticsAtlasWelcomeDismissed';
 
+// -----------------------------------------------------
+// Atlas Control Panel
+// -----------------------------------------------------
+
+const panel =
+    document.getElementById('panel');
+
+const panelMinimize =
+    document.getElementById('panelMinimize');
+
 // =====================================================
 // TOP-LEVEL PANEL CHECK & SCROLL INTO VIEW
 // =====================================================
@@ -443,6 +453,8 @@ function closeWelcome(){
 
     }
 
+        armMobileBrandAfterWelcome();
+
 }
 
 
@@ -471,6 +483,189 @@ const welcomeDismissed =
         WELCOME_STORAGE_KEY
     );
     
+// =====================================================
+// MOBILE ARRIVAL BRAND
+// =====================================================
+//
+// On mobile, the Atlas brand is slightly enlarged after
+// the welcome message clears. The first real interaction
+// then returns it to the normal compact mobile size.
+// =====================================================
+
+const mobileViewportQuery =
+    window.matchMedia(
+        '(max-width:900px)'
+    );
+
+let mobileBrandEmphasisActive = false;
+
+
+// -----------------------------------------------------
+// Show enlarged mobile brand
+// -----------------------------------------------------
+
+function showMobileBrandEmphasis(){
+
+    const header =
+        document.getElementById(
+            'header'
+        );
+
+    if(
+        !header ||
+        !mobileViewportQuery.matches
+    ){
+        return;
+    }
+
+
+    header.classList.add(
+        'mobile-brand-emphasis'
+    );
+
+    mobileBrandEmphasisActive = true;
+
+}
+
+
+// -----------------------------------------------------
+// Return to normal mobile brand
+// -----------------------------------------------------
+
+function shrinkMobileBrand(){
+
+    if(!mobileBrandEmphasisActive){
+        return;
+    }
+
+
+    const header =
+        document.getElementById(
+            'header'
+        );
+
+    if(header){
+
+        header.classList.remove(
+            'mobile-brand-emphasis'
+        );
+
+    }
+
+
+    mobileBrandEmphasisActive = false;
+
+}
+
+
+// -----------------------------------------------------
+// Arm after welcome message closes
+// -----------------------------------------------------
+
+function armMobileBrandAfterWelcome(){
+
+    requestAnimationFrame(
+        () => {
+
+            requestAnimationFrame(
+                () => {
+
+                    showMobileBrandEmphasis();
+
+                }
+            );
+
+        }
+    );
+
+}
+
+
+// -----------------------------------------------------
+// First interaction removes emphasis
+// -----------------------------------------------------
+
+document.addEventListener(
+    'pointerdown',
+    shrinkMobileBrand,
+    { passive:true }
+);
+
+document.addEventListener(
+    'wheel',
+    shrinkMobileBrand,
+    { passive:true }
+);
+
+
+// Keyboard interaction counts as interaction too
+
+document.addEventListener(
+    'keydown',
+    shrinkMobileBrand
+);
+
+
+// -----------------------------------------------------
+// Handle desktop / mobile switching
+// -----------------------------------------------------
+
+mobileViewportQuery.addEventListener(
+    'change',
+    event => {
+
+        if(event.matches){
+
+            const welcome =
+                document.getElementById(
+                    'welcomeOverlay'
+                );
+
+            if(
+                welcome &&
+                welcome.classList.contains(
+                    'hidden'
+                )
+            ){
+
+                showMobileBrandEmphasis();
+
+            }
+
+        } else {
+
+            const header =
+                document.getElementById(
+                    'header'
+                );
+
+            if(header){
+
+                header.classList.remove(
+                    'mobile-brand-emphasis'
+                );
+
+            }
+
+            mobileBrandEmphasisActive = false;
+
+        }
+
+    }
+);
+
+
+// Returning visitors have no welcome message,
+// so arm the enlarged brand immediately.
+
+if(
+    welcomeDismissed &&
+    mobileViewportQuery.matches
+){
+
+    armMobileBrandAfterWelcome();
+
+}
 // -----------------------------------------------------
 // Urban Analysis — Expand / Collapse
 // -----------------------------------------------------
@@ -705,7 +900,7 @@ document
 // Expand module
 // -----------------------------------------------------
 
-function expandFabricModule(module){
+function expandFabricModule(module, shouldScroll = true){
 
     if(!module){
         return;
@@ -745,12 +940,16 @@ function expandFabricModule(module){
 
     }
 
-    // Scroll opened module into view
+    // Scroll opened module into view only when explicitly requested.
+    // This prevents the initial Terrain module from scrolling the
+    // entire mobile Atlas panel away from the hamburger control.
 
     if(
+        shouldScroll &&
         fabricToggle &&
         fabricToggle.checked
     ){
+
         setTimeout(() => {
 
             module.scrollIntoView({
@@ -759,8 +958,8 @@ function expandFabricModule(module){
             });
 
         }, 80);
-    }
 
+    }
 }
 
 
@@ -820,7 +1019,8 @@ function collapseFabricModule(module){
 // -----------------------------------------------------
 
 expandFabricModule(
-    terrainModule
+    terrainModule,
+    false
 );
 
 // -----------------------------------------------------
@@ -841,25 +1041,6 @@ if(analysisBody){
 // =====================================================
 // PANEL MINIMISE / RESTORE
 // =====================================================
-
-
-// -----------------------------------------------------
-// Panel references
-// -----------------------------------------------------
-
-const panel =
-    document.getElementById('panel');
-
-const panelMinimize =
-    document.getElementById('panelMinimize');
-
-    panel.classList.add('panel-opening');
-
-setTimeout(() => {
-
-    panel.classList.remove('panel-opening');
-
-}, 550);
 
 // -----------------------------------------------------
 // Set panel minimised state
@@ -915,6 +1096,57 @@ panelMinimize.addEventListener(
     }
 );
 
+// -----------------------------------------------------
+// Responsive Atlas panel state
+//
+// Mobile / tablet:
+//     Start minimised.
+//
+// Desktop:
+//     Start expanded.
+//
+// Use matchMedia rather than window.innerWidth.
+// This avoids the mobile-viewport initialisation race
+// that can otherwise make the hamburger appear and
+// then disappear during page startup.
+// -----------------------------------------------------
+
+const atlasMobileQuery =
+    window.matchMedia(
+        '(max-width:900px)'
+    );
+
+
+// -----------------------------------------------------
+// Apply the initial state after the browser has
+// established the viewport dimensions.
+// -----------------------------------------------------
+
+requestAnimationFrame(
+    () => {
+
+        setPanelMinimized(
+            atlasMobileQuery.matches
+        );
+
+    }
+);
+
+
+// -----------------------------------------------------
+// React to viewport / orientation changes.
+// -----------------------------------------------------
+
+atlasMobileQuery.addEventListener(
+    'change',
+    (event) => {
+
+        setPanelMinimized(
+            event.matches
+        );
+
+    }
+);
 
 // =====================================================
 // MAP INTERACTION STATE
@@ -3820,6 +4052,8 @@ map.on(
 
 function hidePopup(){
 
+    popup.scrollTop = 0;
+
     popup.classList.remove(
         'visible'
     );
@@ -3848,6 +4082,8 @@ function showPopup(
     point,
     reclaimedFeature = null
 ){
+
+    popup.scrollTop = 0;
 
     const p =
         feature
@@ -4258,6 +4494,92 @@ function showPopup(
         'visible'
     );
 
+    // -----------------------------------------------------
+// Mobile popup presentation
+// -----------------------------------------------------
+
+const mobilePopup =
+    window.matchMedia(
+        '(max-width:900px)'
+    ).matches;
+
+
+if(mobilePopup){
+
+    popup.style.position =
+        'fixed';
+
+    popup.style.left =
+        '10px';
+
+    popup.style.right =
+        'auto';
+
+    popup.style.top =
+        'auto';
+
+    popup.style.bottom =
+        '44px';
+
+    popup.style.width =
+        'min(300px, calc(100vw - 20px))';
+
+    popup.style.minWidth =
+        '0';
+
+    popup.style.maxWidth =
+        '300px';
+
+    popup.style.maxHeight =
+        '35dvh';
+
+    popup.style.overflowY =
+        'auto';
+
+    popup.style.pointerEvents =
+        'auto';
+
+    popup.style.touchAction =
+        'pan-y';
+
+    popup.style.visibility =
+        'visible';
+
+    return;
+
+}
+
+
+// -----------------------------------------------------
+// Desktop popup positioning continues below
+// -----------------------------------------------------
+
+popup.style.position =
+    '';
+
+popup.style.right =
+    '';
+
+popup.style.bottom =
+    '';
+
+popup.style.width =
+    '';
+
+popup.style.minWidth =
+    '';
+
+popup.style.maxWidth =
+    '';
+
+popup.style.maxHeight =
+    '';
+
+popup.style.overflowY =
+    '';
+
+popup.style.pointerEvents =
+    '';
 
     const popupWidth =
         popup.offsetWidth;
