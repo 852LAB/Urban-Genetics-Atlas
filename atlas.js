@@ -39,14 +39,68 @@ maplibregl.addProtocol(
 );
 
 // =====================================================
+// INITIAL VIEW
+// =====================================================
+
+const atlasIsMobile =
+    window.matchMedia(
+        '(max-width:900px)'
+    ).matches;
+
+
+// Desktop opening view
+
+const desktopInitialCenter = [
+    114.220,
+    22.340
+];
+
+const desktopInitialZoom =
+    10.5;
+
+
+// Mobile opening view
+
+const mobileInitialCenter = [
+    114.180,
+    22.325
+];
+
+const mobileInitialZoom =
+    10.0;
+
+
+// Select opening view
+
+const atlasInitialCenter =
+    atlasIsMobile
+        ? mobileInitialCenter
+        : desktopInitialCenter;
+
+
+const atlasInitialZoom =
+    atlasIsMobile
+        ? mobileInitialZoom
+        : desktopInitialZoom;
+
+
+// =====================================================
 // MAP INITIALISATION
 // =====================================================
 
 const map = new maplibregl.Map({
-    container: 'map',
-    style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-    center: [114.000, 22.350],
-    zoom: 10.5,
+
+    container:'map',
+
+    style:
+        'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+
+    center:
+        atlasInitialCenter,
+
+    zoom:
+        atlasInitialZoom
+
 });
 
 map.dragRotate.disable();
@@ -124,7 +178,8 @@ const fabricSection =
 const fabricSectionToggle =
     document.getElementById('fabricSectionToggle');
 
-
+const fabricBody =
+    document.getElementById('fabricBody');
 
 // -----------------------------------------------------
 // Urban Fabric — Layer Toggles
@@ -317,82 +372,6 @@ const panel =
 
 const panelMinimize =
     document.getElementById('panelMinimize');
-
-// =====================================================
-// TOP-LEVEL PANEL CHECK & SCROLL INTO VIEW
-// =====================================================
-
-function scrollPanelSectionIntoView(element) {
-    if (!element) return;
-
-    setTimeout(() => {
-        element.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest"
-        });
-    }, 80);
-}
-
-
-function setAnalysisMaster(enabled) {
-
-    if (!analysisSection || !analysisBody) {
-        return;
-    }
-
-    analysisToggle.checked = enabled;
-
-    if (enabled) {
-
-        analysisSection.classList.remove("collapsed");
-        analysisSection.classList.add("expanded");
-        analysisBody.style.display = "";
-
-        if (analysisControls) {
-            analysisControls.style.display = "";
-        }
-
-        scrollPanelSectionIntoView(analysisSection);
-
-    } else {
-
-        analysisSection.classList.remove("expanded");
-        analysisSection.classList.add("collapsed");
-        analysisBody.style.display = "none";
-
-        if (analysisControls) {
-            analysisControls.style.display = "none";
-        }
-
-    }
-}
-
-
-function setFabricMaster(enabled) {
-
-    if (!fabricSection || !fabricBody) {
-        return;
-    }
-
-    fabricToggle.checked = enabled;
-
-    if (enabled) {
-
-        fabricSection.classList.remove("collapsed");
-        fabricSection.classList.add("expanded");
-        fabricBody.style.display = "";
-
-        scrollPanelSectionIntoView(fabricSection);
-
-    } else {
-
-        fabricSection.classList.remove("expanded");
-        fabricSection.classList.add("collapsed");
-        fabricBody.style.display = "none";
-
-    }
-}
-
 
 // =====================================================
 // WELCOME / ATLAS INTRODUCTION
@@ -789,13 +768,48 @@ function setLayerVisibility(layerId, visible){
 // Apply Fabric master visibility
 // -----------------------------------------------------
 
+function setFabricMaster(enabled){
+
+    if(!fabricSection || !fabricBody){
+        return;
+    }
+
+    if(enabled){
+
+        fabricSection.classList.remove(
+            'collapsed'
+        );
+
+        fabricSection.classList.add(
+            'expanded'
+        );
+
+        fabricBody.style.display = '';
+
+    } else {
+
+        fabricSection.classList.remove(
+            'expanded'
+        );
+
+        fabricSection.classList.add(
+            'collapsed'
+        );
+
+        fabricBody.style.display = 'none';
+
+    }
+
+}
+
+
 function updateFabricVisibility(){
 
     const fabricVisible =
         fabricToggle.checked;
 
 
-    const layers = [
+    const fabricLayers = [
 
         {
             layer:'terrain',
@@ -830,14 +844,17 @@ function updateFabricVisibility(){
     ];
 
 
-    layers.forEach(item => {
+    fabricLayers.forEach(
+        item => {
 
-        setLayerVisibility(
-            item.layer,
-            fabricVisible && item.toggle.checked
-        );
+            setLayerVisibility(
+                item.layer,
+                fabricVisible &&
+                item.toggle.checked
+            );
 
-    });
+        }
+    );
 
 }
 
@@ -845,11 +862,11 @@ fabricToggle.addEventListener(
     'change',
     () => {
 
+        updateFabricVisibility();
+
         setFabricMaster(
             fabricToggle.checked
         );
-
-        updateFabricVisibility();
 
     }
 );
@@ -1044,6 +1061,12 @@ if(analysisBody){
 
 // -----------------------------------------------------
 // Set panel minimised state
+//
+// The control button lives outside #panel.
+// The panel itself is hidden when minimised.
+// The button independently shows:
+//     X          = panel expanded
+//     ☰          = panel minimised
 // -----------------------------------------------------
 
 function setPanelMinimized(minimized){
@@ -1053,11 +1076,23 @@ function setPanelMinimized(minimized){
     }
 
 
+    // Panel visibility/state
+
     panel.classList.toggle(
         'panel-minimized',
         minimized
     );
 
+
+    // Button visual state
+
+    panelMinimize.classList.toggle(
+        'panel-control-minimized',
+        minimized
+    );
+
+
+    // Accessibility state
 
     panelMinimize.setAttribute(
         'aria-expanded',
@@ -1076,7 +1111,7 @@ function setPanelMinimized(minimized){
 
 
 // -----------------------------------------------------
-// Minimise / restore
+// Minimise / restore button
 // -----------------------------------------------------
 
 panelMinimize.addEventListener(
@@ -1088,14 +1123,16 @@ panelMinimize.addEventListener(
                 'panel-minimized'
             );
 
-        // Opening the Atlas controls should always
-        // clear any map feature popup.
+
+        // Opening the controls clears
+        // any active map popup.
 
         if(minimized){
 
             hidePopup();
 
         }
+
 
         setPanelMinimized(
             !minimized
@@ -1104,8 +1141,9 @@ panelMinimize.addEventListener(
     }
 );
 
+
 // -----------------------------------------------------
-// Responsive Atlas panel state
+// Responsive initial state
 //
 // Mobile / tablet:
 //     Start minimised.
@@ -1113,53 +1151,36 @@ panelMinimize.addEventListener(
 // Desktop:
 //     Start expanded.
 //
-// Use matchMedia rather than window.innerWidth.
-// This avoids the mobile-viewport initialisation race
-// that can otherwise make the hamburger appear and
-// then disappear during page startup.
+// The same matchMedia query used by the
+// mobile brand logic is reused here.
 // -----------------------------------------------------
 
-const atlasMobileQuery =
-    window.matchMedia(
-        '(max-width:900px)'
+function syncPanelToViewport(){
+
+    setPanelMinimized(
+        mobileViewportQuery.matches
     );
 
+}
+
 
 // -----------------------------------------------------
-// Apply the initial state after the browser has
-// established the viewport dimensions.
+// Apply after viewport dimensions exist
 // -----------------------------------------------------
 
 requestAnimationFrame(
-    () => {
-
-        setPanelMinimized(
-            atlasMobileQuery.matches
-        );
-
-    }
+    syncPanelToViewport
 );
 
 
 // -----------------------------------------------------
-// React to viewport / orientation changes.
+// Respond to desktop / mobile switching
 // -----------------------------------------------------
 
-atlasMobileQuery.addEventListener(
+mobileViewportQuery.addEventListener(
     'change',
-    (event) => {
-
-        setPanelMinimized(
-            event.matches
-        );
-
-    }
+    syncPanelToViewport
 );
-
-// =====================================================
-// MAP INTERACTION STATE
-// =====================================================
-
 
 // -----------------------------------------------------
 // Movement / Hover State
@@ -5080,9 +5101,23 @@ mtrToggle.addEventListener(
     }
 );
 
-// -----------------------------------------------------
+// =====================================================
 // Shared Handler
-// -----------------------------------------------------
+// =====================================================
+//
+// Fabric name behaviour:
+//
+// 1. Unchecked layer + click name:
+//       → turn layer on
+//       → expand module
+//
+// 2. Checked layer + click name:
+//       → simply expand / collapse module
+//
+// The checkbox itself remains the only control that
+// turns a layer off.
+// =====================================================
+
 document
     .querySelectorAll('.fabric-module-label')
     .forEach(button => {
@@ -5096,10 +5131,52 @@ document
                         button.dataset.module
                     );
 
+
                 if(!module){
                     return;
                 }
 
+
+                const toggle =
+                    module.querySelector(
+                        '.toggle input'
+                    );
+
+
+                if(!toggle){
+                    return;
+                }
+
+
+                // -------------------------------------------------
+                // If the layer is currently off, clicking its name
+                // turns it on. The existing checkbox change handler
+                // will make the layer visible and expand the module.
+                // -------------------------------------------------
+
+                if(!toggle.checked){
+
+                    toggle.checked = true;
+
+                    toggle.dispatchEvent(
+                        new Event(
+                            'change',
+                            {
+                                bubbles:true
+                            }
+                        )
+                    );
+
+                    return;
+
+                }
+
+
+                // -------------------------------------------------
+                // Layer is already on:
+                // clicking the name simply expands / collapses
+                // the module without changing visibility.
+                // -------------------------------------------------
 
                 if(
                     module.classList.contains(

@@ -227,6 +227,7 @@
      ===================================================== -->
 
 <aside id="panel" class="glass panel-minimized">
+    
 
 
     <!-- =================================================
@@ -239,26 +240,9 @@
         Atlas Controls
     </div>
 
-    <button
-        type="button"
-        id="panelMinimize"
-        class="panel-minimize"
-        aria-label="Minimize Atlas controls"
-        aria-expanded="true"
-    >
-
-        <span class="panel-minimize-label">
-            Hide
-        </span>
-
-        <img
-            src="assets/Logo-Mark.png"
-            alt="852LAB"
-        >
-
-    </button>
-
 </div>
+
+<div id="panelScroll" class="panel-scroll">
 
     <!-- =================================================
          URBAN ANALYSIS
@@ -548,33 +532,35 @@ FABRIC BODY
 
                 <div class="fabric-module-header">
 
-                    <label class="toggle">
+                <div class="toggle">
 
-                        <input
-                            type="checkbox"
-                            id="terrainToggle"
-                        >
+                    <input
+                        type="checkbox"
+                        id="terrainToggle"
+                    >
 
-                        <button
+                    <button
                         type="button"
                         class="fabric-module-label"
                         data-module="terrainModule"
                         aria-expanded="false"
-                        >
-                        Terrain
-                    </button>
-
-                    <button
-                        type="button"
-                        class="module-chevron"
-                        data-module="terrainModule"
-                        aria-expanded="false"
-                        aria-label="Expand Terrain"
                     >
-                        ▸
+                        <span>Terrain</span>
                     </button>
 
                 </div>
+
+                <button
+                    type="button"
+                    class="module-chevron"
+                    data-module="terrainModule"
+                    aria-expanded="false"
+                    aria-label="Expand Terrain"
+                >
+                    ▸
+                </button>
+
+            </div>
 
 
                 <div class="fabric-module-content">
@@ -603,33 +589,35 @@ FABRIC BODY
 
                 <div class="fabric-module-header">
 
-                    <label class="toggle">
+                <div class="toggle">
 
-                        <input
-                            type="checkbox"
-                            id="reclaimedToggle"
-                        >
+                    <input
+                        type="checkbox"
+                        id="reclaimedToggle"
+                    >
 
-                        <button
+                    <button
                         type="button"
                         class="fabric-module-label"
                         data-module="reclaimedModule"
                         aria-expanded="false"
-                        >
-                        Reclaimed Land
-                    </button>
-
-                    <button
-                        type="button"
-                        class="module-chevron"
-                        data-module="reclaimedModule"
-                        aria-expanded="false"
-                        aria-label="Expand Reclaimed Land"
                     >
-                        ▸
+                        <span>Reclaimed Land</span>
                     </button>
 
                 </div>
+
+                <button
+                    type="button"
+                    class="module-chevron"
+                    data-module="reclaimedModule"
+                    aria-expanded="false"
+                    aria-label="Expand Reclaimed Land"
+                >
+                    ▸
+                </button>
+
+            </div>
 
 
                 <div class="fabric-module-content">
@@ -754,33 +742,35 @@ FABRIC BODY
 
                 <div class="fabric-module-header">
 
-                    <label class="toggle">
+                <div class="toggle">
 
-                        <input
-                            type="checkbox"
-                            id="buildingAgeToggle"
-                        >
+                    <input
+                        type="checkbox"
+                        id="buildingAgeToggle"
+                    >
 
                     <button
                         type="button"
                         class="fabric-module-label"
                         data-module="buildingAgeModule"
                         aria-expanded="false"
-                        >
-                        Building Age
-                    </button>
-
-                    <button
-                        type="button"
-                        class="module-chevron"
-                        data-module="buildingAgeModule"
-                        aria-expanded="false"
-                        aria-label="Expand Building Age"
                     >
-                        ▸
+                        <span>Building Age</span>
                     </button>
 
                 </div>
+
+                <button
+                    type="button"
+                    class="module-chevron"
+                    data-module="buildingAgeModule"
+                    aria-expanded="false"
+                    aria-label="Expand Building Age"
+                >
+                    ▸
+                </button>
+
+            </div>
 
 
                 <div class="fabric-module-content">
@@ -892,33 +882,35 @@ FABRIC BODY
 
                 <div class="fabric-module-header">
 
-                    <label class="toggle">
+                <div class="toggle">
 
-                        <input
-                            type="checkbox"
-                            id="heritageToggle"
-                        >
+                    <input
+                        type="checkbox"
+                        id="heritageToggle"
+                    >
 
-                        <button
+                    <button
                         type="button"
                         class="fabric-module-label"
                         data-module="heritageModule"
                         aria-expanded="false"
-                        >
-                        Heritage
-                        </button>
-
-                    <button
-                        type="button"
-                        class="module-chevron"
-                        data-module="heritageModule"
-                        aria-expanded="false"
-                        aria-label="Expand Heritage"
                     >
-                        ▸
+                        <span>Heritage</span>
                     </button>
 
                 </div>
+
+                <button
+                    type="button"
+                    class="module-chevron"
+                    data-module="heritageModule"
+                    aria-expanded="false"
+                    aria-label="Expand Heritage"
+                >
+                    ▸
+                </button>
+
+            </div>
 
 
                 <div class="fabric-module-content">
@@ -1064,34 +1056,35 @@ FABRIC BODY
 
                 <div class="fabric-module-header">
 
-                    <label class="toggle">
+                    <div class="toggle">
 
-                        <input
-                            type="checkbox"
-                            id="mtrToggle"
-                        >
+                    <input
+                        type="checkbox"
+                        id="mtrToggle"
+                    >
 
-                        <button
+                    <button
                         type="button"
                         class="fabric-module-label"
                         data-module="mtrModule"
                         aria-expanded="false"
-                        >
-                        MTR Network
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="module-chevron"
-                        data-module="mtrModule"
-                        aria-expanded="false"
-                        aria-label="Expand MTR Network"
                     >
-                        ▸
+                        <span>MTR Network</span>
                     </button>
 
                 </div>
+
+                <button
+                    type="button"
+                    class="module-chevron"
+                    data-module="mtrModule"
+                    aria-expanded="false"
+                    aria-label="Expand MTR Network"
+                >
+                    ▸
+                </button>
+
+            </div>
 
 
                 <div class="fabric-module-content">
@@ -1249,7 +1242,19 @@ FABRIC BODY
 
     </section>
 
+</div>
+
 </aside>
+
+<!-- Legend Hamburger -->
+<button
+    type="button"
+    id="panelMinimize"
+    class="panel-minimize"
+    aria-label="Minimize Atlas controls"
+    aria-expanded="false"
+>
+</button>
 
     <!-- Floating popup -->
     <div id="popup" class="glass"></div>
