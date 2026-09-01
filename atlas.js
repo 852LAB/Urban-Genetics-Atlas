@@ -103,6 +103,19 @@ const map = new maplibregl.Map({
 
 });
 
+// =====================================================
+// ATLAS VECTOR TILE SOURCE LAYER
+// =====================================================
+//
+// v1.4 PMTiles was generated directly from the GeoJSON,
+// so Tippecanoe used the filename-derived layer name.
+// Keep this explicit so the existing Atlas layer logic
+// continues to use a single shared hex source.
+//
+
+const ATLAS_SOURCE_LAYER =
+    '852LAB_v14_WGS84';
+
 map.dragRotate.disable();
 map.touchZoomRotate.disableRotation();
 
@@ -1224,6 +1237,76 @@ map.on('moveend', () => {
 // URBAN ANALYSIS
 // =====================================================
 
+// =====================================================
+// URBAN GENETIC SIGNATURE
+// =====================================================
+
+const UGS_SIGNATURES = {
+
+    TC:{
+        name:'TRANSFORMING CORE',
+        colour:'#D25B48',
+        description:
+            'Highly intensive existing urban fabric with a strong change signal.'
+    },
+
+    EC:{
+        name:'EMERGING CHANGE',
+        colour:'#D89A43',
+        description:
+            'Relatively lower-intensity urban fabric showing a strong change signal.'
+    },
+
+    AT:{
+        name:'AGEING TRANSITION',
+        colour:'#A95F68',
+        description:
+            'Older urban fabric combined with an elevated change signal.'
+    },
+
+    VM:{
+        name:'VERTICAL MATURE',
+        colour:'#786AA0',
+        description:
+            'Intensive and vertical urban fabric without an exceptionally high change signal.'
+    },
+
+    LF:{
+        name:'LEGACY FABRIC',
+        colour:'#8F7862',
+        description:
+            'Older established urban fabric without an exceptional change signal.'
+    },
+
+    CF:{
+        name:'CONNECTED FABRIC',
+        colour:'#518882',
+        description:
+            'Highly accessible urban fabric without an exceptional change signal.'
+    },
+
+    SF:{
+        name:'STABLE FABRIC',
+        colour:'#7D8790',
+        description:
+            'No exceptional v0.1 combination detected in the available urban indicators.'
+    },
+
+    C:{
+        name:'CONSTRAINED',
+        colour:'#A8ADB2',
+        description:
+            'A constrained or non-urban planning context, treated separately from normal urban genetic types.'
+    },
+
+    U:{
+        name:'UNASSESSED',
+        colour:'#D0D3D7',
+        description:
+            'Insufficient meaningful analytical context to assign a normal urban genetic signature.'
+    }
+
+};
 
 // -----------------------------------------------------
 // Analysis Legend Definitions
@@ -1470,10 +1553,41 @@ const LEGENDS = {
                 — A large proportion of reasonable development capacity remains unrealised.
             </div>
         `
+    },
+
+    'Urban Genetic Signature': {
+
+        title:'Urban Genetic Signature',
+
+        description:
+            'A categorical reading of urban condition, combining intensity, accessibility, height, age and modelled change signals. The Signature describes observed urban condition; it is not a prediction.',
+
+        categorical:true,
+
+        interpretation: `
+
+            <div class="ugs-legend-list">
+
+                ${Object.values(UGS_SIGNATURES).map(
+                    item => `
+                        <div class="ugs-legend-item">
+                            <span
+                                class="ugs-legend-swatch"
+                                style="background:${item.colour};"
+                            ></span>
+
+                            <span>
+                                ${item.name}
+                            </span>
+                        </div>
+                    `
+                ).join('')}
+
+            </div>
+        `
     }
 
 };
-
 
 // -----------------------------------------------------
 // Analysis Legend Update
@@ -1499,8 +1613,46 @@ function updateLegend(){
     legendDescription.textContent =
         cfg.description;
 
-    legendGradient.style.background =
-        cfg.gradient;
+
+    if(cfg.categorical){
+
+        legendGradient.style.display =
+            'none';
+
+        const labels =
+            legendGradient
+                .parentElement
+                ?.querySelector(
+                    '.legend-labels'
+                );
+
+        if(labels){
+            labels.style.display =
+                'none';
+        }
+
+    } else {
+
+        legendGradient.style.display =
+            '';
+
+        const labels =
+            legendGradient
+                .parentElement
+                ?.querySelector(
+                    '.legend-labels'
+                );
+
+        if(labels){
+            labels.style.display =
+                '';
+        }
+
+        legendGradient.style.background =
+            cfg.gradient;
+
+    }
+
 
     legendInterpretation.innerHTML =
         cfg.interpretation;
@@ -1517,6 +1669,53 @@ function colourExpression(){
     const theme =
         themeSelect.value;
 
+// -------------------------------------------------
+// Urban Genetic Signature
+// -------------------------------------------------
+
+    if(theme === 'Urban Genetic Signature'){
+
+        return [
+
+            'match',
+
+            [
+                'get',
+                'UGS_v01_Code'
+            ],
+
+            'TC',
+            UGS_SIGNATURES.TC.colour,
+
+            'EC',
+            UGS_SIGNATURES.EC.colour,
+
+            'AT',
+            UGS_SIGNATURES.AT.colour,
+
+            'VM',
+            UGS_SIGNATURES.VM.colour,
+
+            'LF',
+            UGS_SIGNATURES.LF.colour,
+
+            'CF',
+            UGS_SIGNATURES.CF.colour,
+
+            'SF',
+            UGS_SIGNATURES.SF.colour,
+
+            'C',
+            UGS_SIGNATURES.C.colour,
+
+            'U',
+            UGS_SIGNATURES.U.colour,
+
+            UGS_SIGNATURES.U.colour
+
+        ];
+
+    }
 
 // -----------------------------------------------------
 // Development Pressure
@@ -2424,7 +2623,8 @@ function drawAtlas(){
 
             source:'atlas',
 
-            'source-layer':'atlas',
+            'source-layer':
+                ATLAS_SOURCE_LAYER,
 
             paint:{
 
@@ -3263,7 +3463,7 @@ map.on('load', () => {
 
     map.addSource('atlas',{
         type:'vector',
-        url:'pmtiles://https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/atlas/852LAB_V1.3.pmtiles'
+        url:'pmtiles://https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/atlas/852LAB_V1.4.pmtiles'
     });
 
     // -----------------------------------------------------
@@ -3799,12 +3999,50 @@ perfMark('All sources registered');
 
         source:'atlas',
 
-        'source-layer':'atlas',
+        'source-layer':
+            ATLAS_SOURCE_LAYER,
 
         paint:{
 
-            'line-color':
-                'rgba(0,0,0,0.45)',
+            'line-color':[
+
+                'match',
+
+                [
+                    'get',
+                    'UGS_v01_Code'
+                ],
+
+                'TC',
+                UGS_SIGNATURES.TC.colour,
+
+                'EC',
+                UGS_SIGNATURES.EC.colour,
+
+                'AT',
+                UGS_SIGNATURES.AT.colour,
+
+                'VM',
+                UGS_SIGNATURES.VM.colour,
+
+                'LF',
+                UGS_SIGNATURES.LF.colour,
+
+                'CF',
+                UGS_SIGNATURES.CF.colour,
+
+                'SF',
+                UGS_SIGNATURES.SF.colour,
+
+                'C',
+                UGS_SIGNATURES.C.colour,
+
+                'U',
+                UGS_SIGNATURES.U.colour,
+
+                'rgba(0,0,0,0.45)'
+
+            ],
 
             'line-width':1.5,
 
@@ -4101,417 +4339,429 @@ function hidePopup(){
 
 }
 
+// =====================================================
+// URBAN GENETIC SIGNATURE HELPERS
+// =====================================================
 
-// -----------------------------------------------------
-// Build Popup
-// -----------------------------------------------------
 
-function showPopup(
-    feature,
-    point,
-    reclaimedFeature = null
+function ugsValue(
+    properties,
+    field
 ){
 
-    popup.scrollTop = 0;
+    if(
+        !properties ||
+        properties[field] === undefined ||
+        properties[field] === null ||
+        properties[field] === ''
+    ){
 
-    const p =
-        feature
-            ? feature.properties
-            : null;
+        return null;
 
+    }
 
-    const r =
-        reclaimedFeature
-            ? reclaimedFeature.properties
-            : null;
+    return properties[field];
 
-
-// -----------------------------------------------------
-// Popup title
-// -----------------------------------------------------
-
-    const title =
-        p
-            ? `Hex ${p['Hex ID'] ?? '-'}`
-            : 'Reclaimed Land';
+}
 
 
-    const subtitle =
-        p
-            ? (
-                p['Land Use (SPZ)'] ??
-                '-'
+function ugsNumber(
+    properties,
+    field
+){
+
+    const value =
+        Number(
+            ugsValue(
+                properties,
+                field
             )
-            : 'Historical urban fabric';
+        );
+
+    return Number.isFinite(value)
+        ? value
+        : null;
+
+}
 
 
-// -----------------------------------------------------
-// Urban Fabric — GFA
-// -----------------------------------------------------
+function ugsFriendlyBand(
+    value
+){
 
-    const gfaSection =
-        p
-            ? `
+    if(!value){
+        return 'Not available';
+    }
 
-        <div class='popup-section'>
+    return String(value)
+        .toLowerCase()
+        .replace(/-/g,' / ');
 
-            <div class='popup-label'>
-                Urban Fabric · GFA
+}
+
+
+function ugsProfileRow(
+    label,
+    pct,
+    band,
+    accent
+){
+
+    if(
+        pct === null ||
+        pct === undefined ||
+        !Number.isFinite(Number(pct))
+    ){
+
+        return '';
+
+    }
+
+
+    const numericPct =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                Number(pct)
+            )
+        );
+
+
+    return `
+
+        <div class="ugs-profile-row">
+
+            <div class="ugs-profile-label">
+                ${label}
             </div>
 
-            <div class="popup-row">
-                <span>Existing GFA</span>
-                <span>
-                    ${Number(
-                        p[
-                            'GFA - Current (Est.)'
-                        ] || 0
-                    ).toFixed(3)}
-                </span>
+            <div class="ugs-profile-track">
+
+                <div
+                    class="ugs-profile-fill"
+                    style="
+                        width:${numericPct}%;
+                        background:${accent};
+                    "
+                ></div>
+
             </div>
 
-            <div class="popup-row">
-                <span>Potential GFA</span>
-                <span>
-                    ${Number(
-                        p[
-                            'GFA - Potential'
-                        ] || 0
-                    ).toFixed(3)}
-                </span>
-            </div>
-
-            <div class="popup-row">
-                <span>Remaining GFA</span>
-                <span>
-                    ${Number(
-                        p[
-                            'GFA - Remaining'
-                        ] || 0
-                    ).toFixed(3)}
-                </span>
-            </div>
-
-            <div class="popup-row">
-                <span>GFA Saturation</span>
-                <span>
-                    ${
-                        p['GFA - Saturation']
-                            == null
-                            ? '—'
-                            :
-                            (
-                                Number(
-                                    p[
-                                        'GFA - Saturation'
-                                    ]
-                                ) * 100
-                            ).toFixed(1) + '%'
-                    }
-                </span>
-            </div>
-
-        </div>
-
-    `
-            : '';
-
-
-// -----------------------------------------------------
-// Urban Fabric — Planning Context
-// -----------------------------------------------------
-
-    const planningContextSection =
-        p
-            ? `
-
-    <div class='popup-section'>
-
-        <div class='popup-label'>
-            Urban Fabric · Planning Context
-        </div>
-
-        <div class='popup-row'>
-            <span>SPZ Context</span>
-            <span>
-                ${
-                    p[
-                        'SPZ - Capacity Context'
-                    ] ?? '—'
-                }
-            </span>
-        </div>
-
-        <div class='popup-row'>
-            <span>Capacity Relevance</span>
-            <span>
-                ${
-                    p[
-                        'SPZ - Capacity Relevance'
-                    ] ?? '—'
-                }
-            </span>
-        </div>
-
-        <div class='popup-row'>
-            <span>Capacity Status</span>
-            <span>
-                ${
-                    p[
-                        'Latent Capacity Status'
-                    ] ?? '—'
-                }
-            </span>
-        </div>
-
-    </div>
-
-`
-            : '';
-
-
-// -----------------------------------------------------
-// Urban Fabric — Population / Built Form
-// -----------------------------------------------------
-
-    const populationSection =
-        p
-            ? `
-
-        <div class='popup-section'>
-
-            <div class='popup-label'>
-                Urban Fabric · Population / Built Form
-            </div>
-
-            <div class='popup-row'>
-                <span>Living space</span>
-                <span>
-                    ${
-                        Number(
-                            p[
-                                'GFA per Capita'
-                            ] || 0
-                        ).toFixed(1)
-                    }
-                    sqm/cap
-                </span>
-            </div>
-
-            <div class='popup-row'>
-                <span>Population / building</span>
-                <span>
-                    ${
-                        Number(
-                            p[
-                                'Population per Building'
-                            ] || 0
-                        ).toFixed(1)
-                    }
-                </span>
+            <div class="ugs-profile-value">
+                ${ugsFriendlyBand(band)}
             </div>
 
         </div>
-
-`
-            : '';
-
-
-// -----------------------------------------------------
-// Urban Fabric — Reclaimed Land
-// -----------------------------------------------------
-
-    const reclaimedSection =
-        r
-            ? `
-
-        <div class='popup-section'>
-
-            <div class='popup-label'>
-                Urban Fabric · Reclaimed Land
-            </div>
-
-            <div class='popup-row'>
-                <span>Reclamation year</span>
-                <span>
-                    ${r['year'] ?? '-'}
-                </span>
-            </div>
-
-            <div class='popup-row'>
-                <span>Reclaimed area</span>
-                <span>
-                    ${
-                        Number(
-                            r[
-                                'reclamation_area_sqm'
-                            ] || 0
-                        ).toLocaleString()
-                    }
-                    sqm
-                </span>
-            </div>
-
-        </div>
-
-`
-            : '';
-
-// -----------------------------------------------------
-// Urban Analysis — Development
-// -----------------------------------------------------
-
-    const analysisSection =
-        p
-            ? `
-
-        <div class='popup-section'>
-
-            <div class='popup-label'>
-                Urban Analysis · Development
-            </div>
-
-            <div class='popup-row'>
-                <span>Development Pressure</span>
-                <span>
-                    ${
-                        Number(
-                            p[
-                                'Development Pressure'
-                            ] || 0
-                        ).toFixed(3)
-                    }
-                </span>
-            </div>
-
-            <div class='popup-row'>
-                <span>Renewal Potential</span>
-                <span>
-                    ${
-                        Number(
-                            p[
-                                'Renewal Potential'
-                            ] || 0
-                        ).toFixed(3)
-                    }
-                </span>
-            </div>
-
-            <div class='popup-row'>
-                <span>Genesis Potential</span>
-                <span>
-                    ${
-                        Number(
-                            p[
-                                'Genesis Potential'
-                            ] || 0
-                        ).toFixed(3)
-                    }
-                </span>
-            </div>
-
-            <div class='popup-row'>
-                <span>Latent Urban Capacity</span>
-                <span>
-                    ${
-                        (
-                            Number(
-                                p[
-                                    'Latent Urban Capacity'
-                                ] || 0
-                            ) * 100
-                        ).toFixed(0)
-                    }%
-                </span>
-            </div>
-
-        </div>
-
-`
-            : '';
-
-
-// -----------------------------------------------------
-// Urban Analysis — Accessibility
-// -----------------------------------------------------
-
-    const accessibilitySection =
-        p
-            ? `
-
-        <div class='popup-section'>
-
-            <div class='popup-label'>
-                Urban Analysis · Accessibility
-            </div>
-
-            <div class='popup-row'>
-                <span>MTR Built</span>
-                <span>
-                    ${
-                        Number(
-                            p[
-                                'MTR - Index (Built)'
-                            ] || 0
-                        ).toFixed(3)
-                    }
-                </span>
-            </div>
-
-            <div class='popup-row'>
-                <span>MTR Planned</span>
-                <span>
-                    ${
-                        Number(
-                            p[
-                                'MTR - Index (Planned)'
-                            ] || 0
-                        ).toFixed(3)
-                    }
-                </span>
-            </div>
-
-        </div>
-
-`
-            : '';
-
-
-// -----------------------------------------------------
-// Popup Format
-// -----------------------------------------------------
-
-    popup.innerHTML = `
-
-        <h3>${title}</h3>
-
-        <div style="
-            font-size:0.82rem;
-            color:#6b7280;
-        ">
-            ${subtitle}
-        </div>
-
-        ${gfaSection}
-
-        ${planningContextSection}
-
-        ${populationSection}
-
-        ${reclaimedSection}
-
-        ${analysisSection}
-
-        ${accessibilitySection}
 
     `;
 
+}
 
-// -----------------------------------------------------
-// Popup Positioning
-// -----------------------------------------------------
 
-    const offset = 18;
+function ugsWhyItems(
+    properties
+){
+
+    const candidates = [
+
+        {
+            label:'Intensity',
+            pct:ugsNumber(
+                properties,
+                'UGS_v01_Intensity_Pct'
+            ),
+            band:ugsValue(
+                properties,
+                'UGS_v01_Intensity_Band'
+            )
+        },
+
+        {
+            label:'Accessibility',
+            pct:ugsNumber(
+                properties,
+                'UGS_v01_Access_Pct'
+            ),
+            band:ugsValue(
+                properties,
+                'UGS_v01_Access_Band'
+            )
+        },
+
+        {
+            label:'Height / Form',
+            pct:ugsNumber(
+                properties,
+                'UGS_v01_Height_Pct'
+            ),
+            band:ugsValue(
+                properties,
+                'UGS_v01_Height_Band'
+            )
+        },
+
+        {
+            label:'Change',
+            pct:ugsNumber(
+                properties,
+                'UGS_v01_Change_Pct'
+            ),
+            band:ugsValue(
+                properties,
+                'UGS_v01_Change_Band'
+            )
+        },
+
+        {
+            label:'Age',
+            pct:ugsNumber(
+                properties,
+                'UGS_v01_Age_Pct'
+            ),
+            band:ugsValue(
+                properties,
+                'UGS_v01_Building_Age_Band'
+            )
+        }
+
+    ];
+
+
+    return candidates
+
+        .filter(
+            item =>
+                item.pct !== null &&
+                item.pct !== undefined
+        )
+
+        .sort(
+            (a,b) =>
+                b.pct - a.pct
+        )
+
+        .slice(
+            0,
+            4
+        );
+
+}
+
+
+function ugsInterpretation(
+    properties,
+    signature
+){
+
+    const traits = [];
+
+
+    const intensity =
+        ugsValue(
+            properties,
+            'UGS_v01_Intensity_Band'
+        );
+
+    const height =
+        ugsValue(
+            properties,
+            'UGS_v01_Height_Band'
+        );
+
+    const access =
+        ugsValue(
+            properties,
+            'UGS_v01_Access_Band'
+        );
+
+    const change =
+        ugsValue(
+            properties,
+            'UGS_v01_Change_Band'
+        );
+
+    const age =
+        ugsValue(
+            properties,
+            'UGS_v01_Building_Age_Band'
+        );
+
+
+    if(intensity){
+
+        traits.push(
+            `${ugsFriendlyBand(intensity)} intensity`
+        );
+
+    }
+
+
+    if(change){
+
+        traits.push(
+            `${ugsFriendlyBand(change)} change signal`
+        );
+
+    }
+
+
+    if(height){
+
+        traits.push(
+            `${ugsFriendlyBand(height)} vertical form`
+        );
+
+    }
+
+
+    if(access){
+
+        traits.push(
+            `${ugsFriendlyBand(access)} accessibility`
+        );
+
+    }
+
+
+    if(age){
+
+        traits.push(
+            `${ugsFriendlyBand(age)} building age`
+        );
+
+    }
+
+
+    if(signature === 'CONSTRAINED'){
+
+        return 'This location falls within a constrained or non-urban planning context and is treated separately from the normal urban genetic types.';
+
+    }
+
+
+    if(signature === 'UNASSESSED'){
+
+        return 'There is not enough meaningful analytical context here to assign a normal urban genetic type.';
+
+    }
+
+
+    if(traits.length === 0){
+
+        return 'The available indicators do not provide enough information for a more detailed interpretation.';
+
+    }
+
+
+    return `This hex combines ${traits
+        .slice(0,3)
+        .join(', ')}.`;
+
+}
+
+
+function ugsActivitySection(
+    properties
+){
+
+    const approvalYear =
+        ugsNumber(
+            properties,
+            'UGS_v01_Latest_Approval_Year'
+        );
+
+    const approvalFlag =
+        ugsValue(
+            properties,
+            'UGS_v01_Recent_Approval_Flag'
+        );
+
+    const landDealYear =
+        ugsNumber(
+            properties,
+            'UGS_v01_Latest_Land_Deal_Year'
+        );
+
+    const landDealFlag =
+        ugsValue(
+            properties,
+            'UGS_v01_Recent_Land_Deal_Flag'
+        );
+
+    const evidence =
+        ugsValue(
+            properties,
+            'UGS_v01_Observed_Change_Evidence'
+        );
+
+
+    const approvalValue =
+        approvalYear !== null
+            ? `${approvalYear}${approvalFlag === 'YES' ? ' · recent' : ''}`
+            : '—';
+
+
+    const landDealValue =
+        landDealYear !== null
+            ? `${landDealYear}${landDealFlag === 'YES' ? ' · recent' : ''}`
+            : '—';
+
+
+    let evidenceText =
+        'No recent activity recorded.';
+
+
+    if(evidence){
+
+        evidenceText =
+            String(
+                evidence
+            )
+            .toLowerCase()
+            .replace(
+                /recent /g,
+                'Recent '
+            );
+
+    }
+
+
+    return `
+
+        <div class="ugs-section">
+
+            <div class="ugs-section-title">
+                RECENT ACTIVITY
+            </div>
+
+            <div class="popup-row">
+                <span>Latest building approval</span>
+                <span>${approvalValue}</span>
+            </div>
+
+            <div class="popup-row">
+                <span>Latest land deal</span>
+                <span>${landDealValue}</span>
+            </div>
+
+            <div class="ugs-activity-note">
+                ${evidenceText}
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+// =====================================================
+// POPUP POSITIONING
+// =====================================================
+
+function positionPopup(point){
+
+    popup.scrollTop = 0;
 
     popup.style.visibility =
         'hidden';
@@ -4523,92 +4773,88 @@ function showPopup(
         'visible'
     );
 
-    // -----------------------------------------------------
-// Mobile popup presentation
-// -----------------------------------------------------
 
-const mobilePopup =
-    window.matchMedia(
-        '(max-width:900px)'
-    ).matches;
+    const mobilePopup =
+        window.matchMedia(
+            '(max-width:900px)'
+        ).matches;
 
 
-if(mobilePopup){
+    if(mobilePopup){
+
+        popup.style.position =
+            'fixed';
+
+        popup.style.left =
+            '10px';
+
+        popup.style.right =
+            'auto';
+
+        popup.style.top =
+            'auto';
+
+        popup.style.bottom =
+            '44px';
+
+        popup.style.width =
+            '225px';
+
+        popup.style.minWidth =
+            '0';
+
+        popup.style.maxWidth =
+            '225px';
+
+        popup.style.maxHeight =
+            '35dvh';
+
+        popup.style.overflowY =
+            'auto';
+
+        popup.style.pointerEvents =
+            'auto';
+
+        popup.style.touchAction =
+            'pan-y';
+
+        popup.style.visibility =
+            'visible';
+
+        return;
+
+    }
+
 
     popup.style.position =
-        'fixed';
-
-    popup.style.left =
-        '10px';
+        'absolute';
 
     popup.style.right =
-        'auto';
-
-    popup.style.top =
-        'auto';
+        '';
 
     popup.style.bottom =
-        '44px';
+        '';
 
     popup.style.width =
-        'min(300px, calc(100vw - 20px))';
+        '';
 
     popup.style.minWidth =
-        '0';
+        '';
 
     popup.style.maxWidth =
-        '300px';
+        '';
 
     popup.style.maxHeight =
-        '35dvh';
+        '';
 
     popup.style.overflowY =
-        'auto';
+        '';
 
     popup.style.pointerEvents =
         'auto';
 
-    popup.style.touchAction =
-        'pan-y';
 
-    popup.style.visibility =
-        'visible';
-
-    return;
-
-}
-
-
-// -----------------------------------------------------
-// Desktop popup positioning continues below
-// -----------------------------------------------------
-
-popup.style.position =
-    '';
-
-popup.style.right =
-    '';
-
-popup.style.bottom =
-    '';
-
-popup.style.width =
-    '';
-
-popup.style.minWidth =
-    '';
-
-popup.style.maxWidth =
-    '';
-
-popup.style.maxHeight =
-    '';
-
-popup.style.overflowY =
-    '';
-
-popup.style.pointerEvents =
-    '';
+    const offset = 18;
 
     const popupWidth =
         popup.offsetWidth;
@@ -4624,10 +4870,6 @@ popup.style.pointerEvents =
         point.y - 18;
 
 
-// -----------------------------------------------------
-// Flip horizontally if near right edge
-// -----------------------------------------------------
-
     if(
         left + popupWidth >
         window.innerWidth - 24
@@ -4640,10 +4882,6 @@ popup.style.pointerEvents =
 
     }
 
-
-// -----------------------------------------------------
-// Move above cursor if near bottom
-// -----------------------------------------------------
 
     if(
         top + popupHeight >
@@ -4658,20 +4896,12 @@ popup.style.pointerEvents =
     }
 
 
-// -----------------------------------------------------
-// Keep inside top
-// -----------------------------------------------------
-
     if(top < 24){
 
         top = 24;
 
     }
 
-
-// -----------------------------------------------------
-// Keep inside left
-// -----------------------------------------------------
 
     if(left < 24){
 
@@ -4691,6 +4921,681 @@ popup.style.pointerEvents =
 
 }
 
+// -----------------------------------------------------
+// Build Popup
+// -----------------------------------------------------
+
+function showPopup(
+    feature,
+    point,
+    reclaimedFeature = null
+){
+
+    popup.scrollTop = 0;
+
+
+    const p =
+        feature
+            ? feature.properties
+            : null;
+
+
+    const r =
+        reclaimedFeature
+            ? reclaimedFeature.properties
+            : null;
+
+
+    // -------------------------------------------------
+    // Reclaimed-land-only popup
+    // -------------------------------------------------
+
+    if(!p && r){
+
+        popup.innerHTML = `
+
+            <h3>
+                Reclaimed Land
+            </h3>
+
+            <div class="popup-subtitle">
+                Historical urban fabric
+            </div>
+
+            <div class="popup-section">
+
+                <div class="popup-label">
+                    Urban Fabric · Reclaimed Land
+                </div>
+
+                <div class="popup-row">
+                    <span>Reclamation year</span>
+                    <span>${r['year'] ?? '—'}</span>
+                </div>
+
+                <div class="popup-row">
+                    <span>Reclaimed area</span>
+                    <span>
+                        ${
+                            Number(
+                                r[
+                                    'reclamation_area_sqm'
+                                ] || 0
+                            ).toLocaleString()
+                        }
+                        sqm
+                    </span>
+                </div>
+
+            </div>
+
+        `;
+
+        positionPopup(
+            point
+        );
+
+        return;
+
+    }
+
+
+    if(!p){
+
+        hidePopup();
+
+        return;
+
+    }
+
+
+    // -------------------------------------------------
+    // Signature
+    // -------------------------------------------------
+
+    const signatureCode =
+        String(
+            ugsValue(
+                p,
+                'UGS_v01_Code'
+            ) || 'U'
+        );
+
+
+    const signature =
+        UGS_SIGNATURES[
+            signatureCode
+        ] ||
+        UGS_SIGNATURES.U;
+
+
+    const signatureName =
+        ugsValue(
+            p,
+            'UGS_v01_Signature'
+        ) ||
+        signature.name;
+
+
+    const landUse =
+        ugsValue(
+            p,
+            'Land Use (SPZ)'
+        ) ||
+        'Urban fabric';
+
+
+    const interpretation =
+        ugsInterpretation(
+            p,
+            signatureName
+        );
+
+
+    const completeness =
+        ugsValue(
+            p,
+            'UGS_v01_Data_Completeness'
+        );
+
+
+    const why =
+        ugsWhyItems(
+            p
+        );
+
+
+    // -------------------------------------------------
+    // Visual fingerprint
+    // -------------------------------------------------
+
+    const profileRows = [
+
+        ugsProfileRow(
+            'INTENSITY',
+            ugsNumber(
+                p,
+                'UGS_v01_Intensity_Pct'
+            ),
+            ugsValue(
+                p,
+                'UGS_v01_Intensity_Band'
+            ),
+            signature.colour
+        ),
+
+        ugsProfileRow(
+            'ACCESSIBILITY',
+            ugsNumber(
+                p,
+                'UGS_v01_Access_Pct'
+            ),
+            ugsValue(
+                p,
+                'UGS_v01_Access_Band'
+            ),
+            signature.colour
+        ),
+
+        ugsProfileRow(
+            'HEIGHT / FORM',
+            ugsNumber(
+                p,
+                'UGS_v01_Height_Pct'
+            ),
+            ugsValue(
+                p,
+                'UGS_v01_Height_Band'
+            ),
+            signature.colour
+        ),
+
+        ugsProfileRow(
+            'CHANGE',
+            ugsNumber(
+                p,
+                'UGS_v01_Change_Pct'
+            ),
+            ugsValue(
+                p,
+                'UGS_v01_Change_Band'
+            ),
+            signature.colour
+        ),
+
+        ugsProfileRow(
+            'AGE',
+            ugsNumber(
+                p,
+                'UGS_v01_Age_Pct'
+            ),
+            ugsValue(
+                p,
+                'UGS_v01_Building_Age_Band'
+            ),
+            signature.colour
+        )
+
+    ].join('');
+
+
+    // -------------------------------------------------
+    // Why Signature
+    // -------------------------------------------------
+
+    const whyHtml =
+        why.length
+            ? why.map(
+                item => `
+                    <div class="ugs-why-item">
+                        <strong>
+                            ${item.label}
+                        </strong>
+
+                        ${item.band
+                            ? ugsFriendlyBand(
+                                item.band
+                            )
+                            : 'not available'
+                        }
+                    </div>
+                `
+            ).join('')
+            : `
+                <div class="ugs-why-item">
+                    No strong component signal is available.
+                </div>
+            `;
+
+
+    // -------------------------------------------------
+    // Existing underlying Atlas information
+    // -------------------------------------------------
+
+    const urbanFabricSection = `
+
+        <details
+            class="ugs-detail"
+        >
+
+            <summary>
+                Urban Fabric
+            </summary>
+
+            <div class="ugs-detail-body">
+
+                <div class="popup-row">
+                    <span>Existing GFA</span>
+                    <span>
+                        ${
+                            Number(
+                                p[
+                                    'GFA - Current (Est.)'
+                                ] || 0
+                            ).toFixed(1)
+                        }
+                    </span>
+                </div>
+
+                <div class="popup-row">
+                    <span>Potential GFA</span>
+                    <span>
+                        ${
+                            Number(
+                                p[
+                                    'GFA - Potential'
+                                ] || 0
+                            ).toFixed(1)
+                        }
+                    </span>
+                </div>
+
+                <div class="popup-row">
+                    <span>Remaining GFA</span>
+                    <span>
+                        ${
+                            Number(
+                                p[
+                                    'GFA - Remaining'
+                                ] || 0
+                            ).toFixed(1)
+                        }
+                    </span>
+                </div>
+
+                <div class="popup-row">
+                    <span>GFA saturation</span>
+                    <span>
+                        ${
+                            p[
+                                'GFA - Saturation'
+                            ] == null
+                                ? '—'
+                                :
+                                (
+                                    Number(
+                                        p[
+                                            'GFA - Saturation'
+                                        ]
+                                    ) * 100
+                                ).toFixed(1) + '%'
+                        }
+                    </span>
+                </div>
+
+                <div class="popup-row">
+                    <span>Planning context</span>
+                    <span>
+                        ${
+                            p[
+                                'SPZ - Capacity Context'
+                            ] ?? '—'
+                        }
+                    </span>
+                </div>
+
+                <div class="popup-row">
+                    <span>Capacity status</span>
+                    <span>
+                        ${
+                            p[
+                                'Latent Capacity Status'
+                            ] ?? '—'
+                        }
+                    </span>
+                </div>
+
+                <div class="popup-row">
+                    <span>Living space</span>
+                    <span>
+                        ${
+                            p[
+                                'GFA per Capita'
+                            ] == null
+                                ? '—'
+                                :
+                                Number(
+                                    p[
+                                        'GFA per Capita'
+                                    ]
+                                ).toFixed(1) +
+                                ' sqm/cap'
+                        }
+                    </span>
+                </div>
+
+                <div class="popup-row">
+                    <span>Population / building</span>
+                    <span>
+                        ${
+                            p[
+                                'Population per Building'
+                            ] == null
+                                ? '—'
+                                :
+                                Number(
+                                    p[
+                                        'Population per Building'
+                                    ]
+                                ).toFixed(1)
+                        }
+                    </span>
+                </div>
+
+            </div>
+
+        </details>
+
+    `;
+
+
+    const connectivitySection = `
+
+        <details
+            class="ugs-detail"
+        >
+
+            <summary>
+                Connectivity
+            </summary>
+
+            <div class="ugs-detail-body">
+
+                <div class="popup-row">
+                    <span>MTR built</span>
+                    <span>
+                        ${
+                            p[
+                                'MTR - Index (Built)'
+                            ] == null
+                                ? '—'
+                                :
+                                Number(
+                                    p[
+                                        'MTR - Index (Built)'
+                                    ]
+                                ).toFixed(3)
+                        }
+                    </span>
+                </div>
+
+                <div class="popup-row">
+                    <span>Road connectivity</span>
+                    <span>
+                        ${
+                            p[
+                                'Road_Con_Idx'
+                            ] == null
+                                ? '—'
+                                :
+                                Number(
+                                    p[
+                                        'Road_Con_Idx'
+                                    ]
+                                ).toFixed(3)
+                        }
+                    </span>
+                </div>
+
+                <div class="popup-row">
+                    <span>Pedestrian access</span>
+                    <span>
+                        ${
+                            p[
+                                'Ped_Idx'
+                            ] == null
+                                ? '—'
+                                :
+                                Number(
+                                    p[
+                                        'Ped_Idx'
+                                    ]
+                                ).toFixed(3)
+                        }
+                    </span>
+                </div>
+
+            </div>
+
+        </details>
+
+    `;
+
+
+    const methodologySection = `
+
+        <details
+            class="ugs-detail ugs-methodology"
+        >
+
+            <summary>
+                How is the Signature calculated?
+            </summary>
+
+            <div class="ugs-detail-body">
+
+                <p>
+                    The Signature is a rule-based profile of
+                    urban condition. It combines percentile-ranked
+                    intensity, accessibility and building form
+                    with building age and a modelled change signal.
+                </p>
+
+                <p>
+                    The change signal uses Renewal Potential and
+                    Development Pressure. These modelled indicators
+                    are kept separate from observed activity such
+                    as building approvals and land deals.
+                </p>
+
+                <p>
+                    The Signature describes the condition detected
+                    by the v0.1 model. It is not a prediction of
+                    redevelopment.
+                </p>
+
+                ${
+                    p[
+                        'UGS_v01_Change_Basis'
+                    ]
+                        ? `
+                            <div class="ugs-methodology-meta">
+                                Change basis:
+                                <strong>
+                                    ${
+                                        p[
+                                            'UGS_v01_Change_Basis'
+                                        ]
+                                    }
+                                </strong>
+                            </div>
+                        `
+                        : ''
+                }
+
+                ${
+                    completeness
+                        ? `
+                            <div class="ugs-methodology-meta">
+                                Data completeness:
+                                <strong>
+                                    ${completeness}
+                                </strong>
+                            </div>
+                        `
+                        : ''
+                }
+
+            </div>
+
+        </details>
+
+    `;
+
+
+    // -------------------------------------------------
+    // Build final popup
+    // -------------------------------------------------
+
+    popup.innerHTML = `
+
+        <div
+            class="ugs-popup"
+            style="--ugs-accent:${signature.colour};"
+        >
+
+            <div class="ugs-popup-header">
+
+                <div>
+
+                    <div class="ugs-hex">
+                        HEX ${p['Hex ID'] ?? '—'}
+                    </div>
+
+                    <div class="ugs-landuse">
+                        ${landUse}
+                    </div>
+
+                </div>
+
+                <div
+                    class="ugs-signature-code"
+                    style="
+                        border-color:${signature.colour};
+                        color:${signature.colour};
+                    "
+                >
+                    ${signatureCode}
+                </div>
+
+            </div>
+
+
+            <div class="ugs-kicker">
+                URBAN GENETIC SIGNATURE
+            </div>
+
+
+            <div
+                class="ugs-signature-name"
+                style="
+                    color:${signature.colour};
+                "
+            >
+                ${signatureName}
+            </div>
+
+
+            <div class="ugs-signature-description">
+                ${signature.description}
+            </div>
+
+
+            <div class="ugs-profile">
+
+                ${profileRows}
+
+            </div>
+
+
+            <div class="ugs-section">
+
+                <div class="ugs-section-title">
+                    WHY THIS SIGNATURE?
+                </div>
+
+                <div class="ugs-why-list">
+                    ${whyHtml}
+                </div>
+
+                <p class="ugs-interpretation">
+                    ${interpretation}
+                </p>
+
+            </div>
+
+
+            ${ugsActivitySection(p)}
+
+
+            ${r ? `
+
+                <div class="ugs-section">
+
+                    <div class="ugs-section-title">
+                        RECLAIMED LAND
+                    </div>
+
+                    <div class="popup-row">
+                        <span>Reclamation year</span>
+                        <span>
+                            ${r['year'] ?? '—'}
+                        </span>
+                    </div>
+
+                    <div class="popup-row">
+                        <span>Reclaimed area</span>
+                        <span>
+                            ${
+                                Number(
+                                    r[
+                                        'reclamation_area_sqm'
+                                    ] || 0
+                                ).toLocaleString()
+                            }
+                            sqm
+                        </span>
+                    </div>
+
+                </div>
+
+            ` : ''}
+
+
+            <div class="ugs-section">
+
+                <div class="ugs-section-title">
+                    UNDERLYING DATA
+                </div>
+
+                ${urbanFabricSection}
+
+                ${connectivitySection}
+
+                ${methodologySection}
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    positionPopup(
+        point
+    );
+
+}
 
 // =====================================================
 // UNIFIED MAP CLICK HANDLER
@@ -4799,6 +5704,7 @@ themeSelect.addEventListener(
     'change',
     () => {
 
+        hidePopup();
 
         // Changing the analysis theme automatically
         // re-enables Urban Analysis.
