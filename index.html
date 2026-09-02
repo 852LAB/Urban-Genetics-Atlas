@@ -317,6 +317,16 @@
 
             <select id="theme">
 
+            <optgroup label="Urban Genetic Signature">
+
+                <option value="Urban Genetic Signature">
+                    Urban Genetic Signature - UGS.1.0
+                </option>
+
+            </optgroup>
+
+            <optgroup label="Urban Analysis">
+
                 <option value="Development Pressure">
                     Development Pressure
                 </option>
@@ -349,9 +359,7 @@
                     Latent Urban Capacity
                 </option>
 
-                <option value="Urban Genetic Signature">
-                    Urban Genetic Signature
-                </option>
+            </optgroup>
 
             </select>
 
@@ -1241,7 +1249,190 @@ FABRIC BODY
 
             </div>
 
+            <!-- =================================================
+            BUILDING HEIGHT MODULE
+            ================================================= -->
 
+            <div
+                class="fabric-module"
+                id="buildingHeightModule"
+            >
+
+                <div class="fabric-module-header">
+
+                    <div class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="buildingHeightToggle"
+                        >
+
+                        <button
+                            type="button"
+                            class="fabric-module-label"
+                            data-module="buildingHeightModule"
+                            aria-expanded="false"
+                        >
+                            <span>Building Height</span>
+                        </button>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="module-chevron"
+                        data-module="buildingHeightModule"
+                        aria-expanded="false"
+                        aria-label="Expand Building Height"
+                    >
+                        ▸
+                    </button>
+
+                </div>
+
+
+                <div class="fabric-module-content">
+
+                    <div class="fabric-control-title">
+                        MEAN BUILDING HEIGHT
+                    </div>
+
+                    <div class="building-height-value">
+
+                        <span>
+                            Minimum mean height:
+                        </span>
+
+                        <strong id="building-height-value">
+                            10 m
+                        </strong>
+
+                    </div>
+
+                    <input
+                        type="range"
+                        id="building-height-threshold"
+                        min="0"
+                        max="500"
+                        step="10"
+                        value="50"
+                    >
+
+                    <div class="fabric-module-description">
+                        Shows hex cells where the mean building height
+                        reaches the selected threshold.
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- =================================================
+                ROADS MODULE
+                ================================================= -->
+
+            <div
+                class="fabric-module"
+                id="roadsModule"
+            >
+
+                <div class="fabric-module-header">
+
+                    <div class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="roadsToggle"
+                            checked
+                        >
+
+                        <button
+                            type="button"
+                            class="fabric-module-label"
+                            data-module="roadsModule"
+                            aria-expanded="false"
+                        >
+                            <span>Roads</span>
+                        </button>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="module-chevron"
+                        data-module="roadsModule"
+                        aria-expanded="false"
+                        aria-label="Expand Roads"
+                    >
+                        ▸
+                    </button>
+
+                </div>
+
+
+                <div class="fabric-module-content">
+
+                    <div class="fabric-control-title">
+                        ROAD EMPHASIS
+                    </div>
+
+
+                    <label class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="roadHighwayToggle"
+                            checked
+                        >
+
+                        <span>
+                            Highway
+                        </span>
+
+                    </label>
+
+
+                    <label class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="roadMainToggle"
+                            checked
+                        >
+
+                        <span>
+                            Main
+                        </span>
+
+                    </label>
+
+
+                    <label class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="roadSecondaryToggle"
+                            checked
+                        >
+
+                        <span>
+                            Secondary
+                        </span>
+
+                    </label>
+
+
+                    <div class="fabric-module-description">
+
+                        Highway uses motorway roads. Main includes trunk
+                        and primary roads. Secondary includes secondary roads.
+                        Local and service roads remain unchanged.
+
+                    </div>
+
+                </div>
+
+            </div>
         </div>
 
     </section>

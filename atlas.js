@@ -319,6 +319,46 @@ const heritageLegend =
 const mtrColourToggle =
     document.getElementById('mtrColourToggle');
 
+// -----------------------------------------------------
+// Urban Fabric — Building Height
+// -----------------------------------------------------
+
+const buildingHeightModule =
+    document.getElementById('buildingHeightModule');
+
+const buildingHeightToggle =
+    document.getElementById('buildingHeightToggle');
+
+const buildingHeightThreshold =
+    document.getElementById(
+        'building-height-threshold'
+    );
+
+const buildingHeightValue =
+    document.getElementById(
+        'building-height-value'
+    );
+
+
+// -----------------------------------------------------
+// Urban Fabric — Roads
+// -----------------------------------------------------
+
+const roadsModule =
+    document.getElementById('roadsModule');
+
+const roadsToggle =
+    document.getElementById('roadsToggle');
+
+const roadHighwayToggle =
+    document.getElementById('roadHighwayToggle');
+
+const roadMainToggle =
+    document.getElementById('roadMainToggle');
+
+const roadSecondaryToggle =
+    document.getElementById('roadSecondaryToggle');
+
 
 // -----------------------------------------------------
 // Atlas initialisation
@@ -815,6 +855,101 @@ function setFabricMaster(enabled){
 
 }
 
+// -----------------------------------------------------
+// Road layer groups
+//
+// Uses the existing Carto basemap layers already present
+// in the Atlas. No new road dataset is required.
+// -----------------------------------------------------
+
+const ROAD_LAYER_GROUPS = {
+
+    highway: [
+
+        'road_mot_fill_ramp',
+        'road_mot_case_ramp',
+
+        'road_mot_fill_noramp',
+        'road_mot_case_noramp'
+
+    ],
+
+    main: [
+
+        'road_trunk_fill_ramp',
+        'road_trunk_case_ramp',
+
+        'road_trunk_fill_noramp',
+        'road_trunk_case_noramp',
+
+        'road_pri_fill_ramp',
+        'road_pri_case_ramp',
+
+        'road_pri_fill_noramp',
+        'road_pri_case_noramp'
+
+    ],
+
+    secondary: [
+
+        'road_sec_fill_noramp',
+        'road_sec_case_noramp'
+
+    ]
+
+};
+
+
+// -----------------------------------------------------
+// Apply road visibility
+// -----------------------------------------------------
+
+function updateRoadVisibility(){
+
+    const visible =
+        fabricToggle.checked &&
+        roadsToggle.checked;
+
+
+    ROAD_LAYER_GROUPS.highway.forEach(
+        layerId => {
+
+            setLayerVisibility(
+                layerId,
+                visible &&
+                roadHighwayToggle.checked
+            );
+
+        }
+    );
+
+
+    ROAD_LAYER_GROUPS.main.forEach(
+        layerId => {
+
+            setLayerVisibility(
+                layerId,
+                visible &&
+                roadMainToggle.checked
+            );
+
+        }
+    );
+
+
+    ROAD_LAYER_GROUPS.secondary.forEach(
+        layerId => {
+
+            setLayerVisibility(
+                layerId,
+                visible &&
+                roadSecondaryToggle.checked
+            );
+
+        }
+    );
+
+}
 
 function updateFabricVisibility(){
 
@@ -852,6 +987,11 @@ function updateFabricVisibility(){
         {
             layer:'mtr',
             toggle:mtrToggle
+        },
+
+        {
+            layer:'buildingHeight',
+            toggle:buildingHeightToggle
         }
 
     ];
@@ -868,6 +1008,42 @@ function updateFabricVisibility(){
 
         }
     );
+
+    // -------------------------------------------------
+    // Roads — control all MapLibre road rendering layers
+    // as one Urban Fabric system.
+    // -------------------------------------------------
+
+    const roadsEnabled =
+        fabricToggle.checked &&
+        roadSecondaryToggle.checked;
+
+
+    const roadLayers =
+        map.getStyle().layers
+            .map(
+                layer =>
+                    layer.id
+            )
+            .filter(
+                id =>
+                    id.startsWith('road_')
+            );
+
+
+    roadLayers.forEach(
+        layerId => {
+
+            setLayerVisibility(
+                layerId,
+                roadsEnabled
+            );
+
+        }
+    );
+
+
+    updateRoadVisibility();
 
 }
 
@@ -1048,9 +1224,8 @@ function collapseFabricModule(module){
 // Initial Fabric Module State
 // -----------------------------------------------------
 
-expandFabricModule(
+collapseFabricModule(
     terrainModule,
-    false
 );
 
 // -----------------------------------------------------
@@ -1557,7 +1732,7 @@ const LEGENDS = {
 
     'Urban Genetic Signature': {
 
-        title:'Urban Genetic Signature',
+        title:'Urban Genetic Signature - UGS.1.0',
 
         description:
             'A categorical reading of urban condition, combining intensity, accessibility, height, age and modelled change signals. The Signature describes observed urban condition; it is not a prediction.',
@@ -2804,6 +2979,8 @@ function drawAtlas(){
 
 const PLANNING_CONTEXT_ANALYSES = [
 
+    'Urban Genetic Signature',
+
     'Development Pressure',
 
     'GFA - Saturation',
@@ -3872,6 +4049,134 @@ perfMark('All sources registered');
 
     drawAtlas();
 
+// =====================================================
+// BUILDING HEIGHT
+// =====================================================
+
+    map.addLayer({
+
+        id:'buildingHeight',
+
+        type:'fill',
+
+        source:'atlas',
+
+        'source-layer':
+            ATLAS_SOURCE_LAYER,
+
+        layout:{
+            visibility:'none'
+        },
+
+        paint:{
+
+            'fill-color': [
+
+    'case',
+
+    [
+        '<=',
+        [
+            'coalesce',
+            [
+                'to-number',
+                [
+                    'get',
+                    'Building Height_mean'
+                ]
+            ],
+            0
+        ],
+        0
+    ],
+
+    'rgba(0,0,0,0)',
+
+    [
+        'interpolate',
+
+        ['linear'],
+
+        [
+            'to-number',
+            [
+                'get',
+                'Building Height_mean'
+            ]
+        ],
+
+        10,
+        'rgba(127, 182, 236, 0.28)',
+
+        20,
+        'rgba(112, 174, 228, 0.32)',
+
+        30,
+        'rgba(99, 165, 216, 0.36)',
+
+        40,
+        'rgba(96, 162, 206, 0.4)',
+
+        50,
+        'rgba(89, 156, 197, 0.44)',
+
+        75,
+        'rgba(86, 147, 185, 0.48)',
+
+        100,
+        'rgba(71, 100, 153, 0.52)',
+
+        150,
+        'rgba(70, 65, 134, 0.56)',
+
+        200,
+        'rgba(91,117,136,0.60)',
+
+        250,
+        'rgba(72, 55, 117, 0.64)',
+
+        400,
+        'rgba(53, 35, 83, 0.68)',
+
+        500,
+        'rgba(93, 45, 121, 0.72)'
+    ]
+
+],
+
+            'fill-outline-color':
+                'rgba(55,65,81,0.12)',
+
+            'fill-opacity':0.80
+
+        },
+
+        filter:[
+
+            '>=',
+
+            [
+
+                'coalesce',
+
+                [
+                    'to-number',
+                    [
+                        'get',
+                        'Building Height_mean'
+                    ]
+                ],
+
+                0
+
+            ],
+
+            30
+
+        ]
+
+    });
+
 
 // =====================================================
 // MTR NETWORK
@@ -4337,6 +4642,8 @@ function hidePopup(){
     popup.style.pointerEvents =
         '';
 
+    popupAnchorPoint = null;
+
 }
 
 // =====================================================
@@ -4449,7 +4756,11 @@ function ugsProfileRow(
             </div>
 
             <div class="ugs-profile-value">
-                ${ugsFriendlyBand(band)}
+                ${
+                    band
+                        ? ugsFriendlyBand(band)
+                        : ''
+                }
             </div>
 
         </div>
@@ -4458,92 +4769,254 @@ function ugsProfileRow(
 
 }
 
-
-function ugsWhyItems(
-    properties
+function ugsIndexProfileRow(
+    label,
+    value,
+    maxValue,
+    accent,
+    formatter
 ){
 
-    const candidates = [
+    if(
+        value === null ||
+        value === undefined ||
+        !Number.isFinite(Number(value))
+    ){
 
-        {
-            label:'Intensity',
-            pct:ugsNumber(
-                properties,
-                'UGS_v01_Intensity_Pct'
-            ),
-            band:ugsValue(
-                properties,
-                'UGS_v01_Intensity_Band'
+        return '';
+
+    }
+
+
+    const numericValue =
+        Number(value);
+
+
+    const numericMax =
+        Number(maxValue);
+
+
+    if(
+        !Number.isFinite(numericMax) ||
+        numericMax <= 0
+    ){
+
+        return '';
+
+    }
+
+
+    const percentage =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                numericValue /
+                numericMax *
+                100
             )
-        },
-
-        {
-            label:'Accessibility',
-            pct:ugsNumber(
-                properties,
-                'UGS_v01_Access_Pct'
-            ),
-            band:ugsValue(
-                properties,
-                'UGS_v01_Access_Band'
-            )
-        },
-
-        {
-            label:'Height / Form',
-            pct:ugsNumber(
-                properties,
-                'UGS_v01_Height_Pct'
-            ),
-            band:ugsValue(
-                properties,
-                'UGS_v01_Height_Band'
-            )
-        },
-
-        {
-            label:'Change',
-            pct:ugsNumber(
-                properties,
-                'UGS_v01_Change_Pct'
-            ),
-            band:ugsValue(
-                properties,
-                'UGS_v01_Change_Band'
-            )
-        },
-
-        {
-            label:'Age',
-            pct:ugsNumber(
-                properties,
-                'UGS_v01_Age_Pct'
-            ),
-            band:ugsValue(
-                properties,
-                'UGS_v01_Building_Age_Band'
-            )
-        }
-
-    ];
+        );
 
 
-    return candidates
+    const displayValue =
+        formatter
+            ? formatter(numericValue)
+            : numericValue.toFixed(3);
+
+
+    return `
+
+        <div class="ugs-profile-row">
+
+            <div class="ugs-profile-label">
+                ${label}
+            </div>
+
+            <div class="ugs-profile-track">
+
+                <div
+                    class="ugs-profile-fill"
+                    style="
+                        width:${percentage}%;
+                        background:${accent};
+                    "
+                ></div>
+
+            </div>
+
+            <div class="ugs-profile-value">
+                ${displayValue}
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+function ugsWhyItems(
+    properties,
+    signatureCode
+){
+
+    const definitions = {
+
+        TC: [
+
+            {
+                label:'Intensity',
+                field:'UGS_v01_Intensity_Band'
+            },
+
+            {
+                label:'Change',
+                field:'UGS_v01_Change_Band'
+            },
+
+            {
+                label:'Height / Form',
+                field:'UGS_v01_Height_Band'
+            }
+
+        ],
+
+        EC: [
+
+            {
+                label:'Intensity',
+                field:'UGS_v01_Intensity_Band'
+            },
+
+            {
+                label:'Change',
+                field:'UGS_v01_Change_Band'
+            },
+
+            {
+                label:'Accessibility',
+                field:'UGS_v01_Access_Band'
+            }
+
+        ],
+
+        AT: [
+
+            {
+                label:'Building age',
+                field:'UGS_v01_Age_Band'
+            },
+
+            {
+                label:'Change',
+                field:'UGS_v01_Change_Band'
+            },
+
+            {
+                label:'Intensity',
+                field:'UGS_v01_Intensity_Band'
+            }
+
+        ],
+
+        VM: [
+
+            {
+                label:'Intensity',
+                field:'UGS_v01_Intensity_Band'
+            },
+
+            {
+                label:'Height / Form',
+                field:'UGS_v01_Height_Band'
+            },
+
+            {
+                label:'Change',
+                field:'UGS_v01_Change_Band'
+            }
+
+        ],
+
+        LF: [
+
+            {
+                label:'Building age',
+                field:'UGS_v01_Age_Band'
+            },
+
+            {
+                label:'Change',
+                field:'UGS_v01_Change_Band'
+            }
+
+        ],
+
+        CF: [
+
+            {
+                label:'Accessibility',
+                field:'UGS_v01_Access_Band'
+            },
+
+            {
+                label:'Change',
+                field:'UGS_v01_Change_Band'
+            },
+
+            {
+                label:'Intensity',
+                field:'UGS_v01_Intensity_Band'
+            }
+
+        ],
+
+        SF: [],
+
+        C: [
+
+            {
+                label:'Planning context',
+                field:'SPZ - Capacity Context'
+            }
+
+        ],
+
+        U: [
+
+            {
+                label:'Data confidence',
+                field:'UGS_v01_Data_Confidence'
+            }
+
+        ]
+
+    };
+
+
+    return (
+
+        definitions[
+            signatureCode
+        ] || []
+
+    )
+
+        .map(
+            item => ({
+
+                label:item.label,
+
+                band:ugsValue(
+                    properties,
+                    item.field
+                )
+
+            })
+        )
 
         .filter(
             item =>
-                item.pct !== null &&
-                item.pct !== undefined
-        )
-
-        .sort(
-            (a,b) =>
-                b.pct - a.pct
-        )
-
-        .slice(
-            0,
-            4
+                item.band !== null
         );
 
 }
@@ -4554,14 +5027,12 @@ function ugsInterpretation(
     signature
 ){
 
-    const traits = [];
-
-
     const intensity =
         ugsValue(
             properties,
             'UGS_v01_Intensity_Band'
         );
+
 
     const height =
         ugsValue(
@@ -4569,11 +5040,13 @@ function ugsInterpretation(
             'UGS_v01_Height_Band'
         );
 
+
     const access =
         ugsValue(
             properties,
             'UGS_v01_Access_Band'
         );
+
 
     const change =
         ugsValue(
@@ -4581,85 +5054,191 @@ function ugsInterpretation(
             'UGS_v01_Change_Band'
         );
 
+
     const age =
         ugsValue(
             properties,
-            'UGS_v01_Building_Age_Band'
+            'UGS_v01_Age_Band'
         );
 
 
-    if(intensity){
+    switch(signature){
 
-        traits.push(
-            `${ugsFriendlyBand(intensity)} intensity`
-        );
+        case 'CONSTRAINED':
+
+            return (
+                'This location falls within a constrained ' +
+                'or non-urban planning context and is treated ' +
+                'separately from the normal urban genetic types.'
+            );
+
+
+        case 'UNASSESSED':
+
+            return (
+                'There is not enough meaningful analytical ' +
+                'context here to assign a normal urban genetic type.'
+            );
+
+
+        case 'TRANSFORMING CORE':
+
+            return (
+                'This hex combines ' +
+                `${ugsFriendlyBand(intensity) || 'high'} intensity ` +
+                'with a ' +
+                `${ugsFriendlyBand(change) || 'strong'} change signal` +
+                (
+                    height
+                        ? ` and ${ugsFriendlyBand(height)} vertical form.`
+                        : '.'
+                )
+            );
+
+
+        case 'EMERGING CHANGE':
+
+            return (
+                'This is a relatively ' +
+                `${ugsFriendlyBand(intensity) || 'lower-intensity'} ` +
+                'urban area showing a ' +
+                `${ugsFriendlyBand(change) || 'strong'} change signal.`
+            );
+
+
+        case 'AGEING TRANSITION':
+
+            return (
+                'This hex combines ' +
+                `${ugsFriendlyBand(age) || 'older'} building fabric ` +
+                'with a ' +
+                `${ugsFriendlyBand(change) || 'strong'} change signal. ` +
+                'The Signature describes this combination of conditions; ' +
+                'it does not predict redevelopment.'
+            );
+
+
+        case 'VERTICAL MATURE':
+
+            return (
+                'This hex combines ' +
+                `${ugsFriendlyBand(intensity) || 'high'} intensity ` +
+                'with ' +
+                `${ugsFriendlyBand(height) || 'high'} vertical form ` +
+                'without an exceptionally high change signal.'
+            );
+
+
+        case 'LEGACY FABRIC':
+
+            return (
+                'This hex contains ' +
+                `${ugsFriendlyBand(age) || 'older'} established urban fabric ` +
+                'without an exceptional change signal.'
+            );
+
+
+        case 'CONNECTED FABRIC':
+
+            return (
+                'This hex has ' +
+                `${ugsFriendlyBand(access) || 'high'} accessibility ` +
+                'without an exceptional change signal.'
+            );
+
+
+        case 'STABLE FABRIC':
+
+            return (
+                'No exceptional v0.1 combination was detected here. ' +
+                'The Signature describes the available urban condition ' +
+                'rather than implying permanent stability.'
+            );
+
+
+        default:
+
+            return (
+                'The available indicators describe a distinct combination ' +
+                'of urban conditions within the v0.1 Signature model.'
+            );
 
     }
-
-
-    if(change){
-
-        traits.push(
-            `${ugsFriendlyBand(change)} change signal`
-        );
-
-    }
-
-
-    if(height){
-
-        traits.push(
-            `${ugsFriendlyBand(height)} vertical form`
-        );
-
-    }
-
-
-    if(access){
-
-        traits.push(
-            `${ugsFriendlyBand(access)} accessibility`
-        );
-
-    }
-
-
-    if(age){
-
-        traits.push(
-            `${ugsFriendlyBand(age)} building age`
-        );
-
-    }
-
-
-    if(signature === 'CONSTRAINED'){
-
-        return 'This location falls within a constrained or non-urban planning context and is treated separately from the normal urban genetic types.';
-
-    }
-
-
-    if(signature === 'UNASSESSED'){
-
-        return 'There is not enough meaningful analytical context here to assign a normal urban genetic type.';
-
-    }
-
-
-    if(traits.length === 0){
-
-        return 'The available indicators do not provide enough information for a more detailed interpretation.';
-
-    }
-
-
-    return `This hex combines ${traits
-        .slice(0,3)
-        .join(', ')}.`;
 
 }
 
+// =====================================================
+// UGS CONNECTIVITY HELPERS
+// =====================================================
+
+function ugsConnectivityBar(
+    label,
+    value,
+    maxValue,
+    displayValue,
+    accent
+){
+
+    if(
+        value === null ||
+        value === undefined ||
+        !Number.isFinite(Number(value))
+    ){
+
+        return '';
+
+    }
+
+
+    const numericValue =
+        Math.max(
+            0,
+            Number(value)
+        );
+
+
+    const width =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                (
+                    numericValue /
+                    maxValue
+                ) * 100
+            )
+        );
+
+
+    return `
+
+        <div class="ugs-connectivity-row">
+
+            <div class="ugs-connectivity-label">
+                ${label}
+            </div>
+
+            <div class="ugs-connectivity-track">
+
+                <div
+                    class="ugs-connectivity-fill"
+                    style="
+                        width:${width}%;
+                        background:${accent};
+                    "
+                ></div>
+
+            </div>
+
+            <div class="ugs-connectivity-value">
+                ${displayValue}
+            </div>
+
+        </div>
+
+    `;
+
+}
 
 function ugsActivitySection(
     properties
@@ -4668,63 +5247,20 @@ function ugsActivitySection(
     const approvalYear =
         ugsNumber(
             properties,
-            'UGS_v01_Latest_Approval_Year'
+            'BLDG-APPR_YEAR'
         );
 
-    const approvalFlag =
-        ugsValue(
-            properties,
-            'UGS_v01_Recent_Approval_Flag'
-        );
 
     const landDealYear =
         ugsNumber(
             properties,
-            'UGS_v01_Latest_Land_Deal_Year'
-        );
-
-    const landDealFlag =
-        ugsValue(
-            properties,
-            'UGS_v01_Recent_Land_Deal_Flag'
-        );
-
-    const evidence =
-        ugsValue(
-            properties,
-            'UGS_v01_Observed_Change_Evidence'
+            'LAND-DEAL_YEAR'
         );
 
 
-    const approvalValue =
-        approvalYear !== null
-            ? `${approvalYear}${approvalFlag === 'YES' ? ' · recent' : ''}`
-            : '—';
-
-
-    const landDealValue =
-        landDealYear !== null
-            ? `${landDealYear}${landDealFlag === 'YES' ? ' · recent' : ''}`
-            : '—';
-
-
-    let evidenceText =
-        'No recent activity recorded.';
-
-
-    if(evidence){
-
-        evidenceText =
-            String(
-                evidence
-            )
-            .toLowerCase()
-            .replace(
-                /recent /g,
-                'Recent '
-            );
-
-    }
+    const hasActivity =
+        approvalYear !== null ||
+        landDealYear !== null;
 
 
     return `
@@ -4732,22 +5268,53 @@ function ugsActivitySection(
         <div class="ugs-section">
 
             <div class="ugs-section-title">
-                RECENT ACTIVITY
+                OBSERVED ACTIVITY
             </div>
 
             <div class="popup-row">
-                <span>Latest building approval</span>
-                <span>${approvalValue}</span>
+
+                <span>
+                    Building approval
+                </span>
+
+                <span>
+                    ${
+                        approvalYear !== null
+                            ? approvalYear
+                            : '—'
+                    }
+                </span>
+
             </div>
+
 
             <div class="popup-row">
-                <span>Latest land deal</span>
-                <span>${landDealValue}</span>
+
+                <span>
+                    Land deal
+                </span>
+
+                <span>
+                    ${
+                        landDealYear !== null
+                            ? landDealYear
+                            : '—'
+                    }
+                </span>
+
             </div>
 
-            <div class="ugs-activity-note">
-                ${evidenceText}
-            </div>
+
+            ${
+                hasActivity
+                    ? ''
+                    : `
+                        <div class="ugs-activity-note">
+                            No observed activity is recorded in
+                            the available hex attributes.
+                        </div>
+                    `
+            }
 
         </div>
 
@@ -4759,19 +5326,38 @@ function ugsActivitySection(
 // POPUP POSITIONING
 // =====================================================
 
-function positionPopup(point){
+function popupRectsOverlap(
+    a,
+    b
+){
 
-    popup.scrollTop = 0;
-
-    popup.style.visibility =
-        'hidden';
-
-    popup.style.display =
-        'block';
-
-    popup.classList.add(
-        'visible'
+    return !(
+        a.right <= b.left ||
+        a.left >= b.right ||
+        a.bottom <= b.top ||
+        a.top >= b.bottom
     );
+
+}
+
+let popupAnchorPoint = null;
+
+let popupResizeObserver = null;
+
+let popupResizeFrame = null;
+
+// =====================================================
+// POPUP POSITIONING
+// =====================================================
+
+function repositionPopup(){
+
+    if(
+        !popupAnchorPoint ||
+        !popup.classList.contains('visible')
+    ){
+        return;
+    }
 
 
     const mobilePopup =
@@ -4779,6 +5365,10 @@ function positionPopup(point){
             '(max-width:900px)'
         ).matches;
 
+
+    // -------------------------------------------------
+    // Mobile
+    // -------------------------------------------------
 
     if(mobilePopup){
 
@@ -4826,6 +5416,10 @@ function positionPopup(point){
     }
 
 
+    // -------------------------------------------------
+    // Desktop
+    // -------------------------------------------------
+
     popup.style.position =
         'absolute';
 
@@ -4848,13 +5442,16 @@ function positionPopup(point){
         '';
 
     popup.style.overflowY =
-        '';
+        'auto';
 
     popup.style.pointerEvents =
         'auto';
 
 
     const offset = 18;
+
+    const screenMargin = 24;
+
 
     const popupWidth =
         popup.offsetWidth;
@@ -4864,50 +5461,82 @@ function positionPopup(point){
 
 
     let left =
-        point.x + offset;
+        popupAnchorPoint.x + offset;
 
     let top =
-        point.y - 18;
+        popupAnchorPoint.y - 18;
 
+
+    // -------------------------------------------------
+    // Horizontal positioning
+    // -------------------------------------------------
 
     if(
         left + popupWidth >
-        window.innerWidth - 24
+        window.innerWidth - screenMargin
     ){
 
         left =
-            point.x -
+            popupAnchorPoint.x -
             popupWidth -
             offset;
 
     }
 
 
+    if(left < screenMargin){
+
+        left =
+            screenMargin;
+
+    }
+
+
+    // -------------------------------------------------
+    // Vertical positioning
+    //
+    // Prefer above the click point when necessary.
+    // -------------------------------------------------
+
     if(
         top + popupHeight >
-        window.innerHeight - 24
+        window.innerHeight - screenMargin
     ){
 
         top =
-            point.y -
+            popupAnchorPoint.y -
             popupHeight -
             offset;
 
     }
 
 
-    if(top < 24){
+    // -------------------------------------------------
+    // Final hard screen bounds
+    // -------------------------------------------------
 
-        top = 24;
+    top =
+        Math.max(
+            screenMargin,
+            Math.min(
+                top,
+                window.innerHeight -
+                popupHeight -
+                screenMargin
+            )
+        );
 
-    }
 
-
-    if(left < 24){
-
-        left = 24;
-
-    }
+    left =
+        Math.max(
+            screenMargin,
+            Math.min(
+                left,
+                window.innerWidth -
+                popupWidth -
+                screenMargin
+            )
+        );
 
 
     popup.style.left =
@@ -4918,6 +5547,63 @@ function positionPopup(point){
 
     popup.style.visibility =
         'visible';
+
+}
+
+
+function positionPopup(point){
+
+    popupAnchorPoint = {
+        x:point.x,
+        y:point.y
+    };
+
+
+    popup.scrollTop = 0;
+
+
+    popup.style.visibility =
+        'hidden';
+
+    popup.style.display =
+        'block';
+
+    popup.classList.add(
+        'visible'
+    );
+
+
+    repositionPopup();
+
+
+    // -------------------------------------------------
+    // Watch for expandable popup content changing
+    // the popup's height.
+    // -------------------------------------------------
+
+    if(!popupResizeObserver){
+
+        popupResizeObserver =
+            new ResizeObserver(
+                () => {
+
+                    cancelAnimationFrame(
+                        popupResizeFrame
+                    );
+
+                    popupResizeFrame =
+                        requestAnimationFrame(
+                            repositionPopup
+                        );
+
+                }
+            );
+
+        popupResizeObserver.observe(
+            popup
+        );
+
+    }
 
 }
 
@@ -5052,16 +5738,17 @@ function showPopup(
         );
 
 
-    const completeness =
+    const dataConfidence =
         ugsValue(
             p,
-            'UGS_v01_Data_Completeness'
+            'UGS_v01_Data_Confidence'
         );
 
 
     const why =
         ugsWhyItems(
-            p
+            p,
+            signatureCode
         );
 
 
@@ -5309,6 +5996,59 @@ function showPopup(
     `;
 
 
+    const pedestrianIndex =
+        ugsNumber(
+            p,
+            'Pedestrian - Index'
+        );
+
+
+    const roadConnectivityIndex =
+        ugsNumber(
+            p,
+            'Road - Connectivity Index'
+        );
+
+
+    const mtrBuiltIndex =
+        ugsNumber(
+            p,
+            'MTR - Index (Built)'
+        );
+
+
+    const connectivityRows = [
+
+        ugsIndexProfileRow(
+            'Pedestrian',
+            pedestrianIndex,
+            1,
+            signature.colour,
+            value =>
+                `${(value * 100).toFixed(0)}%`
+        ),
+
+        ugsIndexProfileRow(
+            'Road',
+            roadConnectivityIndex,
+            1,
+            signature.colour,
+            value =>
+                `${(value * 100).toFixed(0)}%`
+        ),
+
+        ugsIndexProfileRow(
+            'MTR built',
+            mtrBuiltIndex,
+            7,
+            signature.colour,
+            value =>
+                value.toFixed(3)
+        )
+
+    ].join('');
+
+
     const connectivitySection = `
 
         <details
@@ -5321,59 +6061,15 @@ function showPopup(
 
             <div class="ugs-detail-body">
 
-                <div class="popup-row">
-                    <span>MTR built</span>
-                    <span>
-                        ${
-                            p[
-                                'MTR - Index (Built)'
-                            ] == null
-                                ? '—'
-                                :
-                                Number(
-                                    p[
-                                        'MTR - Index (Built)'
-                                    ]
-                                ).toFixed(3)
-                        }
-                    </span>
-                </div>
-
-                <div class="popup-row">
-                    <span>Road connectivity</span>
-                    <span>
-                        ${
-                            p[
-                                'Road_Con_Idx'
-                            ] == null
-                                ? '—'
-                                :
-                                Number(
-                                    p[
-                                        'Road_Con_Idx'
-                                    ]
-                                ).toFixed(3)
-                        }
-                    </span>
-                </div>
-
-                <div class="popup-row">
-                    <span>Pedestrian access</span>
-                    <span>
-                        ${
-                            p[
-                                'Ped_Idx'
-                            ] == null
-                                ? '—'
-                                :
-                                Number(
-                                    p[
-                                        'Ped_Idx'
-                                    ]
-                                ).toFixed(3)
-                        }
-                    </span>
-                </div>
+                ${
+                    connectivityRows ||
+                    `
+                        <div class="popup-row">
+                            <span>Connectivity</span>
+                            <span>Not available</span>
+                        </div>
+                    `
+                }
 
             </div>
 
@@ -5415,31 +6111,55 @@ function showPopup(
                 </p>
 
                 ${
-                    p[
-                        'UGS_v01_Change_Basis'
-                    ]
+                    ugsNumber(
+                        p,
+                        'UGS_v01_Renewal_Pct'
+                    ) !== null
                         ? `
-                            <div class="ugs-methodology-meta">
-                                Change basis:
-                                <strong>
+                            <div class="popup-row">
+                                <span>Renewal signal</span>
+                                <span>
                                     ${
-                                        p[
-                                            'UGS_v01_Change_Basis'
-                                        ]
-                                    }
-                                </strong>
+                                        ugsNumber(
+                                            p,
+                                            'UGS_v01_Renewal_Pct'
+                                        ).toFixed(0)
+                                    }%
+                                </span>
+                            </div>
+                        `
+                        : ''
+                }
+
+
+                ${
+                    ugsNumber(
+                        p,
+                        'UGS_v01_Pressure_Pct'
+                    ) !== null
+                        ? `
+                            <div class="popup-row">
+                                <span>Pressure signal</span>
+                                <span>
+                                    ${
+                                        ugsNumber(
+                                            p,
+                                            'UGS_v01_Pressure_Pct'
+                                        ).toFixed(0)
+                                    }%
+                                </span>
                             </div>
                         `
                         : ''
                 }
 
                 ${
-                    completeness
-                        ? `
-                            <div class="ugs-methodology-meta">
-                                Data completeness:
+                dataConfidence
+                ? `
+                    <div class="ugs-methodology-meta">
+                                Data confidence:
                                 <strong>
-                                    ${completeness}
+                                    ${dataConfidence}
                                 </strong>
                             </div>
                         `
@@ -6106,7 +6826,256 @@ document
         );
 
     });
-    
+
+// =====================================================
+// URBAN FABRIC — BUILDING HEIGHT
+// =====================================================
+
+
+// -----------------------------------------------------
+// Building Height Filter
+// -----------------------------------------------------
+
+function updateBuildingHeightFilter(){
+
+    if(!map.getLayer('buildingHeight')){
+
+        return;
+
+    }
+
+
+    const threshold =
+        Number(
+            buildingHeightThreshold.value
+        );
+
+
+    // Update displayed threshold
+
+    buildingHeightValue.textContent =
+        threshold >= 500
+            ? '500+ m'
+            : `${threshold} m`;
+
+
+    map.setFilter(
+
+        'buildingHeight',
+
+        [
+
+            '<=',
+
+            [
+
+                'coalesce',
+
+                [
+                    'to-number',
+
+                    [
+                        'get',
+                        'Building Height_mean'
+                    ]
+
+                ],
+
+                0
+
+            ],
+
+            threshold
+
+        ]
+
+    );
+
+}
+
+
+// -----------------------------------------------------
+// Building Height toggle
+// -----------------------------------------------------
+
+buildingHeightToggle.addEventListener(
+    'change',
+    () => {
+
+        setLayerVisibility(
+            'buildingHeight',
+            buildingHeightToggle.checked &&
+            fabricToggle.checked
+        );
+
+
+        if(buildingHeightToggle.checked){
+
+            expandFabricModule(
+                buildingHeightModule
+            );
+
+            updateBuildingHeightFilter();
+
+        } else {
+
+            collapseFabricModule(
+                buildingHeightModule
+            );
+
+        }
+
+    }
+);
+
+
+// -----------------------------------------------------
+// Building Height slider
+// -----------------------------------------------------
+
+buildingHeightThreshold.addEventListener(
+    'input',
+    () => {
+
+        updateBuildingHeightFilter();
+
+    }
+);
+
+
+// -----------------------------------------------------
+// Initial Building Height value
+// -----------------------------------------------------
+
+buildingHeightThreshold.value = 50;
+
+buildingHeightValue.textContent =
+    '50 m';
+
+
+// -----------------------------------------------------
+// Building Height toggle
+// -----------------------------------------------------
+
+buildingHeightToggle.addEventListener(
+    'change',
+    () => {
+
+        setLayerVisibility(
+            'buildingHeight',
+            buildingHeightToggle.checked &&
+            fabricToggle.checked
+        );
+
+
+        if(buildingHeightToggle.checked){
+
+            expandFabricModule(
+                buildingHeightModule
+            );
+
+        } else {
+
+            collapseFabricModule(
+                buildingHeightModule
+            );
+
+        }
+
+
+        updateBuildingHeightFilter();
+
+    }
+);
+
+
+// -----------------------------------------------------
+// Building Height slider
+// -----------------------------------------------------
+
+buildingHeightThreshold.addEventListener(
+    'input',
+    () => {
+
+        const threshold =
+            Number(
+                buildingHeightThreshold.value
+            );
+
+
+        buildingHeightValue.textContent =
+            `${threshold} m`;
+
+
+        updateBuildingHeightFilter();
+
+    }
+);
+
+// =====================================================
+// URBAN FABRIC — ROADS
+// =====================================================
+
+
+// -----------------------------------------------------
+// Roads master toggle
+// -----------------------------------------------------
+
+roadsToggle.addEventListener(
+    'change',
+    () => {
+
+        updateFabricVisibility();
+        updateRoadVisibility();
+
+
+        if(roadsToggle.checked){
+
+            expandFabricModule(
+                roadsModule
+            );
+
+        } else {
+
+            collapseFabricModule(
+                roadsModule
+            );
+
+        }
+
+    }
+);
+
+
+// -----------------------------------------------------
+// Highway roads
+// -----------------------------------------------------
+
+roadHighwayToggle.addEventListener(
+    'change',
+    updateRoadVisibility
+);
+
+
+// -----------------------------------------------------
+// Main roads
+// -----------------------------------------------------
+
+roadMainToggle.addEventListener(
+    'change',
+    updateRoadVisibility
+);
+
+
+// -----------------------------------------------------
+// Secondary roads
+// -----------------------------------------------------
+
+roadSecondaryToggle.addEventListener(
+    'change',
+    updateRoadVisibility
+);
+
 // =====================================================
 // URBAN FABRIC — BUILDING AGE
 // =====================================================
