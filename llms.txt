@@ -1,0 +1,29 @@
+# Urban Genetics Atlas
+
+Live Atlas: https://852lab.github.io/Urban-Genetics-Atlas/
+
+Full public context: https://852lab.github.io/Urban-Genetics-Atlas/atlas-context.md
+
+Public implementation:
+- https://852lab.github.io/Urban-Genetics-Atlas/index.html
+- https://852lab.github.io/Urban-Genetics-Atlas/atlas.js
+- https://852lab.github.io/Urban-Genetics-Atlas/styles.css
+- https://852lab.github.io/Urban-Genetics-Atlas/release-manifest.json
+
+Review the live interface first, then the public context and implementation files.
+
+Focus on:
+- Urban Analysis
+- Urban Genetic Signature (UGS)
+- spatial fingerprints
+- urban condition
+- modelled change
+- observed activity
+- popup behaviour
+- Urban Fabric controls
+- desktop/mobile behaviour
+- data limitations
+
+Important: **UGS describes urban condition; it is not a redevelopment prediction.**
+
+Current release: V1.4-20260903-170848

@@ -1,0 +1,35 @@
+{
+  "release_id": "V1.4-20260903-170848",
+  "version": "V1.4",
+  "site": "https://852lab.github.io/Urban-Genetics-Atlas/",
+  "repo": "https://github.com/852LAB/Urban-Genetics-Atlas",
+  "generated": "2026-09-03 17:08:48 CST",
+  "r2": [
+    {
+      "type": "pmtiles",
+      "local": "852LAB_V1.4.pmtiles",
+      "remote": "atlas/852LAB_V1.4.pmtiles"
+    },
+    {
+      "type": "geojson",
+      "local": "MTR_Lines_TEST.geojson",
+      "remote": "mtr/MTR_Lines_TEST.geojson"
+    },
+    {
+      "type": "geojson",
+      "local": "Reclaimed Land _ V1.1.geojson",
+      "remote": "reclaimed/Reclaimed Land _ V1.1.geojson"
+    },
+    {
+      "type": "geojson",
+      "local": "Buildings - Age or Heritage Grade.geojson",
+      "remote": "buildings/Buildings - Age or Heritage Grade.geojson"
+    },
+    {
+      "type": "terrain",
+      "local": "terrain/",
+      "remote": "terrain/",
+      "count": 51941
+    }
+  ]
+}
