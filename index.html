@@ -10,7 +10,11 @@
 
     <link rel="icon" type="image/png" href="assets/Favicon.png">
     <link rel="canonical" href="https://852lab.github.io/Urban-Genetics-Atlas/">
-    <meta name="atlas-release" content="V1.4-20260903-205342">
+    <meta name="atlas-release" content="V1.4-20260904-011047">
+    <link rel="alternate" type="text/plain" href="llms.txt">
+    <link rel="alternate" type="text/plain" href="llms-full.txt">
+    <link rel="alternate" type="text/plain" href="atlas-context.txt">
+    <link rel="describedby" type="text/markdown" href="atlas-context.md">
 
     <meta property="og:title" content="Urban Genetics Atlas">
     <meta property="og:description" content="Integrated Urban Analysis of Hong Kong">
@@ -241,23 +245,47 @@
         Atlas Controls
     </div>
 
-    <div class="basemap-control">
+    <div
+    class="basemap-control"
+    id="basemapControl"
+>
 
-        <label for="basemapSelect">
-            Basemap
-        </label>
+    <span
+        class="basemap-label active"
+        id="basemapMapLabel"
+    >
+        BASEMAP
+    </span>
 
-        <select id="basemapSelect">
-            <option value="map">
-                Map
-            </option>
+    <label
+        class="basemap-switch"
+        aria-label="Switch between base map and satellite imagery"
+    >
 
-            <option value="satellite">
-                Satellite
-            </option>
-        </select>
+        <input
+            type="checkbox"
+            id="basemapToggle"
+            role="switch"
+            aria-checked="false"
+        >
 
-    </div>
+        <span
+            class="basemap-switch-track"
+            aria-hidden="true"
+        >
+            <span class="basemap-switch-thumb"></span>
+        </span>
+
+    </label>
+
+    <span
+        class="basemap-label"
+        id="basemapSatelliteLabel"
+    >
+        SATELLITE
+    </span>
+
+</div>
 
 </div>
 

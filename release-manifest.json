@@ -1,9 +1,9 @@
 {
-  "release_id": "V1.4-20260903-205342",
+  "release_id": "V1.4-20260904-011047",
   "version": "V1.4",
   "site": "https://852lab.github.io/Urban-Genetics-Atlas/",
   "repo": "https://github.com/852LAB/Urban-Genetics-Atlas",
-  "generated": "2026-09-03 20:53:42 CST",
+  "generated": "2026-09-04 01:10:47 CST",
   "r2": [
     {
       "type": "pmtiles",
@@ -29,7 +29,9 @@
       "type": "terrain",
       "local": "terrain/",
       "remote": "terrain/",
-      "count": 51941
+      "count": 51941,
+      "status": "baseline",
+      "quick_fingerprint": "2df1e400573d798f16b112146d41c68a333375bcfcaf22e882b7cfa7f7f4b2e8"
     }
   ]
 }

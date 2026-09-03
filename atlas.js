@@ -426,8 +426,17 @@ const panel =
 const panelMinimize =
     document.getElementById('panelMinimize');
 
-const basemapSelect =
-    document.getElementById('basemapSelect');
+const basemapToggle =
+    document.getElementById('basemapToggle');
+
+const basemapControl =
+    document.getElementById('basemapControl');
+
+const basemapMapLabel =
+    document.getElementById('basemapMapLabel');
+
+const basemapSatelliteLabel =
+    document.getElementById('basemapSatelliteLabel');
 
 // =====================================================
 // WELCOME / ATLAS INTRODUCTION
@@ -1487,6 +1496,17 @@ const UGS_SIGNATURES = {
 };
 
 // -----------------------------------------------------
+// Active UGS signature classes
+// -----------------------------------------------------
+
+const activeUgsSignatureCodes =
+    new Set(
+        Object.keys(
+            UGS_SIGNATURES
+        )
+    );
+
+// -----------------------------------------------------
 // Analysis Legend Definitions
 // -----------------------------------------------------
 
@@ -1735,35 +1755,15 @@ const LEGENDS = {
 
     'Urban Genetic Signature': {
 
-        title:'Urban Genetic Signature - UGS.1.0',
+    title:'Urban Genetic Signature · UGS.1.0',
 
-        description:
-            'A categorical reading of urban condition, combining intensity, accessibility, height, age and modelled change signals. The Signature describes observed urban condition; it is not a prediction.',
+    description:
+        'A categorical reading of urban condition, combining intensity, accessibility, height, age and modelled change signals. The Signature describes observed urban condition; it is not a prediction.',
 
-        categorical:true,
+    categorical:true,
 
-        interpretation: `
-
-            <div class="ugs-legend-list">
-
-                ${Object.values(UGS_SIGNATURES).map(
-                    item => `
-                        <div class="ugs-legend-item">
-                            <span
-                                class="ugs-legend-swatch"
-                                style="background:${item.colour};"
-                            ></span>
-
-                            <span>
-                                ${item.name}
-                            </span>
-                        </div>
-                    `
-                ).join('')}
-
-            </div>
-        `
-    }
+    interpretation:''
+},
 
 };
 
@@ -1797,6 +1797,7 @@ function updateLegend(){
         legendGradient.style.display =
             'none';
 
+
         const labels =
             legendGradient
                 .parentElement
@@ -1804,16 +1805,149 @@ function updateLegend(){
                     '.legend-labels'
                 );
 
+
         if(labels){
+
             labels.style.display =
                 'none';
+
         }
+
+
+        if(
+            theme ===
+            'Urban Genetic Signature'
+        ){
+
+            legendInterpretation.innerHTML = `
+
+                <div class="ugs-legend-list">
+
+                    ${
+                        Object.entries(
+                            UGS_SIGNATURES
+                        )
+                        .map(
+                            ([code,item]) => `
+
+                                <label
+                                    class="ugs-legend-item
+                                    ${
+                                        activeUgsSignatureCodes.has(code)
+                                            ? 'active'
+                                            : 'inactive'
+                                    }"
+                                >
+
+                                    <input
+                                        type="checkbox"
+                                        class="ugs-legend-check"
+                                        data-ugs-code="${code}"
+                                        ${
+                                            activeUgsSignatureCodes.has(code)
+                                                ? 'checked'
+                                                : ''
+                                        }
+                                        style="
+                                            accent-color:${item.colour};
+                                        "
+                                    >
+
+                                    <span
+                                        class="ugs-legend-swatch"
+                                        style="
+                                            background:${item.colour};
+                                        "
+                                    ></span>
+
+                                    <span class="ugs-legend-name">
+                                        ${item.name}
+                                    </span>
+
+                                </label>
+
+                            `
+                        )
+                        .join('')
+                    }
+
+                </div>
+
+            `;
+
+
+            // -------------------------------------------------
+            // UGS class toggles
+            // -------------------------------------------------
+
+            legendInterpretation
+                .querySelectorAll(
+                    '.ugs-legend-check'
+                )
+                .forEach(
+                    checkbox => {
+
+                        checkbox.addEventListener(
+                            'change',
+                            () => {
+
+                                const code =
+                                    checkbox.dataset.ugsCode;
+
+
+                                if(checkbox.checked){
+
+                                    activeUgsSignatureCodes.add(
+                                        code
+                                    );
+
+                                } else {
+
+                                    activeUgsSignatureCodes.delete(
+                                        code
+                                    );
+
+                                }
+
+
+                                const item =
+                                    checkbox.closest(
+                                        '.ugs-legend-item'
+                                    );
+
+
+                                if(item){
+
+                                    item.classList.toggle(
+                                        'active',
+                                        checkbox.checked
+                                    );
+
+                                    item.classList.toggle(
+                                        'inactive',
+                                        !checkbox.checked
+                                    );
+
+                                }
+
+
+                                applyUgsSignatureFilter();
+
+                            }
+                        );
+
+                    }
+                );
+
+        }
+
 
     } else {
 
         legendGradient.style.display =
             '';
 
+
         const labels =
             legendGradient
                 .parentElement
@@ -1821,10 +1955,14 @@ function updateLegend(){
                     '.legend-labels'
                 );
 
+
         if(labels){
+
             labels.style.display =
                 '';
+
         }
+
 
         legendGradient.style.background =
             cfg.gradient;
@@ -1832,8 +1970,15 @@ function updateLegend(){
     }
 
 
-    legendInterpretation.innerHTML =
-        cfg.interpretation;
+    if(
+    theme !==
+    'Urban Genetic Signature'
+    ){
+
+        legendInterpretation.innerHTML =
+            cfg.interpretation;
+
+    }
 
 }
 
@@ -3005,6 +3150,82 @@ function planningContextApplies(){
 
 }
 
+// -----------------------------------------------------
+// Urban Genetic Signature — class filter
+// -----------------------------------------------------
+
+function applyUgsSignatureFilter(){
+
+    if(
+        themeSelect.value !==
+        'Urban Genetic Signature'
+    ){
+
+        return;
+
+    }
+
+
+    if(!map.getLayer('atlas')){
+
+        return;
+
+    }
+
+
+    const codes =
+        Array.from(
+            activeUgsSignatureCodes
+        );
+
+
+    // No classes selected:
+    // hide the analysis layer completely.
+
+    if(codes.length === 0){
+
+        map.setFilter(
+            'atlas',
+
+            [
+                '==',
+                [
+                    'get',
+                    'UGS_v01_Code'
+                ],
+                '__none__'
+            ]
+
+        );
+
+        return;
+
+    }
+
+
+    // One or more classes selected.
+
+    map.setFilter(
+        'atlas',
+
+        [
+            'in',
+
+            [
+                'get',
+                'UGS_v01_Code'
+            ],
+
+            [
+                'literal',
+                codes
+            ]
+
+        ]
+
+    );
+
+}
 
 // -----------------------------------------------------
 // Planning Context — apply filter
@@ -6441,6 +6662,7 @@ map.on(
 // BASEMAP
 // =====================================================
 
+
 // -----------------------------------------------------
 // Basemap visibility
 // -----------------------------------------------------
@@ -6448,13 +6670,15 @@ map.on(
 function updateBasemap(){
 
     if(!map.getLayer('satellite')){
+
         return;
+
     }
 
 
     const satelliteVisible =
-        basemapSelect &&
-        basemapSelect.value === 'satellite';
+        basemapToggle &&
+        basemapToggle.checked;
 
 
     map.setLayoutProperty(
@@ -6465,14 +6689,52 @@ function updateBasemap(){
             : 'none'
     );
 
+
+    // -------------------------------------------------
+    // Update switch state
+    // -------------------------------------------------
+
+    if(basemapToggle){
+
+        basemapToggle.setAttribute(
+            'aria-checked',
+            String(satelliteVisible)
+        );
+
+    }
+
+
+    // -------------------------------------------------
+    // Update active label
+    // -------------------------------------------------
+
+    if(basemapMapLabel){
+
+        basemapMapLabel.classList.toggle(
+            'active',
+            !satelliteVisible
+        );
+
+    }
+
+
+    if(basemapSatelliteLabel){
+
+        basemapSatelliteLabel.classList.toggle(
+            'active',
+            satelliteVisible
+        );
+
+    }
+
 }
 
 
 // -----------------------------------------------------
-// Basemap selector
+// Basemap switch
 // -----------------------------------------------------
 
-basemapSelect?.addEventListener(
+basemapToggle?.addEventListener(
     'change',
     updateBasemap
 );
@@ -6577,6 +6839,10 @@ themeSelect.addEventListener(
         // Reapply the context filter
 
         applyCapacityContextFilter();
+
+        // Reapply selected UGS classes
+
+        applyUgsSignatureFilter();
 
 
         // Refresh legend and status
