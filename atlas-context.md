@@ -20,8 +20,8 @@ https://852lab.github.io/Urban-Genetics-Atlas/
 
 - Page title: **Urban Genetics Atlas**
 - UI version label: **v1.0 Beta**
-- Release ID: **V1.4-20260903-170848**
-- Generated: **2026-09-03 09:11 UTC**
+- Release ID: **V1.4-20260903-205342**
+- Generated: **2026-09-03 12:56 UTC**
 - PMTiles: **atlas/852LAB_V1.4.pmtiles**
 - Public GeoJSON resources: **3**
 - Terrain objects: **51941**
@@ -38,6 +38,8 @@ rather than simply presenting a collection of GIS attributes.
 
 ## Urban Analysis modes currently present
 
+- `map` — Map
+- `satellite` — Satellite
 - `Urban Genetic Signature` — Urban Genetic Signature - UGS.1.0
 - `Development Pressure` — Development Pressure
 - `GFA - Saturation` — GFA Saturation

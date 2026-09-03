@@ -426,6 +426,9 @@ const panel =
 const panelMinimize =
     document.getElementById('panelMinimize');
 
+const basemapSelect =
+    document.getElementById('basemapSelect');
+
 // =====================================================
 // WELCOME / ATLAS INTRODUCTION
 // =====================================================
@@ -3671,13 +3674,13 @@ map.on('load', () => {
 
     map.addSource('reclaimed',{
         type:'geojson',
-        data:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/reclaimed/Reclaimed%20Land%20_%20V1.1.geojson'
+        data:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/reclaimed/Reclaimed_Land_V1.1.geojson'
     });
 
 
     map.addSource('buildingAge',{
         type:'geojson',
-        data:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/buildings/Buildings%20-%20Age%20or%20Heritage%20Grade.geojson'
+        data:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/buildings/Buildings_Age_or_Heritage_Grade.geojson'
     });
 
 perfMark('All data sources added');
@@ -3739,6 +3742,47 @@ perfMark('All sources registered');
 
     }, buildingLayerId || firstLabelId);
 
+// =====================================================
+// SATELLITE BASEMAP
+// =====================================================
+//
+// Optional satellite reference layer.
+// It sits beneath the Atlas terrain / analysis overlays
+// while the existing Carto labels and map infrastructure
+// remain available above it.
+//
+
+    map.addSource('satellite',{
+        type:'raster',
+
+        tiles:[
+            'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+        ],
+
+        tileSize:256,
+
+        attribution:
+            'Sources: Esri, Maxar, Earthstar Geographics, and the GIS User Community'
+    });
+
+
+    map.addLayer({
+
+        id:'satellite',
+
+        type:'raster',
+
+        source:'satellite',
+
+        layout:{
+            visibility:'none'
+        },
+
+        paint:{
+            'raster-opacity':1
+        }
+
+    }, 'terrain');
 
 // =====================================================
 // RECLAIMED LAND
@@ -4106,13 +4150,13 @@ perfMark('All sources registered');
         ],
 
         10,
-        'rgba(127, 182, 236, 0.28)',
+        'rgba(127, 236, 169, 0.28)',
 
         20,
-        'rgba(95, 160, 218, 0.32)',
+        'rgba(95, 218, 161, 0.32)',
 
         30,
-        'rgba(81, 149, 201, 0.36)',
+        'rgba(81, 197, 201, 0.36)',
 
         40,
         'rgba(70, 140, 187, 0.4)',
@@ -6393,6 +6437,45 @@ map.on(
 // STATUS / THEME
 // =====================================================
 
+// =====================================================
+// BASEMAP
+// =====================================================
+
+// -----------------------------------------------------
+// Basemap visibility
+// -----------------------------------------------------
+
+function updateBasemap(){
+
+    if(!map.getLayer('satellite')){
+        return;
+    }
+
+
+    const satelliteVisible =
+        basemapSelect &&
+        basemapSelect.value === 'satellite';
+
+
+    map.setLayoutProperty(
+        'satellite',
+        'visibility',
+        satelliteVisible
+            ? 'visible'
+            : 'none'
+    );
+
+}
+
+
+// -----------------------------------------------------
+// Basemap selector
+// -----------------------------------------------------
+
+basemapSelect?.addEventListener(
+    'change',
+    updateBasemap
+);
 
 // -----------------------------------------------------
 // Status strip

@@ -26,4 +26,4 @@ Focus on:
 
 Important: **UGS describes urban condition; it is not a redevelopment prediction.**
 
-Current release: V1.4-20260903-170848
+Current release: V1.4-20260903-205342

@@ -233,6 +233,56 @@ body{
 
 }
 
+/* -----------------------------------------------------
+   Basemap selector
+   ----------------------------------------------------- */
+
+.basemap-control{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:7px;
+
+    flex:0 0 auto;
+
+}
+
+.basemap-control label{
+
+    font-size:0.64rem;
+
+    font-weight:600;
+
+    letter-spacing:0.04em;
+
+    text-transform:uppercase;
+
+    color:var(--text-secondary);
+
+}
+
+#basemapSelect{
+
+    width:auto;
+
+    min-width:92px;
+
+    margin:0;
+
+    padding:
+        7px 10px;
+
+    border-radius:9px;
+
+    background:
+        rgba(255,255,255,0.42);
+
+    font-size:0.70rem;
+
+}
+
 
 /* =====================================================
    TOP-LEVEL ANALYSIS / FABRIC SECTIONS
@@ -2640,6 +2690,31 @@ and (orientation:landscape){
         4px 2px 8px;
 
         margin-bottom:8px;
+
+    }
+
+    .basemap-control{
+
+    gap:5px;
+
+    }
+
+    .basemap-control label{
+
+        font-size:0.56rem;
+
+    }
+
+    #basemapSelect{
+
+        min-width:82px;
+
+        padding:
+            6px 8px;
+
+        font-size:0.64rem;
+
+        border-radius:8px;
 
     }
 
