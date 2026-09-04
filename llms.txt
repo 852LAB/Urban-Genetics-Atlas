@@ -15,4 +15,4 @@ Focus on Urban Analysis, Urban Genetic Signature (UGS), spatial fingerprints, ur
 
 Important: **UGS describes urban condition; it is not a redevelopment prediction.**
 
-Current release: V1.4-20260904-011047
+Current release: V1.4-20260904-211207
