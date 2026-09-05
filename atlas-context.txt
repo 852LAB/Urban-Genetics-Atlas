@@ -24,12 +24,12 @@ https://852lab.github.io/Urban-Genetics-Atlas/
 
 - Page title: **Urban Genetics Atlas**
 - UI version label: **v1.0 Beta**
-- Release ID: **V1.4-20260904-211207**
-- Generated: **2026-09-04 13:15 UTC**
+- Release ID: **V1.4-20260905-190715**
+- Generated: **2026-09-05 11:10 UTC**
 - PMTiles: **atlas/852LAB_V1.4.pmtiles**
 - Public GeoJSON resources: **3**
 - Terrain objects: **51941**
-- Terrain release status: **unchanged**
+- Terrain status: **unchanged**
 
 ## Project character
 
@@ -92,7 +92,7 @@ A high modelled change signal is therefore not equivalent to actual or imminent 
 
 ## Public implementation
 
-The Atlas is a static HTML/CSS/JavaScript application using MapLibre GL JS. The primary hexagonal atlas is delivered using PMTiles. Supporting datasets and terrain are delivered separately. Satellite imagery or other third-party basemaps, when present, remain external online services rather than Atlas R2 data.
+The Atlas is a static HTML/CSS/JavaScript application using MapLibre GL JS. The primary hexagonal atlas is delivered using PMTiles. Supporting datasets and terrain are delivered separately. Satellite imagery and other third-party basemaps, when present, remain external online services.
 
 ## Data caveats
 
@@ -120,7 +120,7 @@ Focus on whether the Atlas:
 
 ## Public implementation resources
 
-This release intentionally excludes credentials, API keys, private endpoints, raw source datasets and other non-public development material.
+This release intentionally excludes credentials, API keys, private endpoints, raw source data and other non-public development material.
 
 ## Maintainer / conceptual notes
 

@@ -10,7 +10,7 @@
 
     <link rel="icon" type="image/png" href="assets/Favicon.png">
     <link rel="canonical" href="https://852lab.github.io/Urban-Genetics-Atlas/">
-    <meta name="atlas-release" content="V1.4-20260904-211207">
+    <meta name="atlas-release" content="V1.4-20260905-190715">
     <link rel="alternate" type="text/plain" href="llms.txt">
     <link rel="alternate" type="text/plain" href="llms-full.txt">
     <link rel="alternate" type="text/plain" href="atlas-context.txt">
@@ -284,6 +284,18 @@
     >
         SATELLITE
     </span>
+
+    <label
+        class="basemap-building-toggle"
+        title="Show or hide basemap buildings"
+    >
+        <input
+            type="checkbox"
+            id="buildingBaseToggle"
+            checked
+        >
+        <span>BUILDINGS</span>
+    </label>
 
 </div>
 
@@ -1344,30 +1356,51 @@ FABRIC BODY
                         MEAN BUILDING HEIGHT
                     </div>
 
-                    <div class="building-height-value">
+                    <div class="building-height-slider" id="building-height-slider">
+
+                        <div class="building-height-slider-track"></div>
+
+                        <div
+                            class="building-height-slider-fill"
+                            id="building-height-slider-fill"
+                        ></div>
+
+                        <input
+                            type="range"
+                            id="building-height-min"
+                            min="0"
+                            max="500"
+                            step="10"
+                            value="50"
+                            aria-label="Minimum mean building height"
+                        >
+
+                        <input
+                            type="range"
+                            id="building-height-max"
+                            min="10"
+                            max="500"
+                            step="10"
+                            value="500"
+                            aria-label="Maximum mean building height"
+                        >
+
+                    </div>
+
+                    <div class="building-height-range">
 
                         <span>
-                            Minimum mean height:
+                            Showing:
                         </span>
 
                         <strong id="building-height-value">
-                            10 m
+                            50–500+ m
                         </strong>
 
                     </div>
 
-                    <input
-                        type="range"
-                        id="building-height-threshold"
-                        min="0"
-                        max="500"
-                        step="10"
-                        value="50"
-                    >
-
                     <div class="fabric-module-description">
-                        Shows hex cells where the mean building height
-                        reaches the selected threshold.
+                        Use the two handles to set the minimum and maximum mean building height shown.
                     </div>
 
                 </div>

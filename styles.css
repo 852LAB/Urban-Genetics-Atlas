@@ -209,9 +209,11 @@ body{
 
     display:flex;
 
-    align-items:center;
+    flex-direction:column;
 
-    justify-content:space-between;
+    align-items:stretch;
+
+    justify-content:flex-start;
 
     width:100%;
 
@@ -245,11 +247,15 @@ body{
 
     justify-content:center;
 
+    align-self:flex-start;
+
     gap:7px;
 
     flex:0 0 auto;
 
-    margin-right:42px;
+    margin-top:8px;
+
+    margin-right:0;
 
     padding:
         5px 8px;
@@ -388,6 +394,52 @@ body{
     box-shadow:
         0 0 0 3px
         rgba(100,116,139,0.14);
+
+}
+
+/* -----------------------------------------------------
+   Basemap Buildings visibility
+   ----------------------------------------------------- */
+
+.basemap-building-toggle{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:5px;
+
+    margin-left:2px;
+
+    padding-left:7px;
+
+    border-left:1px solid rgba(0,0,0,0.06);
+
+    font-size:0.60rem;
+
+    font-weight:500;
+
+    letter-spacing:0.04em;
+
+    line-height:1;
+
+    color:var(--text-secondary);
+
+    white-space:nowrap;
+
+    cursor:pointer;
+
+    user-select:none;
+
+}
+
+.basemap-building-toggle input{
+
+    width:12px;
+
+    height:12px;
+
+    margin:0;
 
 }
 
@@ -1207,38 +1259,174 @@ select:focus{
    BUILDING HEIGHT / ROADS CONTROLS
    ===================================================== */
 
-.building-height-value{
+.building-height-slider{
+
+    position:relative;
+
+    width:100%;
+
+    height:28px;
+
+    margin:
+        4px 0 7px;
+
+}
+
+.building-height-slider-track,
+.building-height-slider-fill{
+
+    position:absolute;
+
+    top:50%;
+
+    height:6px;
+
+    border-radius:999px;
+
+    transform:translateY(-50%);
+
+}
+
+.building-height-slider-track{
+
+    left:0;
+    right:0;
+
+    background:
+        rgba(100,116,139,0.18);
+
+}
+
+.building-height-slider-fill{
+
+    left:0;
+    width:100%;
+
+    background:
+        rgba(100,116,139,0.52);
+
+}
+
+.building-height-slider input[type="range"]{
+
+    position:absolute;
+
+    left:0;
+    top:0;
+
+    width:100%;
+    height:28px;
+
+    margin:0;
+    padding:0;
+
+    background:transparent;
+
+    pointer-events:none;
+
+    appearance:none;
+    -webkit-appearance:none;
+
+    outline:none;
+
+}
+
+.building-height-slider input[type="range"]::-webkit-slider-runnable-track{
+
+    height:6px;
+    background:transparent;
+    border:none;
+
+}
+
+.building-height-slider input[type="range"]::-moz-range-track{
+
+    height:6px;
+    background:transparent;
+    border:none;
+
+}
+
+.building-height-slider input[type="range"]::-webkit-slider-thumb{
+
+    width:16px;
+    height:16px;
+
+    margin-top:-5px;
+
+    border:
+        1px solid
+        rgba(31,41,55,0.24);
+
+    border-radius:50%;
+
+    background:#ffffff;
+
+    box-shadow:
+        0 1px 4px rgba(0,0,0,0.18);
+
+    cursor:pointer;
+
+    pointer-events:auto;
+
+    appearance:none;
+    -webkit-appearance:none;
+
+}
+
+.building-height-slider input[type="range"]::-moz-range-thumb{
+
+    width:14px;
+    height:14px;
+
+    border:
+        1px solid
+        rgba(31,41,55,0.24);
+
+    border-radius:50%;
+
+    background:#ffffff;
+
+    box-shadow:
+        0 1px 4px rgba(0,0,0,0.18);
+
+    cursor:pointer;
+
+}
+
+#building-height-min{
+    z-index:3;
+}
+
+#building-height-max{
+    z-index:2;
+}
+
+.building-height-range{
 
     display:flex;
 
     align-items:center;
 
-    justify-content:space-between;
+    gap:5px;
 
-    gap:12px;
+    margin:
+        0 0 10px;
 
-    margin-bottom:7px;
-
-    font-size:0.78rem;
+    font-size:0.72rem;
 
     color:var(--text-secondary);
+
 }
 
-.building-height-value strong{
+.building-height-range strong{
 
     color:var(--text-primary);
 
     font-weight:600;
 
     white-space:nowrap;
-}
 
-#building-height-threshold{
-
-    width:100%;
-
-    margin:
-        2px 0 9px;
 }
 
 /* =====================================================
@@ -2782,6 +2970,12 @@ and (orientation:landscape){
 
         z-index:20;
 
+        display:flex;
+
+        flex-direction:column;
+
+        align-items:stretch;
+
         flex:
         0 0 auto;
 
@@ -2804,6 +2998,10 @@ and (orientation:landscape){
 
     gap:5px;
 
+    align-self:flex-start;
+
+    margin-top:7px;
+
     margin-right:0;
 
     padding:
@@ -2816,6 +3014,22 @@ and (orientation:landscape){
     .basemap-label{
 
         font-size:0.56rem;
+
+    }
+
+    .basemap-building-toggle{
+
+        font-size:0.52rem;
+
+        padding-left:5px;
+
+    }
+
+    .basemap-building-toggle input{
+
+        width:11px;
+
+        height:11px;
 
     }
 
@@ -3205,6 +3419,44 @@ and (orientation:landscape){
 
     }
 
+    .building-height-slider{
+
+        height:24px;
+
+        margin:
+            3px 0 6px;
+
+    }
+
+    .building-height-slider-track,
+    .building-height-slider-fill{
+
+        height:5px;
+
+    }
+
+    .building-height-slider input[type="range"]{
+
+        height:24px;
+
+    }
+
+    .building-height-slider input[type="range"]::-webkit-slider-thumb{
+
+        width:15px;
+        height:15px;
+
+        margin-top:-5px;
+
+    }
+
+    .building-height-slider input[type="range"]::-moz-range-thumb{
+
+        width:13px;
+        height:13px;
+
+    }
+
     /* -------------------------------------------------
        Fabric controls
        ------------------------------------------------- */
@@ -3214,12 +3466,6 @@ and (orientation:landscape){
     font-size:0.69rem;
     }
 
-    #building-height-threshold{
-
-    margin:
-        2px 0 7px;
-    }
-    
     .reclamation-year,
     .building-age-year{
 
@@ -3974,36 +4220,6 @@ and (orientation:landscape){
 
     }
 
-/* =====================================================
-   URBAN GENETIC SIGNATURE CLASS VISIBILITY
-   ===================================================== */
-
-}
-
-.ugs-legend-item{
-
-    min-height:20px;
-
-    font-size:0.64rem;
-
-    gap:6px;
-
-}
-
-.ugs-legend-check{
-
-    width:12px;
-
-    height:12px;
-
-}
-
-.ugs-legend-swatch{
-
-    width:16px;
-
-    height:5px;
-
 }
 
 /* =====================================================
@@ -4492,11 +4708,11 @@ summary::after{
 
     align-items:center;
 
-    gap:7px;
+    gap:6px;
 
     width:100%;
 
-    min-height:22px;
+    min-height:20px;
 
     margin:0;
 
@@ -4534,9 +4750,9 @@ summary::after{
 
 .ugs-legend-check{
 
-    width:13px;
+    width:12px;
 
-    height:13px;
+    height:12px;
 
     flex:0 0 auto;
 
@@ -4549,7 +4765,7 @@ summary::after{
 
 .ugs-legend-swatch{
 
-    width:18px;
+    width:16px;
 
     height:5px;
 

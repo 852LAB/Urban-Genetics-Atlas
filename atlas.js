@@ -329,14 +329,24 @@ const buildingHeightModule =
 const buildingHeightToggle =
     document.getElementById('buildingHeightToggle');
 
-const buildingHeightThreshold =
+const buildingHeightMin =
     document.getElementById(
-        'building-height-threshold'
+        'building-height-min'
+    );
+
+const buildingHeightMax =
+    document.getElementById(
+        'building-height-max'
     );
 
 const buildingHeightValue =
     document.getElementById(
         'building-height-value'
+    );
+
+const buildingHeightSliderFill =
+    document.getElementById(
+        'building-height-slider-fill'
     );
 
 
@@ -429,14 +439,14 @@ const panelMinimize =
 const basemapToggle =
     document.getElementById('basemapToggle');
 
-const basemapControl =
-    document.getElementById('basemapControl');
-
 const basemapMapLabel =
     document.getElementById('basemapMapLabel');
 
 const basemapSatelliteLabel =
     document.getElementById('basemapSatelliteLabel');
+
+const buildingBaseToggle =
+    document.getElementById('buildingBaseToggle');
 
 // =====================================================
 // WELCOME / ATLAS INTRODUCTION
@@ -872,56 +882,45 @@ function setFabricMaster(enabled){
 //
 // Uses the existing Carto basemap layers already present
 // in the Atlas. No new road dataset is required.
+// Secondary controls secondary, minor and service roads.
 // -----------------------------------------------------
 
 const ROAD_LAYER_GROUPS = {
 
     highway: [
-
         'road_mot_fill_ramp',
         'road_mot_case_ramp',
-
         'road_mot_fill_noramp',
         'road_mot_case_noramp'
-
     ],
 
     main: [
-
         'road_trunk_fill_ramp',
         'road_trunk_case_ramp',
-
         'road_trunk_fill_noramp',
         'road_trunk_case_noramp',
-
         'road_pri_fill_ramp',
         'road_pri_case_ramp',
-
         'road_pri_fill_noramp',
         'road_pri_case_noramp'
-
     ],
 
     secondary: [
-
         'road_sec_fill_noramp',
-        'road_sec_case_noramp'
-
+        'road_sec_case_noramp',
+        'road_minor_fill',
+        'road_minor_case',
+        'road_service_fill',
+        'road_service_case'
     ]
 
 };
-
-
-// -----------------------------------------------------
-// Apply road visibility
-// -----------------------------------------------------
 
 function updateRoadVisibility(){
 
     const visible =
         fabricToggle.checked &&
         roadsToggle.checked;
-
 
     ROAD_LAYER_GROUPS.highway.forEach(
         layerId => {
@@ -935,7 +934,6 @@ function updateRoadVisibility(){
         }
     );
 
-
     ROAD_LAYER_GROUPS.main.forEach(
         layerId => {
 
@@ -947,7 +945,6 @@ function updateRoadVisibility(){
 
         }
     );
-
 
     ROAD_LAYER_GROUPS.secondary.forEach(
         layerId => {
@@ -967,7 +964,6 @@ function updateFabricVisibility(){
 
     const fabricVisible =
         fabricToggle.checked;
-
 
     const fabricLayers = [
 
@@ -1008,7 +1004,6 @@ function updateFabricVisibility(){
 
     ];
 
-
     fabricLayers.forEach(
         item => {
 
@@ -1020,40 +1015,6 @@ function updateFabricVisibility(){
 
         }
     );
-
-    // -------------------------------------------------
-    // Roads — control all MapLibre road rendering layers
-    // as one Urban Fabric system.
-    // -------------------------------------------------
-
-    const roadsEnabled =
-        fabricToggle.checked &&
-        roadSecondaryToggle.checked;
-
-
-    const roadLayers =
-        map.getStyle().layers
-            .map(
-                layer =>
-                    layer.id
-            )
-            .filter(
-                id =>
-                    id.startsWith('road_')
-            );
-
-
-    roadLayers.forEach(
-        layerId => {
-
-            setLayerVisibility(
-                layerId,
-                roadsEnabled
-            );
-
-        }
-    );
-
 
     updateRoadVisibility();
 
@@ -3108,15 +3069,9 @@ function drawAtlas(){
     }
 
 
-    // Restore current Planning Context filter
+    // Restore current Planning Context and UGS filters
 
-    if(
-        planningContextApplies()
-    ){
-
-        applyCapacityContextFilter();
-
-    }
+    applyAtlasFilters();
 
 }
 
@@ -3151,135 +3106,84 @@ function planningContextApplies(){
 }
 
 // -----------------------------------------------------
-// Urban Genetic Signature — class filter
+// Urban Genetic Signature + Planning Context filters
 // -----------------------------------------------------
 
-function applyUgsSignatureFilter(){
-
-    if(
-        themeSelect.value !==
-        'Urban Genetic Signature'
-    ){
-
-        return;
-
-    }
-
+function applyAtlasFilters(){
 
     if(!map.getLayer('atlas')){
-
         return;
-
     }
 
+    const filters = [];
 
-    const codes =
-        Array.from(
-            activeUgsSignatureCodes
-        );
+    if(planningContextApplies()){
 
+        const context =
+            capacityContext.value;
 
-    // No classes selected:
-    // hide the analysis layer completely.
+        if(context !== 'All'){
 
-    if(codes.length === 0){
-
-        map.setFilter(
-            'atlas',
-
-            [
+            filters.push([
                 '==',
                 [
                     'get',
-                    'UGS_v01_Code'
+                    'SPZ - Capacity Context'
                 ],
-                '__none__'
-            ]
+                context
+            ]);
 
-        );
-
-        return;
+        }
 
     }
 
+    if(themeSelect.value === 'Urban Genetic Signature'){
 
-    // One or more classes selected.
+        const codes =
+            Array.from(
+                activeUgsSignatureCodes
+            );
+
+        filters.push(
+            codes.length
+                ? [
+                    'in',
+                    [
+                        'get',
+                        'UGS_v01_Code'
+                    ],
+                    [
+                        'literal',
+                        codes
+                    ]
+                ]
+                : [
+                    '==',
+                    [
+                        'get',
+                        'UGS_v01_Code'
+                    ],
+                    '__none__'
+                ]
+        );
+
+    }
 
     map.setFilter(
         'atlas',
-
-        [
-            'in',
-
-            [
-                'get',
-                'UGS_v01_Code'
-            ],
-
-            [
-                'literal',
-                codes
-            ]
-
-        ]
-
+        filters.length
+            ? ['all', ...filters]
+            : null
     );
 
 }
 
-// -----------------------------------------------------
-// Planning Context — apply filter
-// -----------------------------------------------------
+function applyUgsSignatureFilter(){
+    applyAtlasFilters();
+}
 
 function applyCapacityContextFilter(){
-
-    if(!map.getLayer('atlas')){
-        return;
-    }
-
-
-    if(!planningContextApplies()){
-
-        map.setFilter(
-            'atlas',
-            null
-        );
-
-        return;
-    }
-
-
-    const context =
-        capacityContext.value;
-
-
-    if(context === 'All'){
-
-        map.setFilter(
-            'atlas',
-            null
-        );
-
-        return;
-    }
-
-
-    map.setFilter(
-        'atlas',
-
-        [
-            '==',
-
-            [
-                'get',
-                'SPZ - Capacity Context'
-            ],
-
-            context
-
-        ]
-    );
-
+    applyAtlasFilters();
 }
 
 // =====================================================
@@ -3907,6 +3811,8 @@ map.on('load', () => {
 perfMark('All data sources added');
 perfMark('All sources registered');
 
+    findBasemapBuildingLayers();
+
 // -----------------------------------------------------
 // Basemap layer references
 // -----------------------------------------------------
@@ -4120,16 +4026,27 @@ perfMark('All sources registered');
     });
 
 
-// Keep reclaimed land below roads
+// Keep reclaimed land above satellite/base imagery and below roads.
 
-    if(
-        map.getLayer('road_service_case')
-    ){
+    if(map.getLayer('road_service_case')){
 
-        map.moveLayer(
-            'reclaimed',
-            'road_service_case'
-        );
+        if(map.getLayer('reclaimed')){
+
+            map.moveLayer(
+                'reclaimed',
+                'road_service_case'
+            );
+
+        }
+
+        if(map.getLayer('reclaimed-outline')){
+
+            map.moveLayer(
+                'reclaimed-outline',
+                'road_service_case'
+            );
+
+        }
 
     }
 
@@ -5591,20 +5508,6 @@ function ugsActivitySection(
 // POPUP POSITIONING
 // =====================================================
 
-function popupRectsOverlap(
-    a,
-    b
-){
-
-    return !(
-        a.right <= b.left ||
-        a.left >= b.right ||
-        a.bottom <= b.top ||
-        a.top >= b.bottom
-    );
-
-}
-
 let popupAnchorPoint = null;
 
 let popupResizeObserver = null;
@@ -6727,8 +6630,57 @@ function updateBasemap(){
 
     }
 
+    updateBasemapBuildingVisibility();
+
 }
 
+
+// -----------------------------------------------------
+// Basemap Buildings visibility
+// -----------------------------------------------------
+
+let basemapBuildingLayerIds = [];
+
+function findBasemapBuildingLayers(){
+
+    basemapBuildingLayerIds =
+        map.getStyle().layers
+            .filter(
+                layer =>
+                    /building/i.test(layer.id) &&
+                    (
+                        layer.type === 'fill' ||
+                        layer.type === 'fill-extrusion'
+                    ) &&
+                    layer.id !== 'buildingAge' &&
+                    layer.id !== 'buildingHeight' &&
+                    layer.id !== 'heritage'
+            )
+            .map(
+                layer =>
+                    layer.id
+            );
+
+}
+
+function updateBasemapBuildingVisibility(){
+
+    const visible =
+        !buildingBaseToggle ||
+        buildingBaseToggle.checked;
+
+    basemapBuildingLayerIds.forEach(
+        layerId => {
+
+            setLayerVisibility(
+                layerId,
+                visible
+            );
+
+        }
+    );
+
+}
 
 // -----------------------------------------------------
 // Basemap switch
@@ -6737,6 +6689,11 @@ function updateBasemap(){
 basemapToggle?.addEventListener(
     'change',
     updateBasemap
+);
+
+buildingBaseToggle?.addEventListener(
+    'change',
+    updateBasemapBuildingVisibility
 );
 
 // -----------------------------------------------------
@@ -6836,13 +6793,9 @@ themeSelect.addEventListener(
         drawAtlas();
 
 
-        // Reapply the context filter
+        // Reapply planning-context and UGS filters
 
-        applyCapacityContextFilter();
-
-        // Reapply selected UGS classes
-
-        applyUgsSignatureFilter();
+        applyAtlasFilters();
 
 
         // Refresh legend and status
@@ -7180,131 +7133,187 @@ document
 // URBAN FABRIC — BUILDING HEIGHT
 // =====================================================
 
+let buildingHeightFilterFrame = null;
 
-// -----------------------------------------------------
-// Building Height Filter
-// -----------------------------------------------------
+function updateBuildingHeightLabels(){
+
+    if(!buildingHeightMin || !buildingHeightMax){
+        return;
+    }
+
+    const minValue =
+        Number(buildingHeightMin.value);
+
+    const maxValue =
+        Number(buildingHeightMax.value);
+
+    if(buildingHeightValue){
+
+        buildingHeightValue.textContent =
+            `${minValue}–${maxValue >= 500 ? '500+' : maxValue} m`;
+
+    }
+
+    if(buildingHeightSliderFill){
+
+        const rangeMin =
+            Number(buildingHeightMin.min || 0);
+
+        const rangeMax =
+            Number(buildingHeightMin.max || 500);
+
+        const span =
+            rangeMax - rangeMin;
+
+        const left =
+            span > 0
+                ? ((minValue - rangeMin) / span) * 100
+                : 0;
+
+        const right =
+            span > 0
+                ? ((maxValue - rangeMin) / span) * 100
+                : 100;
+
+        buildingHeightSliderFill.style.left =
+            `${Math.max(0, Math.min(100, left))}%`;
+
+        buildingHeightSliderFill.style.width =
+            `${Math.max(0, Math.min(100, right - left))}%`;
+
+    }
+
+}
+
+function normaliseBuildingHeightRange(changed){
+
+    if(!buildingHeightMin || !buildingHeightMax){
+        return;
+    }
+
+    const minValue =
+        Number(buildingHeightMin.value);
+
+    const maxValue =
+        Number(buildingHeightMax.value);
+
+    if(minValue > maxValue){
+
+        if(changed === 'min'){
+
+            buildingHeightMin.value =
+                buildingHeightMax.value;
+
+        } else {
+
+            buildingHeightMax.value =
+                buildingHeightMin.value;
+
+        }
+
+    }
+
+}
+
+function activateBuildingHeightHandle(handle){
+
+    if(!buildingHeightMin || !buildingHeightMax){
+        return;
+    }
+
+    buildingHeightMin.style.zIndex =
+        handle === buildingHeightMin
+            ? '5'
+            : '3';
+
+    buildingHeightMax.style.zIndex =
+        handle === buildingHeightMax
+            ? '5'
+            : '2';
+
+}
 
 function updateBuildingHeightFilter(){
 
     if(!map.getLayer('buildingHeight')){
-
         return;
+    }
+
+    normaliseBuildingHeightRange();
+
+    const minValue = Math.min(
+        Number(buildingHeightMin?.value ?? 0),
+        Number(buildingHeightMax?.value ?? 500)
+    );
+
+    const maxValue = Math.max(
+        Number(buildingHeightMin?.value ?? 50),
+        Number(buildingHeightMax?.value ?? 500)
+    );
+
+    updateBuildingHeightLabels();
+
+    const heightExpression = [
+        'coalesce',
+        [
+            'to-number',
+            [
+                'get',
+                'Building Height_mean'
+            ]
+        ],
+        0
+    ];
+
+    const filterClauses = [
+        [
+            '>=',
+            heightExpression,
+            minValue
+        ]
+    ];
+
+    if(maxValue < 500){
+
+        filterClauses.push([
+            '<=',
+            heightExpression,
+            maxValue
+        ]);
 
     }
 
-
-    const threshold =
-        Number(
-            buildingHeightThreshold.value
-        );
-
-
-    // Update displayed threshold
-
-    buildingHeightValue.textContent =
-        threshold >= 500
-            ? '500+ m'
-            : `${threshold} m`;
-
-
     map.setFilter(
-
         'buildingHeight',
-
-        [
-
-            '<=',
-
-            [
-
-                'coalesce',
-
-                [
-                    'to-number',
-
-                    [
-                        'get',
-                        'Building Height_mean'
-                    ]
-
-                ],
-
-                0
-
-            ],
-
-            threshold
-
-        ]
-
+        ['all', ...filterClauses]
     );
 
 }
 
+function scheduleBuildingHeightUpdate(changed){
 
-// -----------------------------------------------------
-// Building Height toggle
-// -----------------------------------------------------
+    normaliseBuildingHeightRange();
+    updateBuildingHeightLabels();
 
-buildingHeightToggle.addEventListener(
-    'change',
-    () => {
+    if(buildingHeightFilterFrame){
 
-        setLayerVisibility(
-            'buildingHeight',
-            buildingHeightToggle.checked &&
-            fabricToggle.checked
+        cancelAnimationFrame(
+            buildingHeightFilterFrame
         );
 
+    }
 
-        if(buildingHeightToggle.checked){
+    buildingHeightFilterFrame =
+        requestAnimationFrame(() => {
 
-            expandFabricModule(
-                buildingHeightModule
-            );
+            buildingHeightFilterFrame =
+                null;
 
             updateBuildingHeightFilter();
 
-        } else {
+        });
 
-            collapseFabricModule(
-                buildingHeightModule
-            );
-
-        }
-
-    }
-);
-
-
-// -----------------------------------------------------
-// Building Height slider
-// -----------------------------------------------------
-
-buildingHeightThreshold.addEventListener(
-    'input',
-    () => {
-
-        updateBuildingHeightFilter();
-
-    }
-);
-
-
-// -----------------------------------------------------
-// Initial Building Height value
-// -----------------------------------------------------
-
-buildingHeightThreshold.value = 50;
-
-buildingHeightValue.textContent =
-    '50 m';
-
-
-// -----------------------------------------------------
-// Building Height toggle
-// -----------------------------------------------------
+}
 
 buildingHeightToggle.addEventListener(
     'change',
@@ -7315,7 +7324,6 @@ buildingHeightToggle.addEventListener(
             buildingHeightToggle.checked &&
             fabricToggle.checked
         );
-
 
         if(buildingHeightToggle.checked){
 
@@ -7331,35 +7339,52 @@ buildingHeightToggle.addEventListener(
 
         }
 
-
         updateBuildingHeightFilter();
 
     }
 );
 
-
-// -----------------------------------------------------
-// Building Height slider
-// -----------------------------------------------------
-
-buildingHeightThreshold.addEventListener(
+buildingHeightMin?.addEventListener(
     'input',
-    () => {
-
-        const threshold =
-            Number(
-                buildingHeightThreshold.value
-            );
-
-
-        buildingHeightValue.textContent =
-            `${threshold} m`;
-
-
-        updateBuildingHeightFilter();
-
-    }
+    () => scheduleBuildingHeightUpdate('min')
 );
+
+buildingHeightMax?.addEventListener(
+    'input',
+    () => scheduleBuildingHeightUpdate('max')
+);
+
+buildingHeightMin?.addEventListener(
+    'pointerdown',
+    () => activateBuildingHeightHandle(buildingHeightMin),
+    { passive:true }
+);
+
+buildingHeightMax?.addEventListener(
+    'pointerdown',
+    () => activateBuildingHeightHandle(buildingHeightMax),
+    { passive:true }
+);
+
+buildingHeightMin?.addEventListener(
+    'focus',
+    () => activateBuildingHeightHandle(buildingHeightMin)
+);
+
+buildingHeightMax?.addEventListener(
+    'focus',
+    () => activateBuildingHeightHandle(buildingHeightMax)
+);
+
+if(buildingHeightMin){
+    buildingHeightMin.value = 0;
+}
+
+if(buildingHeightMax){
+    buildingHeightMax.value = 500;
+}
+
+updateBuildingHeightLabels();
 
 // =====================================================
 // URBAN FABRIC — ROADS
@@ -7429,34 +7454,73 @@ roadSecondaryToggle.addEventListener(
 // URBAN FABRIC — BUILDING AGE
 // =====================================================
 
+let buildingAgeFilterFrame = null;
+let buildingAgeYearsCache = null;
 
-// -----------------------------------------------------
-// Building Age Filter
-// -----------------------------------------------------
+function getBuildingAgeYears(){
+
+    if(buildingAgeYearsCache){
+        return buildingAgeYearsCache;
+    }
+
+    const features =
+        map.getSource('buildingAge')?._data?.features || [];
+
+    buildingAgeYearsCache =
+        features
+            .map(
+                feature =>
+                    Number(feature.properties?.Year)
+            )
+            .filter(
+                year =>
+                    Number.isFinite(year) &&
+                    year > 0
+            )
+            .sort((a,b) => a - b);
+
+    return buildingAgeYearsCache;
+
+}
+
+function countYearsUpTo(
+    sortedYears,
+    target
+){
+
+    let low = 0;
+    let high = sortedYears.length;
+
+    while(low < high){
+
+        const mid =
+            Math.floor((low + high) / 2);
+
+        if(sortedYears[mid] <= target){
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+
+    }
+
+    return low;
+
+}
 
 function updateBuildingAgeFilter(){
 
     if(!map.getLayer('buildingAge')){
-
         return;
-
     }
 
-
     const selectedYear =
-        Number(
-            buildingAgeYear.value
-        );
-
+        Number(buildingAgeYear.value);
 
     map.setFilter(
         'buildingAge',
-
         [
             'all',
-
-            // Ignore missing / zero years
-
             [
                 '>',
                 [
@@ -7468,9 +7532,6 @@ function updateBuildingAgeFilter(){
                 ],
                 0
             ],
-
-            // Show buildings up to selected year
-
             [
                 '<=',
                 [
@@ -7482,17 +7543,10 @@ function updateBuildingAgeFilter(){
                 ],
                 selectedYear
             ]
-
         ]
-
     );
 
 }
-
-
-// -----------------------------------------------------
-// Building Age Count
-// -----------------------------------------------------
 
 function updateBuildingAgeCount(){
 
@@ -7505,61 +7559,39 @@ function updateBuildingAgeCount(){
 
     }
 
-
     const selectedYear =
-        Number(
-            buildingAgeYear.value
-        );
-
-
-    const features =
-        map
-            .getSource('buildingAge')
-            ._data
-            .features;
-
-
-    let count = 0;
-
-
-    features.forEach(
-        feature => {
-
-            const year =
-                Number(
-                    feature
-                        .properties
-                        ?.Year
-                );
-
-
-            if(
-
-                Number.isFinite(year) &&
-
-                year > 0 &&
-
-                year <= selectedYear
-
-            ){
-
-                count++;
-
-            }
-
-        }
-    );
-
+        Number(buildingAgeYear.value);
 
     buildingAgeCountValue.textContent =
-        count.toLocaleString();
+        countYearsUpTo(
+            getBuildingAgeYears(),
+            selectedYear
+        ).toLocaleString();
 
 }
 
+function scheduleBuildingAgeUpdate(){
 
-// -----------------------------------------------------
-// Building Age Year Slider
-// -----------------------------------------------------
+    if(buildingAgeFilterFrame){
+
+        cancelAnimationFrame(
+            buildingAgeFilterFrame
+        );
+
+    }
+
+    buildingAgeFilterFrame =
+        requestAnimationFrame(() => {
+
+            buildingAgeFilterFrame =
+                null;
+
+            updateBuildingAgeFilter();
+            updateBuildingAgeCount();
+
+        });
+
+}
 
 buildingAgeYear.addEventListener(
     'input',
@@ -7568,18 +7600,13 @@ buildingAgeYear.addEventListener(
         const selectedYear =
             Number(e.target.value);
 
-
         buildingAgeYearValue.textContent =
             selectedYear;
 
-
-        updateBuildingAgeFilter();
-
-        updateBuildingAgeCount();
+        scheduleBuildingAgeUpdate();
 
     }
 );
-
 
 // =====================================================
 // URBAN FABRIC — HERITAGE

@@ -126,3 +126,51 @@ Added toggles and filters for each UGS Class to control visbility.
 - Public AI context regenerated.
 - R2/CORS/range verification performed before Git push.
 - GitHub Pages and public AI files verified after push.
+
+# Urban Genetics Atlas — V1.4-20260905-190715
+
+**Date:** 2026-09-05 19:07:15 CST
+**Live:** https://852lab.github.io/Urban-Genetics-Atlas/
+
+## Release changes
+
+- Application files released from Development: `index.html`, `atlas.js`, `styles.css`.
+- PMTiles: `852LAB_V1.4.pmtiles` → `atlas/852LAB_V1.4.pmtiles`
+- GeoJSON: `MTR_Lines_TEST.geojson` → `mtr/MTR_Lines_TEST.geojson`
+- GeoJSON: `Reclaimed_Land_V1.1.geojson` → `reclaimed/Reclaimed_Land_V1.1.geojson`
+- GeoJSON: `Buildings_Age_or_Heritage_Grade.geojson` → `buildings/Buildings_Age_or_Heritage_Grade.geojson`
+- Terrain: `51941` objects — **unchanged**
+
+## Public AI context
+
+- `llms.txt` — AI entry point.
+- `llms-full.txt` — full plain-text AI briefing.
+- `atlas-context.md` / `atlas-context.txt` — current project context.
+
+## Automated checks
+
+- Runtime dependencies discovered from fresh Development `atlas.js`.
+- All discovered local runtime resources exist.
+- R2 destination collisions checked.
+- External basemap sources remain external and were not copied to R2.
+- Complete local archive prepared for this release.
+- Public AI context regenerated.
+- R2/CORS/range verification performed before Git push.
+- GitHub Pages and public AI files verified after push.
+
+## Maintainer release notes
+
+Functional changes:
+- Dual-handle mean building-height range control on one visual track.
+- Building-height minimum can be 0 m; maximum 500 m represents 500+ m.
+- Basemap / satellite switch aligned.
+- Basemap BUILDINGS visibility toggle added.
+- Reclaimed Land ordering above satellite imagery.
+
+Cleanup performed:
+- Removed unused basemapControl JavaScript reference.
+- Removed unused popupRectsOverlap helper.
+- Removed stale one-way building-height CSS reference.
+- Consolidated the building-height range event handlers into one set.
+- Kept current visual/behavioural structure otherwise unchanged.
+- No language/content rewrite performed.
