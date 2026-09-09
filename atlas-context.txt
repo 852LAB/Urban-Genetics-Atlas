@@ -17,6 +17,8 @@ https://852lab.github.io/Urban-Genetics-Atlas/
 - Main HTML: https://852lab.github.io/Urban-Genetics-Atlas/index.html
 - Map/application logic: https://852lab.github.io/Urban-Genetics-Atlas/atlas.js
 - Interface styling: https://852lab.github.io/Urban-Genetics-Atlas/styles.css
+- Market browser logic: https://852lab.github.io/Urban-Genetics-Atlas/site/market-data.js
+- Market module styling: https://852lab.github.io/Urban-Genetics-Atlas/site/market-data.css
 - Public release manifest: https://852lab.github.io/Urban-Genetics-Atlas/release-manifest.json
 - Repository: https://github.com/852LAB/Urban-Genetics-Atlas
 
@@ -24,9 +26,9 @@ https://852lab.github.io/Urban-Genetics-Atlas/
 
 - Page title: **Urban Genetics Atlas**
 - UI version label: **v1.0 Beta**
-- Release ID: **V1.4-20260905-190715**
-- Generated: **2026-09-05 11:10 UTC**
-- PMTiles: **atlas/852LAB_V1.4.pmtiles**
+- Release ID: **V1.5-20260909-205856**
+- Generated: **2026-09-09 13:02 UTC**
+- PMTiles: **atlas/852LAB_V1.5.pmtiles**
 - Public GeoJSON resources: **3**
 - Terrain objects: **51941**
 - Terrain status: **unchanged**
@@ -52,6 +54,7 @@ rather than simply presenting a collection of GIS attributes.
 - `GFA per Capita` — Living Space (sqm/cap)
 - `Population per Building` — Population Intensity
 - `Latent Urban Capacity` — Latent Urban Capacity
+- `Market Exposure` — Market Exposure
 - `All` — All Contexts
 - `Residential` — Residential
 - `Commercial / Mixed` — Commercial / Mixed
@@ -92,7 +95,11 @@ A high modelled change signal is therefore not equivalent to actual or imminent 
 
 ## Public implementation
 
-The Atlas is a static HTML/CSS/JavaScript application using MapLibre GL JS. The primary hexagonal atlas is delivered using PMTiles. Supporting datasets and terrain are delivered separately. Satellite imagery and other third-party basemaps, when present, remain external online services.
+The Atlas is a static HTML/CSS/JavaScript application using MapLibre GL JS. The primary hexagonal atlas is delivered using PMTiles. Supporting datasets and terrain are delivered separately. Market context is maintained as a separate compact browser payload keyed through each selected hex's official source-geography references rather than duplicated into the PMTiles. Satellite imagery and other third-party basemaps, when present, remain external online services.
+
+### Market analysis
+
+The compact market payload also carries 24 months of regional price/rent trend context. **Market Momentum** averages bounded 12-month price and rent trend scores. **Market Exposure**, available as an Urban Analysis map mode, multiplies Market Momentum by a local opportunity score formed equally from positive Development Pressure and Latent Urban Capacity. Market Momentum retains regional source geography; the local Atlas variables create the hex-to-hex differentiation.
 
 ## Data caveats
 
@@ -102,6 +109,9 @@ The Atlas is an analytical and exploratory tool rather than a definitive represe
 - **UNASSESSED** means insufficient evidence, not low performance.
 - A Signature is not a redevelopment forecast.
 - Recorded approvals and land activity describe observed activity, not certainty about future change.
+- Market values retain their official territory, region or district geography; display against a selected 100 m hex is contextual inheritance, not a direct hex-level market measurement.
+- Market Momentum is a regional derived signal combining bounded 12-month RVD price and rent trends.
+- Market Exposure combines that regional Market Momentum with local positive Development Pressure and Latent Urban Capacity. It is a coincidence/exposure measure, not a valuation, investment recommendation or redevelopment forecast.
 
 ## Recommended AI review
 

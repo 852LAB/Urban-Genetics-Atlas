@@ -107,14 +107,14 @@ const map = new maplibregl.Map({
 // ATLAS VECTOR TILE SOURCE LAYER
 // =====================================================
 //
-// v1.4 PMTiles was generated directly from the GeoJSON,
+// v1.5 PMTiles is generated directly from the spatial master GeoJSON,
 // so Tippecanoe used the filename-derived layer name.
 // Keep this explicit so the existing Atlas layer logic
 // continues to use a single shared hex source.
 //
 
 const ATLAS_SOURCE_LAYER =
-    '852LAB_v14_WGS84';
+    'atlas';
 
 map.dragRotate.disable();
 map.touchZoomRotate.disableRotation();
@@ -1714,6 +1714,39 @@ const LEGENDS = {
         `
     },
 
+    'Market Exposure': {
+
+        title: 'Market Exposure',
+
+        description:
+            'Relates regional 12-month market momentum to local Development Pressure and Latent Urban Capacity. Higher values show stronger coincidence between market movement and local urban opportunity; this is not a property valuation or forecast.',
+
+        gradient:
+            'linear-gradient(90deg,#edf8f6,#ccece6,#7fcdbb,#41b6c4,#25788e,#084081)',
+
+        interpretation: `
+            <div class='legend-item'>
+                <strong>Low</strong>
+                — Market movement and/or local opportunity conditions are limited.
+            </div>
+
+            <div class='legend-item'>
+                <strong>Medium</strong>
+                — Market momentum overlaps with meaningful local capacity or development pressure.
+            </div>
+
+            <div class='legend-item'>
+                <strong>High</strong>
+                — Stronger market momentum coincides with high local capacity and/or development pressure.
+            </div>
+
+            <div class='legend-item'>
+                <strong>Unassessed</strong>
+                — Local pressure or capacity evidence is insufficient for this derived measure.
+            </div>
+        `
+    },
+
     'Urban Genetic Signature': {
 
     title:'Urban Genetic Signature · UGS.1.0',
@@ -2577,6 +2610,170 @@ function colourExpression(){
 
 
 // -----------------------------------------------------
+// Market Exposure
+// -----------------------------------------------------
+
+    if(theme === 'Market Exposure'){
+
+        const analytics =
+            window.UGA_MARKET_ANALYTICS?.regions || {};
+
+        const marketMomentum = region => {
+
+            const value =
+                Number(
+                    analytics?.[region]
+                        ?.market_momentum
+                );
+
+            return Number.isFinite(value)
+                ? value
+                : -1;
+
+        };
+
+        const hongKongMomentum =
+            marketMomentum('Hong Kong');
+
+        const kowloonMomentum =
+            marketMomentum('Kowloon');
+
+        const newTerritoriesMomentum =
+            marketMomentum('New Territories');
+
+        const hongKongDistricts = [
+            'Central and Western District',
+            'Eastern District',
+            'Southern District',
+            'Wan Chai District'
+        ];
+
+        const kowloonDistricts = [
+            'Kowloon City District',
+            'Kwun Tong District',
+            'Sham Shui Po District',
+            'Wong Tai Sin District',
+            'Yau Tsim Mong District'
+        ];
+
+        const regionMomentumExpression = [
+            'case',
+
+            [
+                'in',
+                ['get','HAD_EN'],
+                ['literal',hongKongDistricts]
+            ],
+            hongKongMomentum,
+
+            [
+                'in',
+                ['get','HAD_EN'],
+                ['literal',kowloonDistricts]
+            ],
+            kowloonMomentum,
+
+            [
+                'all',
+                ['has','HAD_EN'],
+                ['!=',['get','HAD_EN'],null],
+                ['!=',['get','HAD_EN'],'']
+            ],
+            newTerritoriesMomentum,
+
+            -1
+        ];
+
+        // Development Pressure is signed in the Atlas.
+        // For Market Exposure, negative pressure contributes zero;
+        // positive pressure already occupies the 0–1 range.
+
+        const pressureComponent = [
+            'max',
+            0,
+            [
+                'min',
+                1,
+                [
+                    'to-number',
+                    ['get','Development Pressure'],
+                    0
+                ]
+            ]
+        ];
+
+        const capacityComponent = [
+            'max',
+            0,
+            [
+                'min',
+                1,
+                [
+                    'to-number',
+                    ['get','Latent Urban Capacity'],
+                    0
+                ]
+            ]
+        ];
+
+        const localOpportunity = [
+            '/',
+            [
+                '+',
+                pressureComponent,
+                capacityComponent
+            ],
+            2
+        ];
+
+        const exposure = [
+            '*',
+            regionMomentumExpression,
+            localOpportunity
+        ];
+
+        const assessable = [
+            'all',
+            ['has','Development Pressure'],
+            ['has','Latent Urban Capacity'],
+            ['!=',['get','Development Pressure'],null],
+            ['!=',['get','Latent Urban Capacity'],null],
+            ['>=',regionMomentumExpression,0]
+        ];
+
+        return [
+            'case',
+            assessable,
+            [
+                'interpolate',
+                ['linear'],
+                exposure,
+
+                0.00,
+                'rgba(237,248,246,0.28)',
+
+                0.15,
+                'rgba(204,236,230,0.48)',
+
+                0.30,
+                'rgba(127,205,187,0.64)',
+
+                0.45,
+                'rgba(65,182,196,0.72)',
+
+                0.60,
+                'rgba(37,120,142,0.80)',
+
+                0.75,
+                'rgba(8,64,129,0.88)'
+            ],
+            'rgba(255,255,255,0.00)'
+        ];
+
+    }
+
+
+// -----------------------------------------------------
 // Default
 // -----------------------------------------------------
 
@@ -3092,7 +3289,9 @@ const PLANNING_CONTEXT_ANALYSES = [
 
     'Genesis Potential',
 
-    'Latent Urban Capacity'
+    'Latent Urban Capacity',
+
+    'Market Exposure'
 
 ];
 
@@ -3768,7 +3967,7 @@ map.on('load', () => {
 
     map.addSource('atlas',{
         type:'vector',
-        url:'pmtiles://https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/atlas/852LAB_V1.4.pmtiles'
+        url:'pmtiles://https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/atlas/852LAB_V1.5.pmtiles'
     });
 
     // -----------------------------------------------------

@@ -10,7 +10,7 @@
 
     <link rel="icon" type="image/png" href="assets/Favicon.png">
     <link rel="canonical" href="https://852lab.github.io/Urban-Genetics-Atlas/">
-    <meta name="atlas-release" content="V1.4-20260905-190715">
+    <meta name="atlas-release" content="V1.5-20260909-205856">
     <link rel="alternate" type="text/plain" href="llms.txt">
     <link rel="alternate" type="text/plain" href="llms-full.txt">
     <link rel="alternate" type="text/plain" href="atlas-context.txt">
@@ -36,6 +36,7 @@
 
     <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.9.0/dist/maplibre-gl.css" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
+    <link href="site/market-data.css" rel="stylesheet">
 </head>
 
 <body>
@@ -416,6 +417,10 @@
 
                 <option value="Latent Urban Capacity">
                     Latent Urban Capacity
+                </option>
+
+                <option value="Market Exposure">
+                    Market Exposure
                 </option>
 
             </optgroup>
@@ -1517,6 +1522,49 @@ FABRIC BODY
 
     </section>
 
+    <!-- =================================================
+         MARKET DATA
+         ================================================= -->
+
+    <section
+        id="marketSection"
+        class="mode-panel market-mode-panel expanded"
+    >
+
+        <div class="mode-header">
+
+            <div class="mode-header-text">
+
+                <div class="mode-title">
+                    Market Data
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="mode-chevron"
+                id="marketSectionToggle"
+                aria-expanded="true"
+                aria-label="Collapse Market Data"
+                aria-controls="marketDataBody"
+            >
+                ▾
+            </button>
+
+        </div>
+
+        <div
+            id="marketDataBody"
+            class="mode-body"
+        >
+            <div id="marketDataStatus" class="market-data-status">
+                Loading market context…
+            </div>
+        </div>
+
+    </section>
+
 </div>
 
 </aside>
@@ -1552,6 +1600,7 @@ FABRIC BODY
     </script>
 
     <script src="atlas.js"></script>
+    <script src="site/market-data.js"></script>
 
 </body>
 

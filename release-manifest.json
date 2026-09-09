@@ -1,14 +1,14 @@
 {
-  "release_id": "V1.4-20260905-190715",
-  "version": "V1.4",
+  "release_id": "V1.5-20260909-205856",
+  "version": "V1.5",
   "site": "https://852lab.github.io/Urban-Genetics-Atlas/",
   "repo": "https://github.com/852LAB/Urban-Genetics-Atlas",
-  "generated": "2026-09-05 19:07:15 CST",
+  "generated": "2026-09-09 20:58:56 CST",
   "r2": [
     {
       "type": "pmtiles",
-      "local": "852LAB_V1.4.pmtiles",
-      "remote": "atlas/852LAB_V1.4.pmtiles"
+      "local": "852LAB_V1.5.pmtiles",
+      "remote": "atlas/852LAB_V1.5.pmtiles"
     },
     {
       "type": "geojson",
