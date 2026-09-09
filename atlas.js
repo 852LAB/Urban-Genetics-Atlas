@@ -164,6 +164,9 @@ const legendTitle =
 const legendDescription =
     document.getElementById('legendDescription');
 
+const legendInfoButton =
+    document.getElementById('legendInfoButton');
+
 const legendGradient =
     document.getElementById('legendGradient');
 
@@ -399,6 +402,25 @@ const popup =
 const status =
     document.getElementById('status');
 
+const atlasInfoPopover =
+    document.getElementById('atlasInfoPopover');
+
+const atlasInfoTitle =
+    document.getElementById('atlasInfoTitle');
+
+const atlasInfoBody =
+    document.getElementById('atlasInfoBody');
+
+const atlasInfoClose =
+    document.getElementById('atlasInfoClose');
+
+const buildingHeightCoverageStat =
+    document.getElementById('buildingHeightCoverageStat');
+
+let atlasStats = null;
+let activeInfoKey = null;
+let activeInfoTrigger = null;
+
 // -----------------------------------------------------
 // Welcome / Atlas Introduction
 // -----------------------------------------------------
@@ -447,6 +469,1097 @@ const basemapSatelliteLabel =
 
 const buildingBaseToggle =
     document.getElementById('buildingBaseToggle');
+
+
+// =====================================================
+// EDITORIAL INFORMATION / STATISTICS SYSTEM
+// =====================================================
+
+const ATLAS_STATS_URL = './site/atlas-stats.json';
+
+const ANALYSIS_STATS_KEYS = {
+    'Urban Genetic Signature':'ugs',
+    'Development Pressure':'developmentPressure',
+    'GFA - Saturation':'gfaSaturation',
+    'MTR - Index (Built)':'mtrBuilt',
+    'Renewal Potential':'renewalPotential',
+    'Genesis Potential':'genesisPotential',
+    'GFA per Capita':'livingSpace',
+    'Population per Building':'populationIntensity',
+    'Latent Urban Capacity':'latentCapacity',
+    'Market Exposure':'marketExposure'
+};
+
+function infoEsc(value){
+    return String(value ?? '').replace(
+        /[&<>"']/g,
+        char => ({
+            '&':'&amp;',
+            '<':'&lt;',
+            '>':'&gt;',
+            '"':'&quot;',
+            "'":'&#39;'
+        })[char]
+    );
+}
+
+function infoNumber(value){
+    const n = Number(value);
+    return Number.isFinite(n)
+        ? n.toLocaleString()
+        : '—';
+}
+
+function infoPct(value, digits=1){
+    const n = Number(value);
+    return Number.isFinite(n)
+        ? `${n.toFixed(digits)}%`
+        : '—';
+}
+
+function infoTrend(value){
+    const n = Number(value);
+    if(!Number.isFinite(n)) return '—';
+    return `${n > 0 ? '+' : ''}${n.toFixed(1)}%`;
+}
+
+function infoSection(title, html){
+    return `
+        <section class="atlas-info-block">
+            <div class="atlas-info-heading">${title}</div>
+            ${html}
+        </section>
+    `;
+}
+
+function currentReleaseId(){
+    return (
+        document
+            .querySelector('meta[name="atlas-release"]')
+            ?.getAttribute('content')
+        ||
+        atlasStats?.atlas?.releaseId
+        ||
+        'Local development build'
+    );
+}
+
+function marketSnapshotHtml(){
+    const context = window.UGA_MARKET_CONTEXT;
+    const regions = context?.analytics?.regions;
+
+    if(!regions){
+        return `<p>Current market snapshot is loading.</p>`;
+    }
+
+    const names = [
+        'Hong Kong',
+        'Kowloon',
+        'New Territories'
+    ];
+
+    const rows = names.map(name => {
+        const row = regions[name] || {};
+        return `
+            <tr>
+                <td>${infoEsc(name)}</td>
+                <td>${infoEsc(infoTrend(row.price_trend_12m_pct))}</td>
+                <td>${infoEsc(infoTrend(row.rent_trend_12m_pct))}</td>
+                <td>${infoEsc(row.momentum_label || '—')}</td>
+            </tr>
+        `;
+    }).join('');
+
+    const periods = names.flatMap(name => {
+        const row = regions[name] || {};
+        return [
+            row.latest_price_date,
+            row.latest_rent_date
+        ].filter(Boolean);
+    });
+
+    const latest = periods.length
+        ? periods.sort().at(-1)
+        : '—';
+
+    return `
+        <table class="atlas-info-snapshot">
+            <thead>
+                <tr>
+                    <th>Region</th>
+                    <th>Price</th>
+                    <th>Rent</th>
+                    <th>Momentum</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>
+        <p style="margin-top:8px;">
+            Latest available period:
+            <strong>${infoEsc(latest)}</strong>
+        </p>
+    `;
+}
+
+function analysisInfoPanel(theme){
+    const ugs = atlasStats?.ugs || {};
+
+    const panels = {
+
+        'Urban Genetic Signature':{
+            title:'Urban Genetic Signature',
+            html:
+                infoSection(
+                    'WHAT IS A SIGNATURE?',
+                    `<p>
+                        Different parts of a city have different combinations
+                        of characteristics — how built-up they are, how tall,
+                        how connected, how old and how strongly the data shows
+                        change.
+                    </p>
+                    <p>
+                        <strong>A Signature is a recognisable combination of
+                        those characteristics.</strong>
+                    </p>
+                    <p>
+                        The individual layers tell us what is there. The
+                        Signature helps us see how those things fit together.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'THE FIVE-PART PROFILE',
+                    `<div class="atlas-info-profile">
+                        <div><strong>Intensity</strong> — how built-up this place is.</div>
+                        <div><strong>Accessibility</strong> — how connected this place is.</div>
+                        <div><strong>Height / Form</strong> — how tall and vertically built this place is.</div>
+                        <div><strong>Change</strong> — where the model shows stronger signs of change.</div>
+                        <div><strong>Age</strong> — how old the recorded building stock is.</div>
+                    </div>
+                    <p style="margin-top:8px;">
+                        The bars compare this place with other urban areas in
+                        the Atlas. They are the place's profile; they are
+                        <strong>not</strong> an overall Signature-strength score.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW A SIGNATURE IS ASSIGNED',
+                    `<p>
+                        UGS is rule-based. A Signature is assigned when a
+                        particular combination of characteristics crosses the
+                        relevant thresholds. Not every characteristic is used
+                        to assign every Signature.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'WHAT TO NOTICE',
+                    `<p>
+                        Neighbouring places can share one strong characteristic
+                        but receive different Signatures because their other
+                        characteristics combine differently.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'FROM THE ATLAS',
+                    `<p>
+                        <strong>${infoNumber(ugs.meaningfulUrbanCount)}</strong>
+                        cells have meaningful urban context.
+                        <strong>${infoNumber(ugs.constrainedCount)}</strong>
+                        are treated as constrained / non-urban.
+                        <strong>${infoNumber(ugs.unassessedCount)}</strong>
+                        remain unassessed.
+                    </p>
+                    <p>
+                        <strong>${infoPct(ugs.stableShare,2)}</strong> of
+                        meaningful urban cells are Stable Fabric.
+                    </p>
+                    ${
+                        Number.isFinite(Number(ugs.recentApprovalCount))
+                        ? `<p>
+                            <strong>RECORDED CHANGE ≠ MODELLED CHANGE</strong><br>
+                            ${infoNumber(ugs.recentApprovalCount)} meaningful
+                            urban cells record a recent building approval;
+                            ${infoNumber(ugs.recentApprovalHighChangeCount)}
+                            also sit in the high Change group.
+                        </p>`
+                        : ''
+                    }`
+                )
+        },
+
+        'Development Pressure':{
+            title:'Development Pressure',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        Development Pressure combines building age, physical
+                        development condition and recent approved-development
+                        activity to show where those signals are stronger or
+                        weaker across the existing city.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ IT',
+                    `<p>
+                        A high value does not mean redevelopment is planned,
+                        approved or imminent. Recorded development activity is
+                        shown separately where the data is available.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW IS IT CALCULATED?',
+                    `<p>
+                        The existing V1.5 field was calculated upstream from
+                        three components:
+                    </p>
+                    <ul class="atlas-info-list">
+                        <li><strong>40% — Building Age</strong></li>
+                        <li><strong>30% — Building Height / redevelopment susceptibility</strong></li>
+                        <li><strong>30% — Recent approved development activity</strong></li>
+                    </ul>
+                    <p>
+                        The source model used building-age thresholds of
+                        40–50 years → 1, 50–60 years → 2 and 60+ years → 3.
+                        Its height component treated 10–30 m buildings as the
+                        stronger redevelopment-susceptibility band, 30–50 m as
+                        a weaker band, and excluded very low village-scale
+                        buildings below 10 m from this particular signal.
+                    </p>
+                    <p>
+                        Approved new buildings since March 2015 were aggregated
+                        into the hex grid. Component measures were normalised to
+                        make them comparable, with skew treatment where required.
+                    </p>
+                    <p>
+                        This browser pass explains the existing field; it does
+                        not recalculate it in JavaScript.
+                    </p>`
+                )
+        },
+
+        'GFA - Saturation':{
+            title:'GFA Saturation',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        GFA Saturation compares estimated existing floor area
+                        with the development capacity used by the Atlas.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ IT',
+                    `<p>
+                        A higher value means more of that estimated capacity is
+                        already built. A lower value means more remains
+                        unrealised.
+                    </p>
+                    <p>
+                        This is a capacity-model result, not a statement that
+                        additional development is immediately feasible or
+                        permitted.
+                    </p>`
+                )
+        },
+
+        'MTR - Index (Built)':{
+            title:'MTR Built Accessibility',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        The index reflects proximity and network connectivity
+                        to the existing MTR system.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ IT',
+                    `<p>
+                        It is a relative accessibility measure — not a measure
+                        of journey time, passenger volume or service frequency.
+                    </p>`
+                )
+        },
+
+        'Renewal Potential':{
+            title:'Renewal Potential',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        Renewal Potential is a strategic model that combines the
+                        condition and development capacity of existing fabric
+                        with established infrastructure and land-market activity.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ IT',
+                    `<p>
+                        A high value means a stronger combination of the
+                        conditions chosen for this model. It does not mean
+                        redevelopment will occur.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW IS IT CALCULATED?',
+                    `<p>
+                        Renewal is built as a staged strategic model.
+                    </p>
+                    <p>
+                        <strong>Stage A — Physical potential</strong><br>
+                        50% normalised building age + 50% normalised
+                        development gap, where the development-gap term
+                        represents height / GFA under-performance.
+                    </p>
+                    <p>
+                        <strong>Stage B — Structural potential</strong><br>
+                        60% Physical Potential + 40% clamped GFA Saturation.
+                        This avoids treating old fabric as a renewal candidate
+                        simply because it is old.
+                    </p>
+                    <p>
+                        <strong>Stage C — Final Renewal model</strong><br>
+                        50% Structural / Policy Potential + 30% Land-deal
+                        recency + 20% Existing infrastructure capacity.
+                    </p>
+                    <p>
+                        Existing infrastructure strength is derived from the
+                        current active transit and established surface-
+                        connectivity layers. The earlier presentation does not
+                        state the internal weights between those infrastructure
+                        subcomponents, so they are not invented here.
+                    </p>
+                    <p>
+                        This browser pass explains the existing V1.5 field; it
+                        does not rebuild the calculation.
+                    </p>`
+                )
+        },
+
+        'Genesis Potential':{
+            title:'Genesis Potential',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        Genesis Potential is a strategic model that tests where
+                        unused development capacity, planning flexibility,
+                        additional transport accessibility and land-market
+                        activity combine more strongly.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ IT',
+                    `<p>
+                        A high value identifies a stronger combination of those
+                        conditions. It does not identify a guaranteed
+                        development site or forecast what will be built.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW IS IT CALCULATED?',
+                    `<p>
+                        Genesis tests a different condition from Renewal:
+                        unused capacity + policy flexibility + new
+                        infrastructure catalysts.
+                    </p>
+                    <p>
+                        <strong>Volumetric Vacuum</strong><br>
+                        Approximately 1 − GFA Saturation, so less-developed
+                        capacity approaches 1 and built-out capacity approaches 0.
+                    </p>
+                    <p>
+                        <strong>Statutory / planning-zone weight</strong><br>
+                        High Mutation = 1.2 for Industrial, CDA and Business;
+                        Mixed Mutation = 1.0 for mixed commercial/residential
+                        zones and Residential Group E; Static Urban = 0.6 for
+                        established standard residential zones. These are
+                        deliberate policy assumptions.
+                    </p>
+                    <p>
+                        <strong>Transit Additionality</strong><br>
+                        Planned MTR accessibility minus Built MTR accessibility,
+                        normalised against the documented maximum observed shift
+                        of 0.8641. This isolates the additional accessibility
+                        generated by planned infrastructure, specifically the
+                        Northern Link in this iteration.
+                    </p>
+                    <p>
+                        <strong>Land-deal momentum</strong><br>
+                        Recency_Norm derived from executed land deals.
+                    </p>
+                    <p>
+                        The documented final fold assigns
+                        <strong>40%</strong> to Transit Additionality and
+                        <strong>20%</strong> to land-deal momentum. The
+                        Volumetric Vacuum × statutory mutation term is the
+                        remaining principal component. A residual 40% follows
+                        mathematically if the weights sum to 100%, but because
+                        the earlier presentation does not explicitly print that
+                        coefficient beside the first term, this interface does
+                        not label it as an exact verified live coefficient.
+                    </p>
+                    <p>
+                        This browser pass explains the existing V1.5 field; it
+                        does not rebuild the calculation.
+                    </p>`
+                )
+        },
+
+        'GFA per Capita':{
+            title:'Living Space (m²/cap)',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        Estimated residential floor area per resident within
+                        each hex.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ IT',
+                    `<p>
+                        This is an area-based estimate from the Atlas data. It
+                        is not a direct measurement of individual dwelling size,
+                        household crowding or housing quality.
+                    </p>`
+                )
+        },
+
+        'Population per Building':{
+            title:'Population Intensity',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        Estimated number of residents associated with buildings
+                        within each hex.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ IT',
+                    `<p>
+                        This is a spatial estimate used for comparison across
+                        the Atlas. It should not be read as an exact headcount
+                        at a specific building or point.
+                    </p>`
+                )
+        },
+
+        'Latent Urban Capacity':{
+            title:'Latent Urban Capacity',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        Latent Urban Capacity describes unused capacity within
+                        the assumptions of the Atlas model.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ IT',
+                    `<p>
+                        It is not the same as vacant land, development
+                        feasibility, land ownership or permission to build
+                        immediately.
+                    </p>`
+                )
+        },
+
+        'Market Exposure':{
+            title:'Market Exposure',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        Market Exposure is a derived measure. It connects wider
+                        market movement to local Atlas conditions.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'MARKET MOMENTUM',
+                    `<p>
+                        50% normalised 12-month regional price trend + 50%
+                        normalised 12-month regional rent trend.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'LOCAL OPPORTUNITY',
+                    `<p>
+                        50% positive Development Pressure + 50% Latent Urban
+                        Capacity.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'MARKET EXPOSURE',
+                    `<p>
+                        Market Momentum × Local Opportunity.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ IT',
+                    `<p>
+                        Market Momentum retains the official geography of the
+                        market source. Hex-to-hex variation in Market Exposure
+                        comes from the local Atlas components. It is not a
+                        property valuation, investment recommendation or
+                        forecast.
+                    </p>`
+                )
+        }
+    };
+
+    return panels[theme] || {
+        title:theme,
+        html:`<p>No additional information is available for this view.</p>`
+    };
+}
+
+function getInfoPanel(key){
+
+    if(key === 'about'){
+        const release = currentReleaseId();
+
+        return {
+            title:'About the Atlas',
+            html:
+                infoSection(
+                    'ABOUT THE ATLAS',
+                    `<p>
+                        The Urban Genetics Atlas is an exploratory system for
+                        reading patterns and relationships across Hong Kong. It
+                        combines public, spatial and market datasets that differ
+                        in coverage, date, scale and completeness.
+                    </p>
+                    <p>
+                        Missing values, uneven coverage and outliers exist. The
+                        Atlas is therefore best used to compare patterns,
+                        identify relationships and generate questions for
+                        further investigation.
+                    </p>
+                    <p>
+                        A 100 m hex is an analytical reference cell. It should
+                        not be treated as a precise statement about every
+                        building, lot or property inside it.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ THE DIFFERENT OUTPUTS',
+                    `<div class="atlas-info-profile">
+                        <div><strong>Urban Fabric</strong> shows physical, infrastructural and historical evidence.</div>
+                        <div><strong>Urban Analysis</strong> derives patterns from those and other datasets.</div>
+                        <div><strong>Urban Genetic Signature</strong> classifies recognisable combinations of characteristics.</div>
+                        <div><strong>Renewal and Genesis</strong> are strategic lenses that apply selected assumptions to particular questions.</div>
+                        <div><strong>Market Data</strong> retains the geography of its official source, while Market Exposure connects that wider context to local Atlas conditions.</div>
+                    </div>
+                    <p style="margin-top:8px;">
+                        Recorded activity, modelled signals and forecasts are
+                        not the same thing. The Atlas labels them accordingly.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'TECHNICAL INFORMATION',
+                    `<p class="atlas-info-technical">
+                        Live release: <strong>${infoEsc(release)}</strong><br>
+                        Common spatial reference: 100 m hex grid<br>
+                        Map CRS: EPSG:4326
+                    </p>`
+                )
+        };
+    }
+
+    if(key === 'analysis'){
+        const total = atlasStats?.atlas?.totalHexes;
+
+        return {
+            title:'Urban Analysis',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        Urban Analysis brings selected datasets together to
+                        reveal patterns that are difficult to see in the source
+                        layers alone. Some views describe existing conditions;
+                        others apply strategic assumptions to test questions
+                        about capacity, pressure or change.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'FROM THE ATLAS',
+                    `<p>
+                        <strong>${infoNumber(total)}</strong> 100 m hexes form
+                        the current common spatial reference. Not every analysis
+                        has usable data in every cell, so the status bar shows
+                        coverage for the selected view.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'TRY THIS',
+                    `<p>
+                        Switch between a Signature and the underlying analyses,
+                        then compare neighbouring hexes. A place can look similar
+                        on one measure and very different when the other
+                        characteristics are considered.
+                    </p>`
+                )
+        };
+    }
+
+    if(key === 'fabric'){
+        return {
+            title:'Urban Fabric',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        These layers show the physical evidence of the city —
+                        terrain, reclaimed land, buildings, heritage, rail and
+                        roads. Explore them on their own, or use them to
+                        understand why analytical patterns differ from place to
+                        place.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'WHY A 100 m GRID?',
+                    `<p>
+                        The common grid lets datasets that were created for
+                        different purposes be compared across the same spatial
+                        reference.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'WHAT TO NOTICE',
+                    `<p>
+                        Hong Kong is not one continuous urban condition.
+                        Topography, infrastructure, planning and history have
+                        produced distinct urban pockets with very different
+                        forms and characteristics.
+                    </p>`
+                )
+        };
+    }
+
+    if(key === 'market'){
+        return {
+            title:'Market Data',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        Official market data is reported at regional or district
+                        geography. Selecting a hex links that place to the
+                        relevant source area; the Atlas does not invent a 100 m
+                        market price.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'MARKET MOMENTUM',
+                    `<p>
+                        Market Momentum summarises the direction of 12-month
+                        regional private-domestic price and rent movement.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'MARKET EXPOSURE',
+                    `<p>
+                        Market Exposure combines that wider market movement with
+                        local Development Pressure and Latent Urban Capacity. It
+                        shows where market movement and local urban opportunity
+                        coincide.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ IT',
+                    `<p>
+                        Market Exposure is not a property valuation, investment
+                        recommendation or forecast. Market observations retain
+                        the geography of their official source.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'CURRENT SNAPSHOT · 12 MONTHS',
+                    marketSnapshotHtml()
+                )
+        };
+    }
+
+    if(key.startsWith('analysis:')){
+        return analysisInfoPanel(
+            key.slice('analysis:'.length)
+        );
+    }
+
+    return {
+        title:'Atlas information',
+        html:`<p>No additional information is available.</p>`
+    };
+}
+
+function positionInfoPopover(trigger){
+
+    if(
+        !atlasInfoPopover ||
+        atlasInfoPopover.hidden ||
+        !trigger
+    ){
+        return;
+    }
+
+    if(
+        window.matchMedia('(max-width:720px)').matches
+    ){
+        atlasInfoPopover.style.left = '';
+        atlasInfoPopover.style.top = '';
+        return;
+    }
+
+    const rect = trigger.getBoundingClientRect();
+    const margin = 10;
+    const gap = 8;
+
+    atlasInfoPopover.style.left = '0px';
+    atlasInfoPopover.style.top = '0px';
+
+    const box = atlasInfoPopover.getBoundingClientRect();
+
+    let left = rect.right - box.width;
+    let top = rect.bottom + gap;
+
+    left = Math.max(
+        margin,
+        Math.min(
+            left,
+            window.innerWidth - box.width - margin
+        )
+    );
+
+    if(
+        top + box.height >
+        window.innerHeight - margin
+    ){
+        top = rect.top - box.height - gap;
+    }
+
+    top = Math.max(
+        margin,
+        Math.min(
+            top,
+            window.innerHeight - box.height - margin
+        )
+    );
+
+    atlasInfoPopover.style.left = `${left}px`;
+    atlasInfoPopover.style.top = `${top}px`;
+}
+
+function closeInfoPopover(){
+
+    if(!atlasInfoPopover){
+        return;
+    }
+
+    atlasInfoPopover.hidden = true;
+
+    if(activeInfoTrigger){
+        activeInfoTrigger.setAttribute(
+            'aria-expanded',
+            'false'
+        );
+    }
+
+    activeInfoKey = null;
+    activeInfoTrigger = null;
+}
+
+function openInfoPopover(key, trigger){
+
+    if(
+        !atlasInfoPopover ||
+        !atlasInfoTitle ||
+        !atlasInfoBody
+    ){
+        return;
+    }
+
+    if(
+        activeInfoKey === key &&
+        !atlasInfoPopover.hidden
+    ){
+        closeInfoPopover();
+        return;
+    }
+
+    if(activeInfoTrigger){
+        activeInfoTrigger.setAttribute(
+            'aria-expanded',
+            'false'
+        );
+    }
+
+    const panel = getInfoPanel(key);
+
+    atlasInfoTitle.textContent =
+        panel.title;
+
+    atlasInfoBody.innerHTML =
+        panel.html;
+
+    atlasInfoPopover.hidden =
+        false;
+
+    activeInfoKey =
+        key;
+
+    activeInfoTrigger =
+        trigger;
+
+    trigger?.setAttribute(
+        'aria-expanded',
+        'true'
+    );
+
+    requestAnimationFrame(
+        () => positionInfoPopover(trigger)
+    );
+}
+
+function refreshOpenInfoPopover(){
+
+    if(
+        !activeInfoKey ||
+        atlasInfoPopover?.hidden
+    ){
+        return;
+    }
+
+    const panel =
+        getInfoPanel(activeInfoKey);
+
+    atlasInfoTitle.textContent =
+        panel.title;
+
+    atlasInfoBody.innerHTML =
+        panel.html;
+
+    requestAnimationFrame(
+        () => positionInfoPopover(activeInfoTrigger)
+    );
+}
+
+window.UGARefreshOpenInfoPanel =
+    refreshOpenInfoPopover;
+
+document.addEventListener(
+    'click',
+    event => {
+
+        const trigger =
+            event.target.closest(
+                '.info-trigger'
+            );
+
+        if(trigger){
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            openInfoPopover(
+                trigger.dataset.infoKey,
+                trigger
+            );
+
+            return;
+        }
+
+        if(
+            !atlasInfoPopover?.hidden &&
+            !atlasInfoPopover.contains(event.target)
+        ){
+            closeInfoPopover();
+        }
+
+    }
+);
+
+atlasInfoClose?.addEventListener(
+    'click',
+    closeInfoPopover
+);
+
+document.addEventListener(
+    'keydown',
+    event => {
+
+        if(
+            event.key === 'Escape' &&
+            !atlasInfoPopover?.hidden
+        ){
+            closeInfoPopover();
+        }
+
+    }
+);
+
+window.addEventListener(
+    'resize',
+    () => {
+
+        if(
+            !atlasInfoPopover?.hidden
+        ){
+            positionInfoPopover(
+                activeInfoTrigger
+            );
+        }
+
+    }
+);
+
+function updateLegendInfoButton(){
+
+    if(!legendInfoButton){
+        return;
+    }
+
+    const theme =
+        themeSelect.value;
+
+    const title =
+        LEGENDS[theme]?.title || theme;
+
+    legendInfoButton.dataset.infoKey =
+        `analysis:${theme}`;
+
+    legendInfoButton.setAttribute(
+        'aria-label',
+        `About ${title}`
+    );
+
+    legendInfoButton.title =
+        `About ${title}`;
+
+    if(
+        activeInfoTrigger === legendInfoButton &&
+        !atlasInfoPopover?.hidden
+    ){
+        activeInfoKey =
+            `analysis:${theme}`;
+
+        refreshOpenInfoPopover();
+    }
+}
+
+function updateEditorialStatsUI(){
+
+    if(buildingHeightCoverageStat){
+
+        const height =
+            atlasStats?.fabric;
+
+        if(
+            height &&
+            Number.isFinite(
+                Number(
+                    height.heightCoverageCount
+                )
+            )
+        ){
+
+            buildingHeightCoverageStat.textContent =
+                `Height data: ${
+                    Number(
+                        height.heightCoverageCount
+                    ).toLocaleString()
+                } / ${
+                    Number(
+                        atlasStats.atlas.totalHexes
+                    ).toLocaleString()
+                } cells (${
+                    Number(
+                        height.heightCoveragePct
+                    ).toFixed(1)
+                }%)`;
+
+        } else {
+
+            buildingHeightCoverageStat.textContent =
+                'Height coverage unavailable';
+
+        }
+
+    }
+
+}
+
+async function loadAtlasStats(){
+
+    try{
+
+        const response =
+            await fetch(
+                ATLAS_STATS_URL,
+                {
+                    cache:'no-store'
+                }
+            );
+
+        if(!response.ok){
+            throw new Error(
+                `${response.status} ${response.statusText}`
+            );
+        }
+
+        atlasStats =
+            await response.json();
+
+        updateEditorialStatsUI();
+        updateStatus();
+        refreshOpenInfoPopover();
+
+    } catch(error){
+
+        console.warn(
+            'Atlas statistics unavailable:',
+            error
+        );
+
+        updateStatus();
+
+    }
+
+}
+
+loadAtlasStats();
+
 
 // =====================================================
 // WELCOME / ATLAS INTRODUCTION
@@ -1395,63 +2508,63 @@ const UGS_SIGNATURES = {
         name:'TRANSFORMING CORE',
         colour:'#D25B48',
         description:
-            'Highly intensive existing urban fabric with a strong change signal.'
+            'Highly built-up, with a strong modelled change signal.'
     },
 
     EC:{
         name:'EMERGING CHANGE',
         colour:'#D89A43',
         description:
-            'Relatively lower-intensity urban fabric showing a strong change signal.'
+            'Less built-up, with a strong modelled change signal.'
     },
 
     AT:{
         name:'AGEING TRANSITION',
         colour:'#A95F68',
         description:
-            'Older urban fabric combined with an elevated change signal.'
+            'Older building fabric, with a strong modelled change signal.'
     },
 
     VM:{
         name:'VERTICAL MATURE',
         colour:'#786AA0',
         description:
-            'Intensive and vertical urban fabric without an exceptionally high change signal.'
+            'Highly built-up and tall, without an unusually strong change signal.'
     },
 
     LF:{
         name:'LEGACY FABRIC',
         colour:'#8F7862',
         description:
-            'Older established urban fabric without an exceptional change signal.'
+            'Older building fabric without an unusually strong change signal.'
     },
 
     CF:{
         name:'CONNECTED FABRIC',
         colour:'#518882',
         description:
-            'Highly accessible urban fabric without an exceptional change signal.'
+            'Highly connected without an unusually strong change signal.'
     },
 
     SF:{
         name:'STABLE FABRIC',
         colour:'#7D8790',
         description:
-            'No exceptional v0.1 combination detected in the available urban indicators.'
+            'No Signature-defining combination stands out in this version of the model.'
     },
 
     C:{
         name:'CONSTRAINED',
         colour:'#A8ADB2',
         description:
-            'A constrained or non-urban planning context, treated separately from normal urban genetic types.'
+            'A constrained or non-urban planning context, treated separately from the normal urban Signatures.'
     },
 
     U:{
         name:'UNASSESSED',
         colour:'#D0D3D7',
         description:
-            'Insufficient meaningful analytical context to assign a normal urban genetic signature.'
+            'Not enough analytical context is available to assign a normal Signature.'
     }
 
 };
@@ -1478,7 +2591,7 @@ const LEGENDS = {
         title: 'Development Pressure',
 
         description:
-            'Measures redevelopment pressure using building age, density, and recent development signals. Higher values indicate locations where the existing urban fabric is under greater transformation pressure.',
+            'Shows where the current model detects weaker or stronger development pressure.',
 
         gradient:
             'linear-gradient(90deg,#313695,#74ADD1,#FFFFFF,#FFF7BC,#FEC44F,#FE9929,#EC7014,#993404)',
@@ -1486,17 +2599,17 @@ const LEGENDS = {
         interpretation: `
             <div class='legend-item'>
                 <strong>Low</strong>
-                — Stable urban fabric with limited redevelopment pressure.
+                — Lower pressure in the current model.
             </div>
 
             <div class='legend-item'>
                 <strong>Medium</strong>
-                — Emerging redevelopment activity and ageing building stock.
+                — Moderate or mixed pressure.
             </div>
 
             <div class='legend-item'>
                 <strong>High</strong>
-                — Strategic renewal priority and strong transformation potential.
+                — Stronger pressure in the current model.
             </div>
         `
     },
@@ -1507,7 +2620,7 @@ const LEGENDS = {
         title: 'GFA Saturation',
 
         description:
-            'Indicates how much legally permissible floor area has already been realised within each hex cell.',
+            'Shows how much of the estimated development capacity is already realised in each hex.',
 
         gradient:
             'linear-gradient(90deg,#56BEEE40,#6FB8CE8C,#50A2EE9E,#2949FE9E,#4902CC9E,#390C6D9E)',
@@ -1515,27 +2628,27 @@ const LEGENDS = {
         interpretation: `
             <div class='legend-item'>
                 <strong>0.00</strong>
-                Minimal realized development.
+                — Very little of the estimated capacity is realised.
             </div>
 
             <div class='legend-item'>
                 <strong>0.25</strong>
-                Significant redevelopment headroom.
+                — More capacity remains than has been realised.
             </div>
 
             <div class='legend-item'>
                 <strong>0.50</strong>
-                Moderate redevelopment headroom.
+                — Around half of the estimated capacity is realised.
             </div>
 
             <div class='legend-item'>
                 <strong>0.75</strong>
-                Most capacity realized.
+                — Most of the estimated capacity is realised.
             </div>
 
             <div class='legend-item'>
                 <strong>1.00</strong>
-                Development capacity largely realized.
+                — Estimated capacity is largely realised.
             </div>
         `
     },
@@ -1546,7 +2659,7 @@ const LEGENDS = {
         title: 'MTR Built Accessibility',
 
         description:
-            'Accessibility strength derived from proximity and connectivity to the existing MTR network.',
+            'Shows relative accessibility to the existing MTR network.',
 
         gradient:
             'linear-gradient(90deg,#FFFFFF,#FFFDE7,#FFF176,#9CCC65,#2E7D32,#004D40)',
@@ -1554,17 +2667,17 @@ const LEGENDS = {
         interpretation: `
             <div class='legend-item'>
                 <strong>Weak</strong>
-                — Limited access to rapid transit infrastructure.
+                — Lower MTR accessibility in this index.
             </div>
 
             <div class='legend-item'>
                 <strong>Moderate</strong>
-                — Served by nearby stations and network connections.
+                — Moderate MTR accessibility.
             </div>
 
             <div class='legend-item'>
                 <strong>Strong</strong>
-                — Major interchange or high-connectivity transit hub.
+                — Higher MTR accessibility.
             </div>
         `
     },
@@ -1575,7 +2688,7 @@ const LEGENDS = {
         title: 'Renewal Potential',
 
         description:
-            'Identifies ageing urban fabric with increasing redevelopment and renewal priority.',
+            'A strategic model showing where selected renewal conditions combine more strongly.',
 
         gradient:
             'linear-gradient(90deg,#FFFFFF,#FFF7BC,#FEE391,#FEC44F,#FDB863,#F46D43,#D7301F,#7F0000)',
@@ -1583,17 +2696,17 @@ const LEGENDS = {
         interpretation: `
             <div class='legend-item'>
                 <strong>Low</strong>
-                — Contemporary or recently renewed urban fabric.
+                — Fewer of the model's renewal conditions coincide.
             </div>
 
             <div class='legend-item'>
                 <strong>Medium</strong>
-                — Ageing districts with emerging redevelopment pressure.
+                — A moderate combination of renewal conditions.
             </div>
 
             <div class='legend-item'>
                 <strong>High</strong>
-                — Strategic renewal priority areas.
+                — A stronger combination of renewal conditions.
             </div>
         `
     },
@@ -1604,7 +2717,7 @@ const LEGENDS = {
         title: 'Genesis Potential',
 
         description:
-            'Highlights areas with capacity for future urban transformation, expansion, and strategic development.',
+            'A strategic model showing where capacity and catalytic conditions combine more strongly.',
 
         gradient:
             'linear-gradient(90deg,#FFFFFF,#E5F5E0,#74C476,#31A354,#756BB1,#6A51A3,#4A1486)',
@@ -1612,17 +2725,17 @@ const LEGENDS = {
         interpretation: `
             <div class='legend-item'>
                 <strong>Low</strong>
-                — Limited opportunity for new urban genesis.
+                — Limited combination of Genesis conditions.
             </div>
 
             <div class='legend-item'>
                 <strong>Medium</strong>
-                — Emerging transformation and growth potential.
+                — Moderate combination of Genesis conditions.
             </div>
 
             <div class='legend-item'>
                 <strong>High</strong>
-                — Major strategic development opportunity.
+                — Stronger combination of Genesis conditions.
             </div>
         `
     },
@@ -1630,10 +2743,10 @@ const LEGENDS = {
 
     'GFA per Capita': {
 
-        title: 'Living Space (sqm/cap)',
+        title: 'Living Space (m²/cap)',
 
         description:
-            'Estimated residential floor area available per resident within each hex cell.',
+            'Estimated residential floor area per resident within each hex.',
 
         gradient:
             'linear-gradient(90deg,#F7FCF5,#E5F5E0,#C7E9C0,#74C476,#41AB5D,#238B45,#00441B)',
@@ -1641,17 +2754,17 @@ const LEGENDS = {
         interpretation: `
             <div class='legend-item'>
                 <strong>Low</strong>
-                — Constrained living space and higher residential intensity.
+                — Lower estimated floor area per resident.
             </div>
 
             <div class='legend-item'>
                 <strong>Medium</strong>
-                — Typical Hong Kong residential conditions.
+                — Mid-range estimated floor area per resident.
             </div>
 
             <div class='legend-item'>
                 <strong>High</strong>
-                — Larger living space and lower residential crowding.
+                — Higher estimated floor area per resident.
             </div>
         `
     },
@@ -1662,7 +2775,7 @@ const LEGENDS = {
         title: 'Population Intensity',
 
         description:
-            'Estimated number of residents associated with buildings within each hex cell.',
+            'Estimated number of residents associated with buildings within each hex.',
 
         gradient:
             'linear-gradient(90deg,#FFF5F0,#FEE0D2,#FCBBA1,#FC9272,#FB6A4A,#EF3B2C,#CB181D,#67000D)',
@@ -1670,17 +2783,17 @@ const LEGENDS = {
         interpretation: `
             <div class='legend-item'>
                 <strong>Low</strong>
-                — Sparse residential occupation.
+                — Lower estimated residential concentration.
             </div>
 
             <div class='legend-item'>
                 <strong>Medium</strong>
-                — Typical urban residential intensity.
+                — Moderate estimated residential concentration.
             </div>
 
             <div class='legend-item'>
                 <strong>High</strong>
-                — Extremely dense residential occupation.
+                — Higher estimated residential concentration.
             </div>
         `
     },
@@ -1691,7 +2804,7 @@ const LEGENDS = {
         title: 'Latent Urban Capacity',
 
         description:
-            'Estimated proportion of reasonable development capacity that remains unrealised within each 100 m hex.',
+            'Shows how much of the estimated development capacity remains unrealised.',
 
         gradient:
             'linear-gradient(90deg,rgba(255,255,255,0),#e2e2f4,#c2bae2,#9d91d1,#7e6cbe,#5f49a9,#442d8b,#26125c)',
@@ -1699,17 +2812,17 @@ const LEGENDS = {
         interpretation: `
             <div class='legend-item'>
                 <strong>Low</strong>
-                — Most reasonable development capacity has already been realised.
+                — Little estimated capacity remains.
             </div>
 
             <div class='legend-item'>
                 <strong>Medium</strong>
-                — Meaningful unrealised development capacity remains.
+                — Meaningful estimated capacity remains.
             </div>
 
             <div class='legend-item'>
                 <strong>High</strong>
-                — A large proportion of reasonable development capacity remains unrealised.
+                — A larger share of estimated capacity remains.
             </div>
         `
     },
@@ -1719,7 +2832,7 @@ const LEGENDS = {
         title: 'Market Exposure',
 
         description:
-            'Relates regional 12-month market momentum to local Development Pressure and Latent Urban Capacity. Higher values show stronger coincidence between market movement and local urban opportunity; this is not a property valuation or forecast.',
+            'Shows where regional market momentum overlaps with local Development Pressure and remaining capacity.',
 
         gradient:
             'linear-gradient(90deg,#edf8f6,#ccece6,#7fcdbb,#41b6c4,#25788e,#084081)',
@@ -1727,32 +2840,32 @@ const LEGENDS = {
         interpretation: `
             <div class='legend-item'>
                 <strong>Low</strong>
-                — Market movement and/or local opportunity conditions are limited.
+                — Limited overlap between market movement and local opportunity conditions.
             </div>
 
             <div class='legend-item'>
                 <strong>Medium</strong>
-                — Market momentum overlaps with meaningful local capacity or development pressure.
+                — Market movement overlaps with meaningful local pressure or capacity.
             </div>
 
             <div class='legend-item'>
                 <strong>High</strong>
-                — Stronger market momentum coincides with high local capacity and/or development pressure.
+                — Stronger market movement coincides with stronger local opportunity conditions.
             </div>
 
             <div class='legend-item'>
                 <strong>Unassessed</strong>
-                — Local pressure or capacity evidence is insufficient for this derived measure.
+                — Local pressure or capacity evidence is insufficient for this measure.
             </div>
         `
     },
 
     'Urban Genetic Signature': {
 
-    title:'Urban Genetic Signature · UGS.1.0',
+    title:'Urban Genetic Signature',
 
     description:
-        'A categorical reading of urban condition, combining intensity, accessibility, height, age and modelled change signals. The Signature describes observed urban condition; it is not a prediction.',
+        'A Signature brings several characteristics together to describe what kind of urban place this is. It is a classification, not an overall score or redevelopment forecast.',
 
     categorical:true,
 
@@ -1784,6 +2897,8 @@ function updateLegend(){
 
     legendDescription.textContent =
         cfg.description;
+
+    updateLegendInfoButton();
 
 
     if(cfg.categorical){
@@ -3383,6 +4498,7 @@ function applyUgsSignatureFilter(){
 
 function applyCapacityContextFilter(){
     applyAtlasFilters();
+    updateStatus();
 }
 
 // =====================================================
@@ -5242,159 +6358,61 @@ function ugsWhyItems(
 
     const definitions = {
 
-        TC: [
-
-            {
-                label:'Intensity',
-                field:'UGS_v01_Intensity_Band'
-            },
-
-            {
-                label:'Change',
-                field:'UGS_v01_Change_Band'
-            },
-
-            {
-                label:'Height / Form',
-                field:'UGS_v01_Height_Band'
-            }
-
+        TC:[
+            {label:'Intensity',field:'UGS_v01_Intensity_Band'},
+            {label:'Change',field:'UGS_v01_Change_Band'}
         ],
 
-        EC: [
-
-            {
-                label:'Intensity',
-                field:'UGS_v01_Intensity_Band'
-            },
-
-            {
-                label:'Change',
-                field:'UGS_v01_Change_Band'
-            },
-
-            {
-                label:'Accessibility',
-                field:'UGS_v01_Access_Band'
-            }
-
+        EC:[
+            {label:'Intensity',field:'UGS_v01_Intensity_Band'},
+            {label:'Change',field:'UGS_v01_Change_Band'}
         ],
 
-        AT: [
-
-            {
-                label:'Building age',
-                field:'UGS_v01_Age_Band'
-            },
-
-            {
-                label:'Change',
-                field:'UGS_v01_Change_Band'
-            },
-
-            {
-                label:'Intensity',
-                field:'UGS_v01_Intensity_Band'
-            }
-
+        AT:[
+            {label:'Building age',field:'UGS_v01_Building_Age_Band'},
+            {label:'Change',field:'UGS_v01_Change_Band'}
         ],
 
-        VM: [
-
-            {
-                label:'Intensity',
-                field:'UGS_v01_Intensity_Band'
-            },
-
-            {
-                label:'Height / Form',
-                field:'UGS_v01_Height_Band'
-            },
-
-            {
-                label:'Change',
-                field:'UGS_v01_Change_Band'
-            }
-
+        VM:[
+            {label:'Intensity',field:'UGS_v01_Intensity_Band'},
+            {label:'Height / Form',field:'UGS_v01_Height_Band'},
+            {label:'Change',field:'UGS_v01_Change_Band'}
         ],
 
-        LF: [
-
-            {
-                label:'Building age',
-                field:'UGS_v01_Age_Band'
-            },
-
-            {
-                label:'Change',
-                field:'UGS_v01_Change_Band'
-            }
-
+        LF:[
+            {label:'Building age',field:'UGS_v01_Building_Age_Band'},
+            {label:'Change',field:'UGS_v01_Change_Band'}
         ],
 
-        CF: [
-
-            {
-                label:'Accessibility',
-                field:'UGS_v01_Access_Band'
-            },
-
-            {
-                label:'Change',
-                field:'UGS_v01_Change_Band'
-            },
-
-            {
-                label:'Intensity',
-                field:'UGS_v01_Intensity_Band'
-            }
-
+        CF:[
+            {label:'Accessibility',field:'UGS_v01_Access_Band'},
+            {label:'Change',field:'UGS_v01_Change_Band'}
         ],
 
-        SF: [],
+        SF:[],
 
-        C: [
-
-            {
-                label:'Planning context',
-                field:'SPZ - Capacity Context'
-            }
-
+        C:[
+            {label:'Planning context',field:'SPZ - Capacity Context'}
         ],
 
-        U: [
-
-            {
-                label:'Data confidence',
-                field:'UGS_v01_Data_Confidence'
-            }
-
+        U:[
+            {label:'Data availability',field:'UGS_v01_Data_Completeness'}
         ]
 
     };
 
-
     return (
-
-        definitions[
-            signatureCode
-        ] || []
-
+        definitions[signatureCode] || []
     )
-
         .map(
             item => ({
-
                 label:item.label,
-
                 band:ugsValue(
                     properties,
                     item.field
                 )
-
             })
         )
-
         .filter(
             item =>
                 item.band !== null
@@ -5402,146 +6420,72 @@ function ugsWhyItems(
 
 }
 
-
 function ugsInterpretation(
     properties,
     signature
 ){
 
-    const intensity =
-        ugsValue(
-            properties,
-            'UGS_v01_Intensity_Band'
-        );
-
-
-    const height =
-        ugsValue(
-            properties,
-            'UGS_v01_Height_Band'
-        );
-
-
-    const access =
-        ugsValue(
-            properties,
-            'UGS_v01_Access_Band'
-        );
-
-
-    const change =
-        ugsValue(
-            properties,
-            'UGS_v01_Change_Band'
-        );
-
-
-    const age =
-        ugsValue(
-            properties,
-            'UGS_v01_Age_Band'
-        );
-
-
     switch(signature){
 
-        case 'CONSTRAINED':
-
-            return (
-                'This location falls within a constrained ' +
-                'or non-urban planning context and is treated ' +
-                'separately from the normal urban genetic types.'
-            );
-
-
-        case 'UNASSESSED':
-
-            return (
-                'There is not enough meaningful analytical ' +
-                'context here to assign a normal urban genetic type.'
-            );
-
-
         case 'TRANSFORMING CORE':
-
             return (
-                'This hex combines ' +
-                `${ugsFriendlyBand(intensity) || 'high'} intensity ` +
-                'with a ' +
-                `${ugsFriendlyBand(change) || 'strong'} change signal` +
-                (
-                    height
-                        ? ` and ${ugsFriendlyBand(height)} vertical form.`
-                        : '.'
-                )
+                'This is a highly built-up hex with a strong ' +
+                'modelled change signal.'
             );
-
 
         case 'EMERGING CHANGE':
-
             return (
-                'This is a relatively ' +
-                `${ugsFriendlyBand(intensity) || 'lower-intensity'} ` +
-                'urban area showing a ' +
-                `${ugsFriendlyBand(change) || 'strong'} change signal.`
+                'This is a lower-intensity hex with a strong ' +
+                'modelled change signal.'
             );
-
 
         case 'AGEING TRANSITION':
-
             return (
-                'This hex combines ' +
-                `${ugsFriendlyBand(age) || 'older'} building fabric ` +
-                'with a ' +
-                `${ugsFriendlyBand(change) || 'strong'} change signal. ` +
-                'The Signature describes this combination of conditions; ' +
-                'it does not predict redevelopment.'
+                'This hex combines older building fabric with a ' +
+                'strong modelled change signal.'
             );
-
 
         case 'VERTICAL MATURE':
-
             return (
-                'This hex combines ' +
-                `${ugsFriendlyBand(intensity) || 'high'} intensity ` +
-                'with ' +
-                `${ugsFriendlyBand(height) || 'high'} vertical form ` +
-                'without an exceptionally high change signal.'
+                'This hex is highly built-up and tall, while its ' +
+                'change signal remains below the high-change threshold.'
             );
-
 
         case 'LEGACY FABRIC':
-
             return (
-                'This hex contains ' +
-                `${ugsFriendlyBand(age) || 'older'} established urban fabric ` +
-                'without an exceptional change signal.'
+                'This hex contains older building fabric without an ' +
+                'unusually strong change signal.'
             );
-
 
         case 'CONNECTED FABRIC':
-
             return (
-                'This hex has ' +
-                `${ugsFriendlyBand(access) || 'high'} accessibility ` +
-                'without an exceptional change signal.'
+                'This hex is highly connected without an unusually ' +
+                'strong change signal.'
             );
-
 
         case 'STABLE FABRIC':
-
             return (
-                'No exceptional v0.1 combination was detected here. ' +
-                'The Signature describes the available urban condition ' +
-                'rather than implying permanent stability.'
+                'No Signature-defining combination crossed the relevant ' +
+                'thresholds here. This does not imply permanent stability.'
             );
 
+        case 'CONSTRAINED':
+            return (
+                'This location sits within a constrained or non-urban ' +
+                'planning context and is treated separately from the ' +
+                'normal urban Signatures.'
+            );
+
+        case 'UNASSESSED':
+            return (
+                'There is not enough analytical context here to assign ' +
+                'a normal Urban Genetic Signature.'
+            );
 
         default:
-
             return (
-                'The available indicators describe a distinct combination ' +
-                'of urban conditions within the v0.1 Signature model.'
+                'The current model identifies this combination of urban ' +
+                'characteristics as a distinct Signature.'
             );
 
     }
@@ -5649,13 +6593,13 @@ function ugsActivitySection(
         <div class="ugs-section">
 
             <div class="ugs-section-title">
-                OBSERVED ACTIVITY
+                RECORDED ACTIVITY
             </div>
 
             <div class="popup-row">
 
                 <span>
-                    Building approval
+                    Latest building approval
                 </span>
 
                 <span>
@@ -5672,7 +6616,7 @@ function ugsActivitySection(
             <div class="popup-row">
 
                 <span>
-                    Land deal
+                    Latest land deal
                 </span>
 
                 <span>
@@ -5691,8 +6635,8 @@ function ugsActivitySection(
                     ? ''
                     : `
                         <div class="ugs-activity-note">
-                            No observed activity is recorded in
-                            the available hex attributes.
+                            No building approval or land-deal year is recorded
+                            for this hex in the current Atlas.
                         </div>
                     `
             }
@@ -6036,7 +6980,7 @@ function showPopup(
                                 ] || 0
                             ).toLocaleString()
                         }
-                        sqm
+                        m²
                     </span>
                 </div>
 
@@ -6105,10 +7049,10 @@ function showPopup(
         );
 
 
-    const dataConfidence =
+    const dataCompleteness =
         ugsValue(
             p,
-            'UGS_v01_Data_Confidence'
+            'UGS_v01_Data_Completeness'
         );
 
 
@@ -6217,7 +7161,8 @@ function showPopup(
             ).join('')
             : `
                 <div class="ugs-why-item">
-                    No strong component signal is available.
+                    No Signature-defining combination crossed the
+                    relevant thresholds here.
                 </div>
             `;
 
@@ -6333,7 +7278,7 @@ function showPopup(
                                         'GFA per Capita'
                                     ]
                                 ).toFixed(1) +
-                                ' sqm/cap'
+                                ' m²/cap'
                         }
                     </span>
                 </div>
@@ -6458,23 +7403,40 @@ function showPopup(
             <div class="ugs-detail-body">
 
                 <p>
-                    The Signature is a rule-based profile of
-                    urban condition. It combines percentile-ranked
-                    intensity, accessibility and building form
-                    with building age and a modelled change signal.
+                    The Urban Genetic Signature is a rule-based
+                    classification. It compares each hex with the
+                    meaningful urban reference set across five
+                    characteristics: Intensity, Accessibility,
+                    Height / Form, Age and Change.
                 </p>
 
                 <p>
-                    The change signal uses Renewal Potential and
-                    Development Pressure. These modelled indicators
-                    are kept separate from observed activity such
-                    as building approvals and land deals.
+                    A Signature is assigned when a particular
+                    combination crosses the thresholds defined by
+                    UGS v0.1. It is not an average of the five
+                    characteristics and it is not an overall score.
                 </p>
 
                 <p>
-                    The Signature describes the condition detected
-                    by the v0.1 model. It is not a prediction of
-                    redevelopment.
+                    The current Change profile uses Development Pressure and
+                    Renewal Potential. These are modelled indicators, but some
+                    recorded activity also contributes to their upstream
+                    calculations: approved-development activity contributes to
+                    Development Pressure, while land-deal recency contributes to
+                    Renewal.
+                </p>
+
+                <p>
+                    The popup shows the underlying recorded activity separately
+                    so the user can distinguish source evidence from the derived
+                    model signal. Raw evidence and modelled interpretation are
+                    displayed separately, but they are not necessarily
+                    statistically independent.
+                </p>
+
+                <p>
+                    The Signature describes the condition detected by the
+                    current model. It does not predict redevelopment.
                 </p>
 
                 ${
@@ -6521,12 +7483,12 @@ function showPopup(
                 }
 
                 ${
-                dataConfidence
+                dataCompleteness
                 ? `
                     <div class="ugs-methodology-meta">
-                                Data confidence:
+                                Data completeness:
                                 <strong>
-                                    ${dataConfidence}
+                                    ${dataCompleteness}
                                 </strong>
                             </div>
                         `
@@ -6650,7 +7612,7 @@ function showPopup(
                                     ] || 0
                                 ).toLocaleString()
                             }
-                            sqm
+                            m²
                         </span>
                     </div>
 
@@ -6669,9 +7631,9 @@ function showPopup(
 
                 ${connectivitySection}
 
-                ${methodologySection}
-
             </div>
+
+            ${methodologySection}
 
         </div>
 
@@ -6904,12 +7866,62 @@ function updateStatus(){
     const zoom =
         map.getZoom().toFixed(1);
 
+    const theme =
+        themeSelect.value;
+
+    const analysisName =
+        LEGENDS[theme]?.title || theme;
+
+    const statsKey =
+        ANALYSIS_STATS_KEYS[theme];
+
+    const coverage =
+        statsKey
+            ? atlasStats?.coverage?.[statsKey]
+            : null;
+
+    const total =
+        Number(
+            atlasStats?.atlas?.totalHexes
+        );
+
+    let coverageText =
+        'Coverage unavailable';
+
+    if(
+        coverage &&
+        Number.isFinite(
+            Number(coverage.count)
+        ) &&
+        Number.isFinite(total)
+    ){
+
+        coverageText =
+            `Coverage ${
+                Number(
+                    coverage.count
+                ).toLocaleString()
+            } / ${
+                total.toLocaleString()
+            } (${
+                Number(
+                    coverage.pct
+                ).toFixed(1)
+            }%)`;
+
+    }
+
+    const filter =
+        capacityContext?.value &&
+        capacityContext.value !== 'All'
+            ? ` · Filter: ${capacityContext.value}`
+            : '';
 
     status.textContent =
-        `Hong Kong SAR · EPSG:4326 · 100 m Hex Grid · ${themeSelect.value} · Zoom ${zoom}`;
+        `Hong Kong SAR · 100 m grid · ${analysisName} · ` +
+        `${coverageText}${filter} · Zoom ${zoom}`;
 
 }
-
 
 map.on(
     'zoom',
@@ -8394,4 +9406,5 @@ document.addEventListener(
 // INITIAL STATUS
 // =====================================================
 
+updateLegendInfoButton();
 updateStatus();

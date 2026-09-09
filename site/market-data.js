@@ -47,21 +47,23 @@ async function marketFetch(){
             if(data.pipeline_version!==MARKET_PIPELINE_VERSION) throw new Error(`pipeline mismatch: ${data.pipeline_version}`);
             if(data.analytics?.version!==MARKET_ANALYSIS_VERSION) throw new Error(`market analysis mismatch: ${data.analytics?.version||'missing'}`);
             marketContext=data; marketContextUrl=url;
+            window.UGA_MARKET_CONTEXT=data;
             window.UGA_MARKET_ANALYTICS=data.analytics;
             marketRenderIdle();
             marketRefreshExposureTheme();
+            window.UGARefreshOpenInfoPanel?.();
             return;
         }catch(e){ lastError=e; }
     }
-    marketSetStatus(`Market context unavailable${lastError?`: ${lastError.message}`:''}`,'error');
+    marketSetStatus(`Market data unavailable${lastError?`: ${lastError.message}`:''}`,'error');
 }
 function marketSetStatus(html,state='ready'){
     const el=document.getElementById('marketDataStatus'); if(!el)return; el.dataset.state=state; el.innerHTML=html;
 }
 function marketRenderIdle(){
     if(!marketContext)return;
-    const c=marketContext.counts||{}; const source=marketContextUrl===MARKET_LOCAL_URL?'local context':'R2 context';
-    marketSetStatus(`<div class="market-ready"><strong>Market context ready</strong><span>${Number(c.latest_observations||0).toLocaleString()} current observations · 12-month trends · 24-month history</span><span>${marketEsc(source)} · Select an Atlas hex to read market context and exposure.</span></div>`);
+    const c=marketContext.counts||{};
+    marketSetStatus(`<div class="market-ready"><strong>Market data ready</strong><span>${Number(c.latest_observations||0).toLocaleString()} current observations · 12-month trends · 24-month history</span><span>Select a hex to see regional and district market context, plus local Market Exposure.</span></div>`);
 }
 function marketNumericProperty(p,key){ const raw=p?.[key]; if(raw===null||raw===undefined||raw==='')return null; const n=Number(raw); return Number.isFinite(n)?n:null; }
 function marketExposureFor(feature,analytics){
@@ -109,7 +111,8 @@ function marketSparkline(series,label){
 function marketAnalyticsBlock(ctx){
     const a=ctx.analytics; if(!a)return '';
     const e=ctx.exposure; const momentum=Number(a.market_momentum);
-    return `<div class="market-analytics"><div class="market-analytics-head"><div><span>Market Momentum</span><strong>${marketScore(momentum)}</strong><small>${marketEsc(a.momentum_label||'')}</small></div><div><span>Market Exposure</span><strong>${e?marketScore(e.market_exposure):'—'}</strong><small>${e?marketEsc(marketExposureLabel(e.market_exposure)):'Unassessed'}</small></div></div><div class="market-trend-cards"><div><span>Price trend · 12m</span><strong>${marketTrendArrow(a.price_trend_12m_pct)} ${marketEsc(marketFormatTrend(a.price_trend_12m_pct))}</strong></div><div><span>Rent trend · 12m</span><strong>${marketTrendArrow(a.rent_trend_12m_pct)} ${marketEsc(marketFormatTrend(a.rent_trend_12m_pct))}</strong></div></div><div class="market-spark-grid">${marketSparkline(a.price_series,'Price · Class A–E composite')}${marketSparkline(a.rent_series,'Rent · Class A–E composite')}</div>${e?`<div class="market-exposure-meta">Local opportunity ${marketScore(e.local_opportunity)} · pressure ${marketScore(e.pressure_component)} · latent capacity ${marketScore(e.capacity_component)}</div>`:''}</div>`;
+    const method=e?`<details class="market-method-detail"><summary>How is Market Exposure calculated?</summary><div><p><strong>Market Momentum</strong> = 50% normalised 12-month regional price trend + 50% normalised 12-month regional rent trend.</p><p><strong>Local Opportunity</strong> = 50% positive Development Pressure + 50% Latent Urban Capacity.</p><p><strong>Market Exposure</strong> = Market Momentum × Local Opportunity.</p><div class="market-exposure-meta">Local opportunity ${marketScore(e.local_opportunity)} · pressure ${marketScore(e.pressure_component)} · latent capacity ${marketScore(e.capacity_component)}</div></div></details>`:'';
+    return `<div class="market-analytics"><div class="market-analytics-head"><div><span>Market Momentum</span><strong>${marketScore(momentum)}</strong><small>${marketEsc(a.momentum_label||'')}</small></div><div><span>Market Exposure</span><strong>${e?marketScore(e.market_exposure):'—'}</strong><small>${e?marketEsc(marketExposureLabel(e.market_exposure)):'Unassessed'}</small></div></div><div class="market-trend-cards"><div><span>Price trend · 12m</span><strong>${marketTrendArrow(a.price_trend_12m_pct)} ${marketEsc(marketFormatTrend(a.price_trend_12m_pct))}</strong></div><div><span>Rent trend · 12m</span><strong>${marketTrendArrow(a.rent_trend_12m_pct)} ${marketEsc(marketFormatTrend(a.rent_trend_12m_pct))}</strong></div></div><div class="market-spark-grid">${marketSparkline(a.price_series,'Price · Class A–E composite')}${marketSparkline(a.rent_series,'Rent · Class A–E composite')}</div>${method}</div>`;
 }
 function marketPanelHtml(ctx){
     const prices=marketBySource(ctx.regionObs,'rvd_pd_price_class_monthly'); const rents=marketBySource(ctx.regionObs,'rvd_pd_rent_class_monthly'); const yields=marketBySource(ctx.territoryObs,'rvd_pd_yield_monthly'); const district=marketBySource(ctx.districtObs,'rvd_pd_stock_completions_vacancy_district');
@@ -122,8 +125,14 @@ function marketAppendPopup(ctx){
     const prices=marketBySource(ctx.regionObs,'rvd_pd_price_class_monthly'); const rents=marketBySource(ctx.regionObs,'rvd_pd_rent_class_monthly'); const yields=marketBySource(ctx.territoryObs,'rvd_pd_yield_monthly'); const district=marketBySource(ctx.districtObs,'rvd_pd_stock_completions_vacancy_district');
     const classA=(xs)=>xs.find(o=>o.property_class==='A'); const vacancy=district.find(o=>o.label==='% Vacant'); const a=ctx.analytics; const e=ctx.exposure;
     const section=document.createElement('div'); section.className='ugs-section market-popup-section';
-    section.innerHTML=`<div class="ugs-section-title">MARKET CONTEXT</div><div class="market-popup-grid">${ctx.region?`<div><span>Region</span><strong>${marketEsc(ctx.region)}</strong></div>`:''}${ctx.district?`<div><span>District</span><strong>${marketEsc(ctx.district)}</strong></div>`:''}${a?`<div><span>Price trend · 12m</span><strong>${marketTrendArrow(a.price_trend_12m_pct)} ${marketEsc(marketFormatTrend(a.price_trend_12m_pct))}</strong></div><div><span>Rent trend · 12m</span><strong>${marketTrendArrow(a.rent_trend_12m_pct)} ${marketEsc(marketFormatTrend(a.rent_trend_12m_pct))}</strong></div><div><span>Market momentum</span><strong>${marketScore(a.market_momentum)}</strong></div>`:''}${e?`<div><span>Market exposure</span><strong>${marketScore(e.market_exposure)} · ${marketEsc(marketExposureLabel(e.market_exposure))}</strong></div>`:''}${classA(prices)?`<div><span>Class A price</span><strong>${marketEsc(marketFormatValue(classA(prices).value,classA(prices).unit))}</strong></div>`:''}${classA(rents)?`<div><span>Class A rent</span><strong>${marketEsc(marketFormatValue(classA(rents).value,classA(rents).unit))}</strong></div>`:''}${classA(yields)?`<div><span>Class A yield</span><strong>${marketEsc(marketFormatValue(classA(yields).value,classA(yields).unit))}</strong></div>`:''}${vacancy?`<div><span>District vacancy</span><strong>${marketEsc(marketFormatValue(vacancy.value,vacancy.unit))}</strong></div>`:''}</div><div class="market-popup-note">Market Momentum retains official regional geography. Market Exposure combines that context with this hex's Development Pressure and Latent Urban Capacity; it is not a valuation or forecast.</div>`;
-    const target=popup.querySelector('.ugs-popup') || popup; target.appendChild(section);
+    section.innerHTML=`<div class="ugs-section-title">MARKET CONTEXT</div><div class="market-popup-grid">${ctx.region?`<div><span>Region</span><strong>${marketEsc(ctx.region)}</strong></div>`:''}${ctx.district?`<div><span>District</span><strong>${marketEsc(ctx.district)}</strong></div>`:''}${a?`<div><span>Price trend · 12m</span><strong>${marketTrendArrow(a.price_trend_12m_pct)} ${marketEsc(marketFormatTrend(a.price_trend_12m_pct))}</strong></div><div><span>Rent trend · 12m</span><strong>${marketTrendArrow(a.rent_trend_12m_pct)} ${marketEsc(marketFormatTrend(a.rent_trend_12m_pct))}</strong></div><div><span>Market momentum</span><strong>${marketScore(a.market_momentum)}</strong></div>`:''}${e?`<div><span>Market exposure</span><strong>${marketScore(e.market_exposure)} · ${marketEsc(marketExposureLabel(e.market_exposure))}</strong></div>`:''}${classA(prices)?`<div><span>Class A price</span><strong>${marketEsc(marketFormatValue(classA(prices).value,classA(prices).unit))}</strong></div>`:''}${classA(rents)?`<div><span>Class A rent</span><strong>${marketEsc(marketFormatValue(classA(rents).value,classA(rents).unit))}</strong></div>`:''}${classA(yields)?`<div><span>Class A yield</span><strong>${marketEsc(marketFormatValue(classA(yields).value,classA(yields).unit))}</strong></div>`:''}${vacancy?`<div><span>District vacancy</span><strong>${marketEsc(marketFormatValue(vacancy.value,vacancy.unit))}</strong></div>`:''}</div><div class="market-popup-note">Price, rent and yield retain the geography of their official source. Market Exposure combines that wider market movement with this hex's local Atlas conditions; it is not a property valuation or forecast.</div>`;
+    const target=popup.querySelector('.ugs-popup') || popup;
+    const methodology=target.querySelector('.ugs-methodology');
+    if(methodology){
+        target.insertBefore(section,methodology);
+    }else{
+        target.appendChild(section);
+    }
 }
 function marketBindModule(){
     const section=document.getElementById('marketSection'); const chevron=document.getElementById('marketSectionToggle'); if(!section || !chevron)return;

@@ -25,9 +25,9 @@ https://852lab.github.io/Urban-Genetics-Atlas/
 ## Current snapshot
 
 - Page title: **Urban Genetics Atlas**
-- UI version label: **v1.0 Beta**
-- Release ID: **V1.5-20260909-205856**
-- Generated: **2026-09-09 13:02 UTC**
+- UI version label: **Beta**
+- Release ID: **V1.5-20260910-020423**
+- Generated: **2026-09-09 18:07 UTC**
 - PMTiles: **atlas/852LAB_V1.5.pmtiles**
 - Public GeoJSON resources: **3**
 - Terrain objects: **51941**
@@ -35,7 +35,7 @@ https://852lab.github.io/Urban-Genetics-Atlas/
 
 ## Project character
 
-The Urban Genetics Atlas is a map-first exploratory system for reading Hong Kong's urban fabric. Its intended character is **Windy + Wiki for cities**: spatial, visual, open and understandable without specialist GIS knowledge.
+The Urban Genetics Atlas is a map-first exploratory system for reading Hong Kong through its urban fabric, spatial patterns and market context. Its intended character is **Windy + Wiki for cities**: spatial, visual, open and understandable without specialist GIS knowledge.
 
 The Atlas is intended to move from:
 
@@ -45,13 +45,13 @@ rather than simply presenting a collection of GIS attributes.
 
 ## Urban Analysis modes currently present
 
-- `Urban Genetic Signature` — Urban Genetic Signature - UGS.1.0
+- `Urban Genetic Signature` — Urban Genetic Signature
 - `Development Pressure` — Development Pressure
 - `GFA - Saturation` — GFA Saturation
 - `MTR - Index (Built)` — MTR Built Accessibility
 - `Renewal Potential` — Renewal Potential
 - `Genesis Potential` — Genesis Potential
-- `GFA per Capita` — Living Space (sqm/cap)
+- `GFA per Capita` — Living Space (m²/cap)
 - `Population per Building` — Population Intensity
 - `Latent Urban Capacity` — Latent Urban Capacity
 - `Market Exposure` — Market Exposure
@@ -88,10 +88,17 @@ Physical and spatial characteristics such as intensity, accessibility, height/fo
 ### Modelled change signal
 Indicators such as Renewal Potential and Development Pressure.
 
-### Observed activity
-Recorded activity such as building approvals and land-related activity.
+### Strategic models
+Renewal and Genesis are assumption-led strategic models rather than neutral observations of existing condition. Development Pressure includes approved-development activity, while Renewal includes land-deal recency; recorded evidence and derived interpretation are displayed separately but are not necessarily statistically independent. They test particular questions using selected model assumptions and should not be read as predictions.
 
-A high modelled change signal is therefore not equivalent to actual or imminent redevelopment.
+- **Development Pressure** combines building age (40%), building height / redevelopment susceptibility (30%) and recent approved-development activity (30%).
+- **Renewal Potential** is staged from physical / development-gap conditions and GFA saturation, then combines Structural / Policy Potential (50%), land-deal recency (30%) and existing infrastructure capacity (20%).
+- **Genesis Potential** tests unused capacity, statutory-zone mutation assumptions, planned-versus-built MTR accessibility and land-deal momentum. Transit Additionality is documented at 40% and land-deal momentum at 20%; the residual share attributed to Volumetric Vacuum × statutory mutation should not be described as an exact verified live coefficient until the original source expression is checked.
+
+### Recorded activity
+Recorded activity such as building approvals and land-related activity is shown separately in the popup. Some of that evidence also contributes upstream to the modelled indicators: approved-development activity contributes to Development Pressure, while land-deal recency contributes to Renewal.
+
+Raw evidence and modelled interpretation are displayed separately, but they are not necessarily statistically independent. A high modelled change signal is therefore not equivalent to actual or imminent redevelopment.
 
 ## Public implementation
 

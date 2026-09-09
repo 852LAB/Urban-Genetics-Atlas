@@ -7,10 +7,10 @@
     <meta name="theme-color" content="#f5f5f5">
 
     <title>Urban Genetics Atlas</title>
-
+    <meta name="description" content="Explore how Hong Kong is built, connected and changing through urban data, spatial analysis and market context.">
     <link rel="icon" type="image/png" href="assets/Favicon.png">
     <link rel="canonical" href="https://852lab.github.io/Urban-Genetics-Atlas/">
-    <meta name="atlas-release" content="V1.5-20260909-205856">
+    <meta name="atlas-release" content="V1.5-20260910-020423">
     <link rel="alternate" type="text/plain" href="llms.txt">
     <link rel="alternate" type="text/plain" href="llms-full.txt">
     <link rel="alternate" type="text/plain" href="atlas-context.txt">
@@ -122,7 +122,7 @@
                     </div>
 
                     <div class="welcome-subtitle">
-                        Integrated Urban Analysis by 852LAB
+                        Explore Hong Kong through data · 852LAB
                     </div>
 
                 </div>
@@ -133,7 +133,7 @@
                 type="button"
                 id="welcomeClose"
                 class="welcome-close"
-                aria-label="Close welcome message"
+                aria-label="Start exploring the Urban Genetics Atlas"
             >
                 ×
             </button>
@@ -146,40 +146,22 @@
         <div class="welcome-content">
 
             <p>
-                The Urban Genetics Atlas brings together a range
-                of spatial datasets to explore the structure,
-                condition and transformation potential of
-                Hong Kong's urban fabric.
+                Explore how Hong Kong is built, connected and changing.
+                Choose a layer, move around the map, or click a hex to see
+                how different pieces of the city relate.
             </p>
 
             <p>
-                The Atlas is an analytical and exploratory tool
-                rather than a complete or definitive
-                representation of the city. The underlying data
-                is compiled from multiple sources, with differing
-                levels of coverage, detail and completeness.
+                Use the Atlas to compare places, spot patterns and ask why
+                they differ. There is no single way to read a city — this is
+                an invitation to explore.
             </p>
 
-            <p>
-                As a result, gaps, missing values, outliers and
-                extreme observations are present. Data preparation
-                and analysis have sought to identify and minimise
-                these effects where practical, but they cannot be
-                eliminated entirely.
-            </p>
-
-            <p>
-                The Atlas should therefore be used to identify
-                patterns, relationships and emerging trends,
-                rather than interpreted as a precise statement
-                about any individual location.
-            </p>
-
-            <p class="welcome-purpose">
-                The intention is to provide a framework for
-                questioning how the city is structured, how it is
-                changing, and where further investigation may be
-                warranted.
+            <p class="welcome-secondary-note">
+                Data comes from multiple sources and varies in coverage.
+                The Atlas is designed to reveal patterns and relationships
+                rather than make a precise claim about any individual
+                property or site.
             </p>
 
         </div>
@@ -206,8 +188,9 @@
                 type="button"
                 id="welcomeCloseButton"
                 class="welcome-close-button"
+                aria-label="Start exploring the Urban Genetics Atlas"
             >
-                Close
+                Start exploring
             </button>
 
         </div>
@@ -222,8 +205,8 @@
         <img src="assets/Logo.png" alt="852LAB">
         <div>
             <h1>Urban Genetics Atlas</h1>
-            <div class="subtitle">Integrated Urban Analysis</div>
-            <div class="version">v1.0 Beta</div>
+            <div class="subtitle">Reading Hong Kong through data</div>
+            <div class="version">Beta</div>
         </div>
     </div>
 </header>
@@ -242,8 +225,18 @@
 
 <div class="atlas-control-header">
 
-    <div class="atlas-control-title">
-        Atlas Controls
+    <div class="atlas-control-title-row">
+        <div class="atlas-control-title">
+            Atlas Controls
+        </div>
+
+        <button
+            type="button"
+            class="info-trigger"
+            data-info-key="about"
+            aria-label="About the Urban Genetics Atlas"
+            title="About the Atlas"
+        >ⓘ</button>
     </div>
 
     <div
@@ -319,12 +312,23 @@
 
             <div class="mode-header-text">
 
-                <div class="mode-title">
-                    Urban Analysis
+                <div class="mode-title-line">
+                    <div class="mode-title">
+                        Urban Analysis
+                    </div>
+
+                    <button
+                        type="button"
+                        class="info-trigger"
+                        data-info-key="analysis"
+                        aria-label="About Urban Analysis"
+                        title="About Urban Analysis"
+                    >ⓘ</button>
                 </div>
 
                 <div class="mode-description">
-                    Analytical layers derived from the urban fabric.
+                    Different ways of reading how the city is built,
+                    connected and changing.
                 </div>
 
             </div>
@@ -372,7 +376,7 @@
             <div id="analysisSelectorControl">
 
             <label class="section-label">
-            Select Analysis Mode:
+            Choose an analysis:
             </label>
 
             <select id="theme">
@@ -380,7 +384,7 @@
             <optgroup label="Urban Genetic Signature">
 
                 <option value="Urban Genetic Signature">
-                    Urban Genetic Signature - UGS.1.0
+                    Urban Genetic Signature
                 </option>
 
             </optgroup>
@@ -408,7 +412,7 @@
                 </option>
 
                 <option value="GFA per Capita">
-                    Living Space (sqm/cap)
+                    Living Space (m²/cap)
                 </option>
 
                 <option value="Population per Building">
@@ -437,7 +441,7 @@
 <div id="analysisControls">
 
     <label class="section-label">
-        Select Planning Context:
+        Planning context:
     </label>
 
     <select id="capacityContext">
@@ -490,9 +494,20 @@
 
                 <div id="legend">
 
-                    <h3 id="legendTitle">
-                        Development Pressure
-                    </h3>
+                    <div class="legend-title-row">
+                        <h3 id="legendTitle">
+                            Development Pressure
+                        </h3>
+
+                        <button
+                            type="button"
+                            id="legendInfoButton"
+                            class="info-trigger"
+                            data-info-key="analysis:Development Pressure"
+                            aria-label="About Development Pressure"
+                            title="About Development Pressure"
+                        >ⓘ</button>
+                    </div>
 
                     <p id="legendDescription">
                         Measures redevelopment pressure using building age,
@@ -547,13 +562,23 @@
 
             <div class="mode-header-text">
 
-                <div class="mode-title">
-                    Urban Fabric
+                <div class="mode-title-line">
+                    <div class="mode-title">
+                        Urban Fabric
+                    </div>
+
+                    <button
+                        type="button"
+                        class="info-trigger"
+                        data-info-key="fabric"
+                        aria-label="About Urban Fabric"
+                        title="About Urban Fabric"
+                    >ⓘ</button>
                 </div>
 
                 <div class="mode-description">
-                    Physical, infrastructural and historical layers
-                    describing the city and its evolution.
+                    The physical, infrastructural and historical layers
+                    that make up the city.
                 </div>
 
             </div>
@@ -643,9 +668,8 @@ FABRIC BODY
 
                     <div class="fabric-module-description">
 
-                        Terrain provides physical context for the
-                        urban fabric, showing Hong Kong's underlying
-                        topography and terrain form.
+                        Shows the topography beneath the city — the hills, valleys
+                        and landform that shape Hong Kong's urban pattern.
 
                     </div>
 
@@ -755,9 +779,8 @@ FABRIC BODY
 
                         <div class="fabric-module-description">
 
-                            Historical reclamation of land from the sea,
-                            showing the physical expansion of Hong Kong's
-                            urban fabric over time.
+                            Shows where Hong Kong has expanded into the sea,
+                            and approximately when that land was reclaimed.
 
                         </div>
 
@@ -795,8 +818,8 @@ FABRIC BODY
                                 Slider
                             </strong>
 
-                            — Move the year to progressively reveal
-                            the physical expansion of reclaimed land.
+                            — Move the year to see how reclamation has
+                            progressively redrawn Hong Kong's coastline.
 
                         </div>
 
@@ -908,8 +931,14 @@ FABRIC BODY
 
                         <div class="fabric-module-description">
 
-                            Identified buildings are shown by recorded
-                            year of construction.
+                            Shows identified buildings by recorded year of construction.
+
+                            <div class="fabric-module-note">
+                                Building age helps reveal where older and newer
+                                fabric is concentrated. A missing construction
+                                year means the current source does not provide one;
+                                it should not be treated as a new building.
+                            </div>
 
                         </div>
 
@@ -1069,8 +1098,13 @@ FABRIC BODY
 
                         <div class="fabric-module-description">
 
-                            Heritage designation may exist where a
-                            construction year is not recorded.
+                            Shows Grade 1–3 heritage buildings recorded in the
+                            current heritage layer.
+
+                            <div class="fabric-module-note">
+                                A heritage designation may exist even where a
+                                construction year is not recorded.
+                            </div>
 
                         </div>
 
@@ -1164,6 +1198,11 @@ FABRIC BODY
 
 
                 <div class="fabric-module-content">
+
+                    <div class="fabric-module-description">
+                        Shows the existing MTR network and the planned
+                        Northern Link.
+                    </div>
 
                     <!-- MTR colour mode -->
 
@@ -1301,7 +1340,7 @@ FABRIC BODY
                                     style="border-color:#C2188B;"
                                 ></span>
                                 <span>
-                                    Northern Link
+                                    Northern Link · planned
                                 </span>
                             </div>
 
@@ -1405,7 +1444,15 @@ FABRIC BODY
                     </div>
 
                     <div class="fabric-module-description">
-                        Use the two handles to set the minimum and maximum mean building height shown.
+                        Shows hexes by mean building height. Use both handles
+                        to choose the range displayed.
+                    </div>
+
+                    <div
+                        id="buildingHeightCoverageStat"
+                        class="fabric-dynamic-stat"
+                    >
+                        Height data: loading coverage…
                     </div>
 
                 </div>
@@ -1509,9 +1556,9 @@ FABRIC BODY
 
                     <div class="fabric-module-description">
 
-                        Highway uses motorway roads. Main includes trunk
-                        and primary roads. Secondary includes secondary roads.
-                        Local and service roads remain unchanged.
+                        Highway shows motorway roads. Main shows trunk and
+                        primary roads. Secondary shows secondary, minor and
+                        service roads.
 
                     </div>
 
@@ -1535,8 +1582,22 @@ FABRIC BODY
 
             <div class="mode-header-text">
 
-                <div class="mode-title">
-                    Market Data
+                <div class="mode-title-line">
+                    <div class="mode-title">
+                        Market Data
+                    </div>
+
+                    <button
+                        type="button"
+                        class="info-trigger"
+                        data-info-key="market"
+                        aria-label="About Market Data"
+                        title="About Market Data"
+                    >ⓘ</button>
+                </div>
+
+                <div class="mode-description">
+                    Current property-market context linked back to place.
                 </div>
 
             </div>
@@ -1584,12 +1645,44 @@ FABRIC BODY
 
     <!-- Status strip -->
     <div id="status" class="glass">
-        Hong Kong SAR · EPSG:4326 · 100 m Hex Grid · 39,742 Active Cells
+        Hong Kong SAR · 100 m grid · Loading coverage…
     </div>
 
     <div id="copyright">
     © 852LAB · All rights reserved
 </div>
+
+
+    <!-- =====================================================
+         CONTEXT / INFORMATION POPOVER
+         ===================================================== -->
+
+    <div
+        id="atlasInfoPopover"
+        class="atlas-info-popover glass"
+        role="dialog"
+        aria-modal="false"
+        aria-labelledby="atlasInfoTitle"
+        hidden
+    >
+        <div class="atlas-info-header">
+            <div id="atlasInfoTitle" class="atlas-info-title">
+                About the Atlas
+            </div>
+
+            <button
+                type="button"
+                id="atlasInfoClose"
+                class="atlas-info-close"
+                aria-label="Close information panel"
+            >×</button>
+        </div>
+
+        <div
+            id="atlasInfoBody"
+            class="atlas-info-body"
+        ></div>
+    </div>
 
     <script
     src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.9.0/dist/maplibre-gl.js">

@@ -1,6 +1,6 @@
 # Urban Genetics Atlas
 
-> Interactive atlas for reading Hong Kong's urban fabric through spatial patterns and relationships.
+> Interactive atlas for reading Hong Kong through its urban fabric, spatial patterns and market context.
 
 Live Atlas: https://852lab.github.io/Urban-Genetics-Atlas/
 
@@ -15,4 +15,6 @@ Focus on Urban Analysis, Urban Genetic Signature (UGS), spatial fingerprints, ur
 
 Important: **UGS describes urban condition; it is not a redevelopment prediction.**
 
-Current release: V1.5-20260909-205856
+Renewal and Genesis are assumption-led strategic models rather than neutral observations of existing condition.
+
+Current release: V1.5-20260910-020423
