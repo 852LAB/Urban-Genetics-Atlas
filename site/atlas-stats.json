@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "editorial-stats-v2",
+  "generatedAtUtc": "2026-09-11T11:28:54.926744+00:00",
+  "atlas": {
+    "totalHexes": 39885,
+    "releaseId": "V1.6-20260911-192850",
+    "spatialMaster": "ATLAS_SPATIAL_MASTER_CURRENT.csv"
+  },
+  "coverage": {
+    "developmentPressure": {
+      "count": 25318,
+      "pct": 63.48
+    },
+    "gfaSaturation": {
+      "count": 19561,
+      "pct": 49.04
+    },
+    "mtrBuilt": {
+      "count": 39885,
+      "pct": 100.0
+    },
+    "renewalPotential": {
+      "count": 26188,
+      "pct": 65.66
+    },
+    "genesisPotential": {
+      "count": 26188,
+      "pct": 65.66
+    },
+    "livingSpace": {
+      "count": 15483,
+      "pct": 38.82
+    },
+    "populationIntensity": {
+      "count": 17386,
+      "pct": 43.59
+    },
+    "latentCapacity": {
+      "count": 19561,
+      "pct": 49.04
+    },
+    "ugs": {
+      "count": 36729,
+      "pct": 92.09
+    },
+    "marketExposure": {
+      "count": 18701,
+      "pct": 46.89
+    }
+  },
+  "ugs": {
+    "meaningfulUrbanCount": 26188,
+    "constrainedCount": 11411,
+    "unassessedCount": 3156,
+    "unassessedContextCount": 2286,
+    "classCounts": {
+      "AT": 2425,
+      "C": 11411,
+      "CF": 2368,
+      "EC": 651,
+      "LF": 142,
+      "SF": 15342,
+      "TC": 1505,
+      "U": 3156,
+      "VM": 2885
+    },
+    "meaningfulClassShares": {
+      "AT": 9.26,
+      "TC": 5.75,
+      "EC": 2.49,
+      "VM": 11.02,
+      "LF": 0.54,
+      "CF": 9.04,
+      "SF": 58.58
+    },
+    "stableShare": 58.58,
+    "recentApprovalCount": 450,
+    "recentApprovalHighChangeCount": 241
+  },
+  "fabric": {
+    "heightCoverageCount": 34186,
+    "heightCoveragePct": 85.71
+  },
+  "market": {
+    "latestPeriod": "2026-07",
+    "regions": {
+      "Hong Kong": {
+        "priceTrend12mPct": 19.061,
+        "rentTrend12mPct": 7.442,
+        "marketMomentum": 0.831287,
+        "momentumLabel": "Strong upward"
+      },
+      "Kowloon": {
+        "priceTrend12mPct": 13.753,
+        "rentTrend12mPct": 10.644,
+        "marketMomentum": 0.804954,
+        "momentumLabel": "Strong upward"
+      },
+      "New Territories": {
+        "priceTrend12mPct": 5.856,
+        "rentTrend12mPct": 9.22,
+        "marketMomentum": 0.688449,
+        "momentumLabel": "Upward"
+      }
+    },
+    "analysisVersion": "market-analysis-v1.1",
+    "exposureVersion": "market-exposure-v2.0"
+  },
+  "editorialNotes": {
+    "coverageDenominator": "Full current Atlas spatial set.",
+    "zeroIsValid": true,
+    "missingIsNotLow": true,
+    "analysisVersion": "Development Pressure / Renewal / Genesis v2; UGS v0.2.",
+    "marketExposureCoverage": "Market Exposure v2 requires Development Pressure v2, Capacity Opportunity and an applicable regional Market Momentum value."
+  }
+}

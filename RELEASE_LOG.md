@@ -236,3 +236,56 @@ Cleanup performed:
 - Public AI context regenerated.
 - R2/CORS/range verification performed before Git push.
 - GitHub Pages and public AI files verified after push.
+
+# Urban Genetics Atlas — V1.6-20260911-192850
+
+**Date:** 2026-09-11 19:28:50 CST
+**Live:** https://852lab.github.io/Urban-Genetics-Atlas/
+
+## Release changes
+
+- Application files released from Development: `index.html`, `atlas.js`, `styles.css`, `site/market-data.js`, `site/market-data.css`, `site/atlas-stats.json`.
+- PMTiles: `852LAB_V1.6.pmtiles` → `atlas/852LAB_V1.6.pmtiles`
+- GeoJSON: `MTR_Lines_TEST.geojson` → `mtr/MTR_Lines_TEST.geojson`
+- GeoJSON: `Reclaimed_Land_V1.1.geojson` → `reclaimed/Reclaimed_Land_V1.1.geojson`
+- GeoJSON: `Buildings_Age_or_Heritage_Grade.geojson` → `buildings/Buildings_Age_or_Heritage_Grade.geojson`
+- Terrain: `51941` objects — **unchanged**
+
+## Public AI context
+
+- `llms.txt` — AI entry point.
+- `llms-full.txt` — full plain-text AI briefing.
+- `atlas-context.md` / `atlas-context.txt` — current project context.
+
+## Automated checks
+
+- Runtime dependencies discovered from fresh Development `atlas.js`.
+- All discovered local runtime resources exist.
+- R2 destination collisions checked.
+- External basemap sources remain external and were not copied to R2.
+- Compact local archive prepared; fixed terrain is not duplicated per release.
+- Public AI context regenerated.
+- R2/CORS/range verification performed before Git push.
+- GitHub Pages and public AI files verified after push.
+
+## Maintainer release notes
+
+Revision and integration of data analysis:
+- Dev Pressure Idx
+- Renewal
+- Genesis
+- UGS
+
+Market Exposure re-calibrated.
+
+Standardisation and systematic review of colour ramp principals.
+
+Color ramp improvements based on distribution of data.
+
+Opacity controls for UI - analysis & fabric.
+
+Language pass and refinement.
+
+Added conditional colour to key market elements - green if up trend. Red down (strike chart and figure with arrow).
+
+Minor formatting on UI market snapshot.

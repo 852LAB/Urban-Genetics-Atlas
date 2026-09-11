@@ -30,3 +30,44 @@
 .market-method-detail p + p{
     margin-top:5px;
 }
+
+/* V1.6 MARKET CONDITIONAL FORMAT — START */
+/* Urban Genetics Atlas — Market Exposure v2 conditional trend styling
+   Direction is always reinforced by an arrow, so colour is supplemental. */
+
+.market-trend-up {
+    color: #2f7d5c !important;
+}
+
+.market-trend-down {
+    color: #b34d4d !important;
+}
+
+.market-trend-flat {
+    color: rgba(62, 69, 76, 0.68) !important;
+}
+
+.market-spark.market-trend-up polyline {
+    stroke: #2f7d5c;
+    stroke-opacity: 0.92;
+}
+
+.market-spark.market-trend-down polyline {
+    stroke: #b34d4d;
+    stroke-opacity: 0.92;
+}
+
+.market-spark.market-trend-flat polyline {
+    stroke: #727980;
+    stroke-opacity: 0.70;
+}
+
+.market-spark line {
+    stroke: rgba(72, 80, 88, 0.18);
+}
+
+.market-snapshot-momentum.market-trend-up,
+.market-snapshot-momentum.market-trend-down {
+    font-weight: 600;
+}
+/* V1.6 MARKET CONDITIONAL FORMAT — END */

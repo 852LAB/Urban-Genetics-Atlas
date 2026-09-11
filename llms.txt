@@ -1,6 +1,6 @@
 # Urban Genetics Atlas
 
-> Interactive atlas for reading Hong Kong through its urban fabric, spatial patterns and market context.
+> Interactive atlas for reading Hong Kong through urban fabric, spatial analysis and market context.
 
 Live Atlas: https://852lab.github.io/Urban-Genetics-Atlas/
 
@@ -11,10 +11,11 @@ Public release manifest: https://852lab.github.io/Urban-Genetics-Atlas/release-m
 
 Review the live interface first, then the public context and implementation files.
 
-Focus on Urban Analysis, Urban Genetic Signature (UGS), spatial fingerprints, urban condition, modelled change, observed activity, popup behaviour, Urban Fabric controls, desktop/mobile behaviour and data limitations.
+Important distinctions:
+- Urban Fabric is recorded evidence.
+- Development Pressure is diagnostic analysis.
+- Renewal and Genesis are strategic lenses.
+- UGS describes urban condition; it is not a redevelopment prediction.
+- Market Exposure is a separate market-and-urban coincidence indicator, not a valuation or forecast.
 
-Important: **UGS describes urban condition; it is not a redevelopment prediction.**
-
-Renewal and Genesis are assumption-led strategic models rather than neutral observations of existing condition.
-
-Current release: V1.5-20260910-020423
+Current release: V1.6-20260911-192850

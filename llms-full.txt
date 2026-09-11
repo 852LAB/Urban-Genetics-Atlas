@@ -1,7 +1,7 @@
 # Urban Genetics Atlas — Public AI Context
 
 > Curated public context for AI systems and researchers reviewing the live Atlas.
-> Generated automatically for each Live release from public project files.
+> Generated automatically for each release from public project files and the current curated methodology notes.
 
 ## Live Atlas
 
@@ -26,22 +26,35 @@ https://852lab.github.io/Urban-Genetics-Atlas/
 
 - Page title: **Urban Genetics Atlas**
 - UI version label: **Beta**
-- Release ID: **V1.5-20260910-020423**
-- Generated: **2026-09-09 18:07 UTC**
-- PMTiles: **atlas/852LAB_V1.5.pmtiles**
+- Release ID: **V1.6-20260911-192850**
+- Generated: **2026-09-11 11:32 UTC**
+- PMTiles: **atlas/852LAB_V1.6.pmtiles**
 - Public GeoJSON resources: **3**
 - Terrain objects: **51941**
 - Terrain status: **unchanged**
 
 ## Project character
 
-The Urban Genetics Atlas is a map-first exploratory system for reading Hong Kong through its urban fabric, spatial patterns and market context. Its intended character is **Windy + Wiki for cities**: spatial, visual, open and understandable without specialist GIS knowledge.
+The Urban Genetics Atlas is a map-first exploratory system for reading Hong Kong through data. It is intended to work as both a sophisticated functioning prototype and an intuitive public-facing shop window into the Lab.
 
-The Atlas is intended to move from:
+Its intended character is **Windy + Wiki for cities**: immediate and spatial at first glance, with deeper explanation available when a user wants to understand the evidence, analysis and assumptions behind the map.
 
-**data → interpretation → understanding**
+The intended progression is:
 
-rather than simply presenting a collection of GIS attributes.
+**data → pattern → interpretation → understanding → better questions**
+
+The Atlas is not intended to reduce the city to a single score.
+
+## Public information architecture
+
+The Atlas separates:
+
+- **Urban Fabric** — recorded physical, infrastructural and historical evidence.
+- **Urban Analysis** — derived diagnostic and strategic patterns.
+- **Urban Genetic Signature (UGS)** — a rule-based classification describing recognisable combinations of urban characteristics.
+- **Market Data** — official market observations at their source geography, plus a separate Market Exposure analysis linking wider market movement to local Atlas conditions.
+
+Recorded evidence, derived analysis, strategic assumptions and predictions are not the same thing. The Atlas should make clear which kind of information is being shown.
 
 ## Urban Analysis modes currently present
 
@@ -51,7 +64,7 @@ rather than simply presenting a collection of GIS attributes.
 - `MTR - Index (Built)` — MTR Built Accessibility
 - `Renewal Potential` — Renewal Potential
 - `Genesis Potential` — Genesis Potential
-- `GFA per Capita` — Living Space (m²/cap)
+- `GFA per Capita` — Living Space (m² per resident)
 - `Population per Building` — Population Intensity
 - `Latent Urban Capacity` — Latent Urban Capacity
 - `Market Exposure` — Market Exposure
@@ -64,181 +77,223 @@ rather than simply presenting a collection of GIS attributes.
 - `Constrained / Non-urban` — Constrained / Non-urban
 - `Other / Unclassified` — Other / Unclassified
 
-## Urban Genetic Signature
+## Current analytical interpretation
 
-The Urban Genetic Signature (UGS) is a high-level interpretive layer for describing urban condition.
+Development Pressure is a diagnostic model. Renewal Potential and Genesis Potential are strategic lenses containing explicit assumptions. UGS is a descriptive classification, not a redevelopment forecast or overall score. Market Exposure is a separate combined market-and-urban indicator and does not feed back into Development Pressure, Renewal, Genesis or UGS.
 
-It is a **categorical description of urban condition**, not a redevelopment prediction and not a single overall score.
-
-The UGS fingerprint is intended to let users compare neighbouring cells through dimensions including:
-
-- **Intensity**
-- **Accessibility**
-- **Height / Form**
-- **Change**
-- **Age**, where meaningful data exists
-
-## Critical conceptual distinction
-
-The Atlas separates:
-
-### Urban condition
-Physical and spatial characteristics such as intensity, accessibility, height/form and age.
-
-### Modelled change signal
-Indicators such as Renewal Potential and Development Pressure.
-
-### Strategic models
-Renewal and Genesis are assumption-led strategic models rather than neutral observations of existing condition. Development Pressure includes approved-development activity, while Renewal includes land-deal recency; recorded evidence and derived interpretation are displayed separately but are not necessarily statistically independent. They test particular questions using selected model assumptions and should not be read as predictions.
-
-- **Development Pressure** combines building age (40%), building height / redevelopment susceptibility (30%) and recent approved-development activity (30%).
-- **Renewal Potential** is staged from physical / development-gap conditions and GFA saturation, then combines Structural / Policy Potential (50%), land-deal recency (30%) and existing infrastructure capacity (20%).
-- **Genesis Potential** tests unused capacity, statutory-zone mutation assumptions, planned-versus-built MTR accessibility and land-deal momentum. Transit Additionality is documented at 40% and land-deal momentum at 20%; the residual share attributed to Volumetric Vacuum × statutory mutation should not be described as an exact verified live coefficient until the original source expression is checked.
-
-### Recorded activity
-Recorded activity such as building approvals and land-related activity is shown separately in the popup. Some of that evidence also contributes upstream to the modelled indicators: approved-development activity contributes to Development Pressure, while land-deal recency contributes to Renewal.
-
-Raw evidence and modelled interpretation are displayed separately, but they are not necessarily statistically independent. A high modelled change signal is therefore not equivalent to actual or imminent redevelopment.
-
-## Public implementation
-
-The Atlas is a static HTML/CSS/JavaScript application using MapLibre GL JS. The primary hexagonal atlas is delivered using PMTiles. Supporting datasets and terrain are delivered separately. Market context is maintained as a separate compact browser payload keyed through each selected hex's official source-geography references rather than duplicated into the PMTiles. Satellite imagery and other third-party basemaps, when present, remain external online services.
-
-### Market analysis
-
-The compact market payload also carries 24 months of regional price/rent trend context. **Market Momentum** averages bounded 12-month price and rent trend scores. **Market Exposure**, available as an Urban Analysis map mode, multiplies Market Momentum by a local opportunity score formed equally from positive Development Pressure and Latent Urban Capacity. Market Momentum retains regional source geography; the local Atlas variables create the hex-to-hex differentiation.
-
-## Data caveats
-
-The Atlas is an analytical and exploratory tool rather than a definitive representation of Hong Kong. Source datasets vary in coverage, completeness and detail. Missing values, outliers and uneven source coverage exist.
-
-- **CONSTRAINED** is a special planning-context state.
-- **UNASSESSED** means insufficient evidence, not low performance.
-- A Signature is not a redevelopment forecast.
-- Recorded approvals and land activity describe observed activity, not certainty about future change.
-- Market values retain their official territory, region or district geography; display against a selected 100 m hex is contextual inheritance, not a direct hex-level market measurement.
-- Market Momentum is a regional derived signal combining bounded 12-month RVD price and rent trends.
-- Market Exposure combines that regional Market Momentum with local positive Development Pressure and Latent Urban Capacity. It is a coincidence/exposure measure, not a valuation, investment recommendation or redevelopment forecast.
-
-## Recommended AI review
-
-For a comprehensive review, inspect the live Atlas first, then use this context and the public source files.
-
-Focus on whether the Atlas:
-
-1. reveals spatial territories or clusters of urban condition;
-2. makes the Signature intelligible to non-specialists;
-3. makes neighbouring fingerprints naturally comparable;
-4. distinguishes modelled change from observed activity;
-5. keeps the popup map-native rather than turning into a dashboard;
-6. remains coherent on desktop and mobile;
-7. handles missing, constrained and unassessed cases honestly;
-8. encourages users to ask why places differ.
-
-## Public implementation resources
-
-This release intentionally excludes credentials, API keys, private endpoints, raw source data and other non-public development material.
-
-## Maintainer / conceptual notes
-
-# Urban Genetics Atlas — Public AI Context Notes
-
-## Project character
-
-The Urban Genetics Atlas is a map-first exploratory system for reading Hong Kong's urban fabric.
-
-Its intended character is **Windy + Wiki for cities**: spatial, visual, open and understandable without requiring specialist GIS knowledge.
-
-The Atlas is intended to move from:
-
-**data → interpretation → understanding**
-
-rather than simply presenting a collection of GIS attributes.
-
-## Urban Genetic Signature
-
-The Urban Genetic Signature (UGS) is a categorical description of urban condition.
-
-It is not a redevelopment prediction and not a single overall score.
-
-The Signature is intended to let users compare neighbouring cells through a fingerprint including:
-
-- Intensity
-- Accessibility
-- Height / Form
-- Change
-- Age, where meaningful data exists
-
-## UGS classification logic
-
-The current rule-based classification should be treated as the public conceptual description while those rules remain unchanged:
-
-- **AGEING TRANSITION (AT):** age ≥ 40 years and change ≥ 75th percentile.
-- **TRANSFORMING CORE (TC):** intensity ≥ 75th percentile and change ≥ 75th percentile.
-- **EMERGING CHANGE (EC):** intensity ≤ 25th percentile and change ≥ 75th percentile.
-- **VERTICAL MATURE (VM):** intensity ≥ 75th percentile, height ≥ 75th percentile and change < 75th percentile.
-- **LEGACY FABRIC (LF):** age ≥ 50 years and change < 75th percentile.
-- **CONNECTED FABRIC (CF):** accessibility ≥ 75th percentile and change < 75th percentile.
-- **STABLE FABRIC (SF):** remaining meaningful urban cells without an exceptional combination.
-- **CONSTRAINED (C):** constrained/non-urban planning context.
-- **UNASSESSED (U):** insufficient analytical context.
-
-These classes describe a condition detected by the model. They do not predict redevelopment.
-
-## Critical distinction
-
-The Atlas separates three kinds of information:
-
-### Urban condition
-The physical and spatial characteristics of a place.
-
-### Modelled change signal
-Indicators such as Renewal Potential and Development Pressure.
-
-### Observed activity
-Recorded activity such as building approvals and land-deal activity.
-
-A high modelled change signal is therefore not equivalent to actual or imminent redevelopment.
-
-## Signature interpretation
-
-The Signature is intended to move from:
-
-**identity → evidence → interpretation**
-
-The Signature is the primary interpretive element. Supporting information provides evidence for why a classification exists.
+Missing data is not treated as low performance. A genuine numeric zero remains a valid value. Where model components are unavailable, current analytical models retain separate support/confidence logic rather than silently replacing missing structural evidence with zero.
 
 ## Spatial interpretation
 
-The Atlas is intended to reveal spatial relationships, clusters and territories rather than simply produce scores for individual locations.
+The current Atlas uses a 100 m hexagonal reference system. The hex is a common analytical unit for comparing places and should not be treated as a precise statement about every building, lot or property inside it.
 
-Neighbouring cells may have different signatures because their underlying urban characteristics differ.
+The present spatial set is the current prototype reference set, not a claim that it is the final canonical Hong Kong grid. A future ground-up rebuild is expected to preserve a fuller immutable base grid and explicit lineage for source records and spatial joins.
 
-The purpose is to encourage the user to ask:
+## Public implementation
 
-**Why are these places different?**
+The Atlas is a static HTML/CSS/JavaScript application using MapLibre GL JS. The primary hexagonal atlas is delivered using PMTiles. Supporting datasets and terrain are delivered separately. Market context is maintained as a compact browser payload that retains official source geographies rather than inventing 100 m market values.
 
-## Popup and interface character
+## Data caveats
 
-The popup is intended to remain map-native rather than becoming a dashboard. It should present the Signature first, then supporting evidence and interpretation, with methodology available when needed.
+The Atlas is an analytical and exploratory tool rather than a definitive representation of Hong Kong. Source datasets differ in date, scale, completeness and coverage. Missing values, outliers and uneven source coverage exist.
 
-The Atlas should remain understandable on desktop, tablet and phone while retaining the map as the primary interface.
+- **CONSTRAINED** is a special planning/context state.
+- **UNASSESSED** means insufficient analytical context, not low performance.
+- Recorded approvals and land activity are observed evidence, not certainty about future development.
+- Strategic models should be read as lenses for investigation rather than predictions.
+- Market values retain their official territory, region or district geography; display against a selected hex is contextual inheritance, not a direct hex-level valuation.
 
-## Urban Fabric
+## Recommended AI review
 
-The Atlas may include physical, infrastructural and historical context such as terrain, reclamation, building age, heritage, MTR and other supporting layers present in the current release.
+Review the live Atlas first, then use this context and the public implementation files. Focus on whether the Atlas reveals useful spatial patterns, makes its analytical distinctions intelligible, supports comparison between neighbouring places, handles missing evidence honestly and remains understandable without specialist GIS knowledge.
+
+## Public implementation boundary
+
+This release intentionally excludes credentials, API keys, private endpoints, raw source data and other non-public development material.
+
+## Current curated methodology and language notes
+
+# Urban Genetics Atlas — Public AI Context Notes
+
+## What the Atlas is
+
+The Urban Genetics Atlas is a map-first exploratory system for reading Hong Kong through data.
+
+Its intended character is **Windy + Wiki for cities**: visual and intuitive at first glance, with deeper explanation available when a user wants to understand what sits behind the map.
+
+The Atlas is both a sophisticated working prototype and a public-facing learning tool. It brings different spatial datasets into a common 100 m reference so users can compare places, see relationships and ask better questions about how the city is built, connected and changing.
+
+The intended progression is:
+
+**data → pattern → interpretation → understanding → better questions**
+
+It is not intended to reduce the city to a single score.
+
+## How to read the Atlas
+
+The Atlas separates several kinds of information:
+
+- **Urban Fabric** — recorded physical, infrastructural and historical evidence such as terrain, reclamation, buildings, heritage, rail and roads.
+- **Descriptive / diagnostic analysis** — derived patterns such as GFA Saturation, accessibility, living space, population intensity, capacity and Development Pressure.
+- **Strategic analysis** — assumption-led lenses such as Renewal Potential and Genesis Potential.
+- **Urban Genetic Signature** — a rule-based classification describing a recognisable combination of urban characteristics.
+- **Market Data** — property-market observations that retain the geography of their official source, plus a separate Market Exposure analysis linking wider market movement to local Atlas conditions.
+
+Recorded activity, modelled signals and predictions are not the same thing. The Atlas should state which kind of information is being shown.
+
+## Urban Genetic Signature
+
+The Urban Genetic Signature (UGS) describes **what kind of urban condition a place resembles when several characteristics are read together**.
+
+A Signature is not an overall score, a judgement of quality or a redevelopment prediction.
+
+The five-part profile is:
+
+- **Intensity** — how built-up the place is relative to other meaningful urban cells.
+- **Accessibility** — relative pedestrian, road and built-MTR connectivity.
+- **Height / Form** — how tall and vertically built the recorded fabric is.
+- **Change** — the relative Development Pressure signal.
+- **Age** — the age of the recorded building stock where building-year data is available.
+
+The bars form a profile; they are not averaged into a single Signature-strength score.
+
+### Signature classes
+
+The current public classes are:
+
+- **AGEING TRANSITION (AT)** — older building fabric with a high Change signal.
+- **TRANSFORMING CORE (TC)** — high-intensity urban fabric with a high Change signal.
+- **EMERGING CHANGE (EC)** — lower-intensity urban fabric with a high Change signal.
+- **VERTICAL MATURE (VM)** — high-intensity, taller fabric without a high Change signal.
+- **LEGACY FABRIC (LF)** — older established fabric without a high Change signal.
+- **CONNECTED FABRIC (CF)** — highly connected fabric without a high Change signal.
+- **STABLE FABRIC (SF)** — meaningful urban fabric without another Signature-defining combination. “Stable” does not mean permanently unchanged.
+- **CONSTRAINED (C)** — constrained or non-urban planning context, read separately from the urban Signatures.
+- **UNASSESSED (U)** — not enough analytical context to assign a Signature.
+
+The classification is rule-based and uses a priority order. Not every characteristic is used to assign every Signature.
+
+Renewal Potential and Genesis Potential remain separate strategic analyses and do not feed into the Signature classification.
+
+## Development Pressure
+
+Development Pressure is a **diagnostic model** asking where structural urban conditions and recorded development activity combine into a stronger pressure signal.
+
+It combines:
+
+- **35% Age Stress**
+- **30% Capacity Opportunity**
+- **20% Form Susceptibility**
+- **15% Approval Activity**
+
+Approval Activity gives more weight to recent building approvals while also recognising repeated recorded events. Each year entry in the approval-history field is treated as one recorded approval event, including repeated years if they occur.
+
+A blank approval history is treated as zero recorded approval events within that source history. This differs from a genuinely missing structural input, which remains missing.
+
+Development Pressure does **not** mean redevelopment is planned, approved or imminent.
+
+## Renewal Potential
+
+Renewal Potential is a **strategic lens for established urban fabric**. It asks where age, existing intensity, built-out capacity, accessibility and policy relevance combine strongly enough to make renewal worth investigating.
+
+It combines:
+
+- **30% Age Stress**
+- **25% Existing Intensity**
+- **20% GFA Saturation**
+- **15% Existing Accessibility**
+- **10% Renewal Policy Alignment**
+
+Renewal Policy Alignment is an explicit analytical assumption rather than an observed physical property.
+
+Renewal Potential does not mean redevelopment will occur.
+
+## Genesis Potential
+
+Genesis Potential is a **strategic lens for under-used or more mutable urban conditions**. It asks where remaining capacity, lower existing intensity, planning flexibility and new accessibility catalysts combine more strongly.
+
+It combines:
+
+- **35% Capacity Opportunity**
+- **25% Low Existing Intensity**
+- **20% Policy Flexibility**
+- **20% Planned Accessibility Additionality**
+
+Planned Accessibility Additionality counts only positive accessibility added by the planned MTR network over the built network. Policy Flexibility is an explicit analytical assumption.
+
+Genesis is intentionally distinct from Renewal: Renewal looks for established / built-out conditions, while Genesis looks for room to grow plus enabling conditions.
+
+## Capacity measures
+
+**GFA Saturation** estimates how much of a hex's modelled development capacity has already been realised.
+
+**Latent Urban Capacity** estimates the share of modelled development capacity that remains unrealised.
+
+They describe opposite sides of the same capacity relationship, but neither should be read as a direct statement of development feasibility, land ownership, vacant land or permission to build.
+
+Where absolute remaining capacity matters, the strategic models also consider the quantity of remaining GFA rather than only the proportional share.
+
+## Accessibility
+
+MTR Built Accessibility is a relative measure based on proximity and network connectivity to the built MTR system.
+
+It is not a direct measure of journey time, service frequency or passenger volume.
+
+The broader accessibility profile used by the Signature combines pedestrian, road and built-MTR connectivity.
+
+## Living Space and Population Intensity
+
+**Living Space** is estimated residential floor area per resident within a hex. It is not a direct measure of dwelling size, crowding or housing quality.
+
+**Population Intensity** estimates the number of residents associated with buildings in a hex. It is intended for spatial comparison rather than as an exact building-level headcount.
+
+## Market Data
+
+Market observations retain the geography of their official source. Regional price and rent series are not converted into invented 100 m market prices.
+
+**Market Momentum** summarises the direction of 12-month regional private-domestic price and rent movement.
+
+**Market Exposure** is a separate combined market-and-urban indicator asking where wider market movement overlaps with Development Pressure and Capacity Opportunity.
+
+**Local Opportunity** is formed equally from Development Pressure and Capacity Opportunity. Capacity Opportunity combines the proportional share of capacity remaining with the absolute amount of remaining GFA. Market Exposure = Market Momentum × Local Opportunity.
+
+Market Exposure is not a property valuation, investment recommendation or forecast.
+
+Market data is kept separate from Development Pressure, Renewal Potential, Genesis Potential and the Urban Genetic Signature so that market behaviour can be compared with urban conditions rather than silently embedded within those models.
+
+## Missing data and confidence
+
+A low analytical value and a lack of data are different things.
+
+Where structural analytical inputs are missing, available component weights are rebalanced rather than silently replacing the missing value with zero. Derived models retain a separate measure of data support where applicable.
+
+A genuine numeric zero remains a valid value.
+
+## Spatial interpretation
+
+The 100 m hex is a common analytical reference cell. It should not be treated as a precise statement about every building, lot or property inside it.
+
+The Atlas is intended to reveal patterns, clusters, contrasts and relationships across the city. The most useful question is often not “what is this score?” but:
+
+**Why does this place differ from the places around it?**
+
+## Interface character
+
+The map is the primary interface. Public language should remain concise and intuitive, with deeper explanation available through information panels and selected-hex details.
+
+The interface should feel like a **shop window into the Lab**: easy to enter, but backed by increasingly sophisticated data, analysis and testing.
 
 ## Data caveats
 
 The Atlas is an analytical and exploratory tool rather than a definitive representation of Hong Kong.
 
-Source datasets vary in coverage, completeness and detail. Missing values, outliers and uneven source coverage exist.
+Source datasets differ in date, scale, completeness and coverage. Missing values, outliers and uneven source coverage exist.
 
 - **CONSTRAINED** is a special planning/context state.
-- **UNASSESSED** means insufficient evidence, not low performance.
-- A Signature is not a redevelopment forecast.
-- Recorded approvals and land activity describe observed activity, not certainty about future change.
+- **UNASSESSED** means insufficient analytical context, not low performance.
+- Recorded approvals and land activity are observed evidence, not certainty about future development.
+- Strategic models contain explicit assumptions and should be read as lenses for investigation rather than predictions.
 
 ## Public/private boundary
 
-This file is intended to contain public conceptual context only. It must not contain credentials, API keys, private endpoints, confidential working data or unreleased proprietary development material.
+This file contains public conceptual context only. It must not contain credentials, API keys, private endpoints, confidential working data or unreleased proprietary source material.

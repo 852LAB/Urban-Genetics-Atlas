@@ -10,7 +10,7 @@
     <meta name="description" content="Explore how Hong Kong is built, connected and changing through urban data, spatial analysis and market context.">
     <link rel="icon" type="image/png" href="assets/Favicon.png">
     <link rel="canonical" href="https://852lab.github.io/Urban-Genetics-Atlas/">
-    <meta name="atlas-release" content="V1.5-20260910-020423">
+    <meta name="atlas-release" content="V1.6-20260911-192850">
     <link rel="alternate" type="text/plain" href="llms.txt">
     <link rel="alternate" type="text/plain" href="llms-full.txt">
     <link rel="alternate" type="text/plain" href="atlas-context.txt">
@@ -371,6 +371,24 @@
             class="mode-body"
         >
 
+            <!-- Analysis group opacity -->
+
+            <div class="group-opacity-control" id="analysisOpacityControl">
+                <div class="group-opacity-head">
+                    <label for="analysisOpacity">Analysis opacity</label>
+                    <output id="analysisOpacityValue" for="analysisOpacity">100%</output>
+                </div>
+                <input
+                    type="range"
+                    id="analysisOpacity"
+                    min="0"
+                    max="100"
+                    value="100"
+                    step="1"
+                    aria-label="Urban Analysis opacity"
+                >
+            </div>
+
             <!-- Analysis selector -->
 
             <div id="analysisSelectorControl">
@@ -412,7 +430,7 @@
                 </option>
 
                 <option value="GFA per Capita">
-                    Living Space (m²/cap)
+                    Living Space (m² per resident)
                 </option>
 
                 <option value="Population per Building">
@@ -510,8 +528,8 @@
                     </div>
 
                     <p id="legendDescription">
-                        Measures redevelopment pressure using building age,
-                        density, and recent development signals.
+                        Shows where the conditions associated with development
+                        pressure combine more or less strongly.
                     </p>
 
                     <div id="legendScale">
@@ -524,11 +542,11 @@
                         <div class="legend-labels">
 
                             <span id="legendLow">
-                                Low
+                                Lower
                             </span>
 
                             <span id="legendHigh">
-                                High
+                                Higher
                             </span>
 
                         </div>
@@ -577,8 +595,8 @@
                 </div>
 
                 <div class="mode-description">
-                    The physical, infrastructural and historical layers
-                    that make up the city.
+                    Physical, infrastructural and historical layers that help
+                    explain how the city took shape.
                 </div>
 
             </div>
@@ -620,6 +638,23 @@ FABRIC BODY
             id="fabricBody"
             class="mode-body"
         >
+
+            <div class="group-opacity-control" id="fabricOpacityControl">
+                <div class="group-opacity-head">
+                    <label for="fabricOpacity">Fabric opacity</label>
+                    <output id="fabricOpacityValue" for="fabricOpacity">100%</output>
+                </div>
+                <input
+                    type="range"
+                    id="fabricOpacity"
+                    min="0"
+                    max="100"
+                    value="100"
+                    step="1"
+                    aria-label="Urban Fabric opacity"
+                >
+            </div>
+
 <hr class="mode-divider">
 
             <!-- =================================================
@@ -935,9 +970,9 @@ FABRIC BODY
 
                             <div class="fabric-module-note">
                                 Building age helps reveal where older and newer
-                                fabric is concentrated. A missing construction
-                                year means the current source does not provide one;
-                                it should not be treated as a new building.
+                                fabric is concentrated. If a construction year is
+                                missing, no year is available in the source data;
+                                the building should not be treated as new.
                             </div>
 
                         </div>
@@ -1099,7 +1134,7 @@ FABRIC BODY
                         <div class="fabric-module-description">
 
                             Shows Grade 1–3 heritage buildings recorded in the
-                            current heritage layer.
+                            heritage dataset.
 
                             <div class="fabric-module-note">
                                 A heritage designation may exist even where a
@@ -1444,8 +1479,8 @@ FABRIC BODY
                     </div>
 
                     <div class="fabric-module-description">
-                        Shows hexes by mean building height. Use both handles
-                        to choose the range displayed.
+                        Shows 100 m hexes by mean recorded building height. Use
+                        both handles to choose the range displayed.
                     </div>
 
                     <div
@@ -1556,9 +1591,8 @@ FABRIC BODY
 
                     <div class="fabric-module-description">
 
-                        Highway shows motorway roads. Main shows trunk and
-                        primary roads. Secondary shows secondary, minor and
-                        service roads.
+                        Highway highlights motorways. Main shows trunk and primary
+                        roads. Secondary groups secondary, minor and service roads.
 
                     </div>
 
@@ -1597,7 +1631,7 @@ FABRIC BODY
                 </div>
 
                 <div class="mode-description">
-                    Current property-market context linked back to place.
+                    Property-market context linked back to place.
                 </div>
 
             </div>
@@ -1619,8 +1653,16 @@ FABRIC BODY
             id="marketDataBody"
             class="mode-body"
         >
+            <div
+                id="marketSnapshotPanel"
+                class="market-snapshot-panel"
+                aria-live="polite"
+            >
+                <div class="market-snapshot-loading">Loading 12-month snapshot…</div>
+            </div>
+
             <div id="marketDataStatus" class="market-data-status">
-                Loading market context…
+                Loading market data…
             </div>
         </div>
 

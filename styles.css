@@ -5198,3 +5198,190 @@ and (orientation:landscape){
         max-height:calc(min(62vh, 520px) - 54px);
     }
 }
+
+/* V1.6 UI REFINEMENT — START */
+/* Urban Genetics Atlas — UI refinement test
+   Scoped additions only; existing visual language remains authoritative. */
+
+.group-opacity-control {
+    margin: 10px 0 12px;
+    padding: 9px 10px 8px;
+    border: 1px solid rgba(60, 70, 80, 0.10);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.group-opacity-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+    font-size: 10px;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(45, 52, 60, 0.72);
+}
+
+.group-opacity-head output {
+    min-width: 34px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: rgba(35, 42, 50, 0.88);
+}
+
+.group-opacity-control input[type="range"] {
+    width: 100%;
+    margin: 0;
+    accent-color: #68737e;
+    cursor: pointer;
+}
+
+.market-snapshot-panel {
+    margin: 2px 0 11px;
+    padding: 9px 10px 8px;
+    border: 1px solid rgba(60, 70, 80, 0.10);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.30);
+}
+
+.market-snapshot-loading {
+    font-size: 11px;
+    color: rgba(50, 58, 66, 0.66);
+}
+
+.market-snapshot-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 7px;
+}
+
+.market-snapshot-head strong {
+    font-size: 10px;
+    line-height: 1.2;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+    color: rgba(35, 42, 50, 0.86);
+}
+
+.market-snapshot-head span {
+    font-size: 9px;
+    color: rgba(55, 63, 72, 0.58);
+    font-variant-numeric: tabular-nums;
+}
+
+.market-snapshot-rows {
+    display: grid;
+    gap: 5px;
+}
+
+.market-snapshot-row {
+    display: grid;
+    grid-template-columns: minmax(84px, 1.3fr) 0.8fr 0.8fr auto;
+    align-items: center;
+    gap: 7px;
+    padding-top: 5px;
+    border-top: 1px solid rgba(70, 78, 86, 0.08);
+}
+
+.market-snapshot-row:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.market-snapshot-region {
+    font-size: 10px;
+    color: rgba(36, 43, 50, 0.84);
+}
+
+.market-snapshot-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.market-snapshot-metric small {
+    font-size: 8px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(55, 63, 72, 0.48);
+}
+
+.market-snapshot-metric strong {
+    font-size: 10px;
+    line-height: 1.15;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: rgba(28, 35, 42, 0.88);
+    white-space: nowrap;
+}
+
+.market-snapshot-momentum {
+    max-width: 64px;
+    text-align: right;
+    font-size: 8px;
+    line-height: 1.15;
+    color: rgba(48, 57, 66, 0.58);
+}
+
+@media (max-width: 720px) {
+    .market-snapshot-row {
+        grid-template-columns: minmax(90px, 1.25fr) 0.8fr 0.8fr;
+    }
+
+    .market-snapshot-momentum {
+        grid-column: 1 / -1;
+        max-width: none;
+        text-align: left;
+        margin-top: -2px;
+    }
+}
+
+/* MARKET SNAPSHOT ALIGNMENT V3 — START
+   Keep row grids independent but use stable track widths. The previous final
+   `auto` momentum column changed width from row to row and shifted Price/Rent. */
+.market-snapshot-row {
+    grid-template-columns: minmax(94px, 1fr) 56px 56px 72px !important;
+    column-gap: 7px !important;
+}
+
+.market-snapshot-region {
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.market-snapshot-metric,
+.market-snapshot-metric small,
+.market-snapshot-metric strong {
+    min-width: 0;
+    text-align: left !important;
+}
+
+.market-snapshot-momentum {
+    width: 72px !important;
+    max-width: 72px !important;
+    justify-self: end;
+    text-align: right !important;
+}
+
+@media (max-width: 720px) {
+    .market-snapshot-row {
+        grid-template-columns: minmax(88px, 1fr) 52px 52px 64px !important;
+        column-gap: 6px !important;
+    }
+
+    .market-snapshot-momentum {
+        grid-column: auto !important;
+        width: 64px !important;
+        max-width: 64px !important;
+        margin-top: 0 !important;
+        text-align: right !important;
+    }
+}
+/* MARKET SNAPSHOT ALIGNMENT V3 — END */
+/* V1.6 UI REFINEMENT — END */
