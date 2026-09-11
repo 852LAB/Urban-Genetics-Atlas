@@ -10,6 +10,7 @@ const MARKET_REMOTE_URL = `${MARKET_R2_BASE}/market/latest/market-context.json`;
 let marketContext = null;
 let marketContextUrl = null;
 let selectedMarketFeature = null;
+let marketPanelReferenceFeature = null;
 
 const HK_MARKET_DISTRICTS = new Set(['Central and Western','Eastern','Southern','Wan Chai']);
 const KOWLOON_MARKET_DISTRICTS = new Set(['Kowloon City','Kwun Tong','Sham Shui Po','Wong Tai Sin','Yau Tsim Mong']);
@@ -88,7 +89,7 @@ function marketRenderSnapshot(){
 function marketRenderIdle(){
     if(!marketContext)return;
     const c=marketContext.counts||{};
-    marketSetStatus(`<div class="market-ready"><strong>Market data loaded</strong><span>${Number(c.latest_observations||0).toLocaleString()} latest observations · 12-month trends · 24-month history</span><span>Select a hex to see regional and district market context, then compare it with local Market Exposure.</span></div>`);
+    marketSetStatus(`<div class="market-ready"><strong>Market data loaded</strong><span>${Number(c.latest_observations||0).toLocaleString()} latest observations · 12-month trends · 24-month history</span><span>Select a hex to see its market context. Select another to compare: the previous hex stays in this panel while the current hex appears in the map popup.</span></div>`);
 }
 function marketNumericProperty(p,key){ const raw=p?.[key]; if(raw===null||raw===undefined||raw==='')return null; const n=Number(raw); return Number.isFinite(n)?n:null; }
 function marketExposureFor(feature,analytics){
@@ -150,11 +151,50 @@ function marketAnalyticsBlock(ctx){
     const method=e?`<details class="market-method-detail"><summary>How is Market Exposure calculated?</summary><div><p><strong>Market Momentum</strong> = 50% normalised 12-month regional price trend + 50% normalised 12-month regional rent trend.</p><p><strong>Local Opportunity</strong> = 50% Development Pressure + 50% Capacity Opportunity.</p><p><strong>Capacity Opportunity</strong> combines the proportion of capacity remaining with the absolute amount of remaining GFA.</p><p><strong>Market Exposure</strong> = Market Momentum × Local Opportunity.</p><div class="market-exposure-meta">Local opportunity ${marketScore(e.local_opportunity)} · pressure ${marketScore(e.pressure_component)} · capacity opportunity ${marketScore(e.capacity_component)}</div></div></details>`:'';
     return `<div class="market-analytics"><div class="market-analytics-head"><div><span>Market Momentum</span><strong class="${marketTrendClass(marketMomentumTrend(a))}">${marketTrendArrow(marketMomentumTrend(a))} ${marketScore(momentum)}</strong><small class="${marketTrendClass(marketMomentumTrend(a))}">${marketEsc(a.momentum_label||'')}</small></div><div><span>Market Exposure</span><strong>${e?marketScore(e.market_exposure):'—'}</strong><small>${e?marketEsc(marketExposureLabel(e.market_exposure)):'Unassessed'}</small></div></div><div class="market-trend-cards"><div><span>Price trend · 12m</span><strong class="${marketTrendClass(a.price_trend_12m_pct)}">${marketTrendArrow(a.price_trend_12m_pct)} ${marketEsc(marketFormatTrend(a.price_trend_12m_pct))}</strong></div><div><span>Rent trend · 12m</span><strong class="${marketTrendClass(a.rent_trend_12m_pct)}">${marketTrendArrow(a.rent_trend_12m_pct)} ${marketEsc(marketFormatTrend(a.rent_trend_12m_pct))}</strong></div></div><div class="market-spark-grid">${marketSparkline(a.price_series,'Price · Class A–E composite',a.price_trend_12m_pct)}${marketSparkline(a.rent_series,'Rent · Class A–E composite',a.rent_trend_12m_pct)}</div>${method}</div>`;
 }
-function marketPanelHtml(ctx){
-    const prices=marketBySource(ctx.regionObs,'rvd_pd_price_class_monthly'); const rents=marketBySource(ctx.regionObs,'rvd_pd_rent_class_monthly'); const yields=marketBySource(ctx.territoryObs,'rvd_pd_yield_monthly'); const district=marketBySource(ctx.districtObs,'rvd_pd_stock_completions_vacancy_district');
-    return `<div class="market-selection"><div class="market-selection-head"><strong>Hex ${marketEsc(ctx.hexId ?? '—')}</strong><span>${marketEsc([ctx.district,ctx.region].filter(Boolean).join(' · ')||'Territory context only')}</span></div>${marketAnalyticsBlock(ctx)}${marketClassGrid('Regional private domestic prices',prices)}${marketClassGrid('Regional private domestic rents',rents)}${marketClassGrid('Hong Kong private domestic yields',yields)}${marketDistrictGrid(district)}</div>`;
+// === MARKET TWO-HEX COMPARISON V1 START ===
+function marketFeatureHexId(feature){
+    const p=feature?.properties||{};
+    const v=p['Hex ID'] ?? p['Hex_ID'] ?? p['hex_id'];
+    return v===null||v===undefined ? null : String(v);
 }
-function marketRenderFeature(feature){ selectedMarketFeature=feature; const ctx=marketObsFor(feature); if(!ctx)return marketRenderIdle(); marketSetStatus(marketPanelHtml(ctx)); marketAppendPopup(ctx); }
+function marketPanelHtml(ctx,role='selected'){
+    const prices=marketBySource(ctx.regionObs,'rvd_pd_price_class_monthly'); const rents=marketBySource(ctx.regionObs,'rvd_pd_rent_class_monthly'); const yields=marketBySource(ctx.territoryObs,'rvd_pd_yield_monthly'); const district=marketBySource(ctx.districtObs,'rvd_pd_stock_completions_vacancy_district');
+    const roleText=role==='previous'?'Previous selection':'Selected hex';
+    const roleHint=role==='previous'?'Compare with the current hex in the map popup.':'Select another hex to keep this one here for comparison.';
+    return `<div class="market-selection"><div class="market-selection-context ${role==='previous'?'is-previous':'is-current'}"><strong>${roleText}</strong><span>${roleHint}</span></div><div class="market-selection-head"><strong>Hex ${marketEsc(ctx.hexId ?? '—')}</strong><span>${marketEsc([ctx.district,ctx.region].filter(Boolean).join(' · ')||'Territory context only')}</span></div>${marketAnalyticsBlock(ctx)}${marketClassGrid('Regional private domestic prices',prices)}${marketClassGrid('Regional private domestic rents',rents)}${marketClassGrid('Hong Kong private domestic yields',yields)}${marketDistrictGrid(district)}</div>`;
+}
+function marketRenderFeature(feature){
+    const ctx=marketObsFor(feature);
+    if(!ctx)return;
+
+    const nextId=marketFeatureHexId(feature);
+    const currentId=marketFeatureHexId(selectedMarketFeature);
+
+    if(!selectedMarketFeature){
+        selectedMarketFeature=feature;
+        marketPanelReferenceFeature=feature;
+        marketSetStatus(marketPanelHtml(ctx,'selected'));
+    }else if(nextId!==currentId){
+        // The hex that was current becomes the persistent comparison reference.
+        // This makes the panel one selection behind the popup: A/A on first
+        // click, A/B on second, B/C on third, and so on.
+        const previousCtx=marketObsFor(selectedMarketFeature);
+        marketPanelReferenceFeature=selectedMarketFeature;
+        selectedMarketFeature=feature;
+        if(previousCtx) marketSetStatus(marketPanelHtml(previousCtx,'previous'));
+    }
+
+    // The popup always describes the current map selection.
+    marketAppendPopup(ctx);
+}
+window.UGAMarketCompareState=function(){
+    return {
+        currentHex:marketFeatureHexId(selectedMarketFeature),
+        panelHex:marketFeatureHexId(marketPanelReferenceFeature),
+        mode:selectedMarketFeature && marketPanelReferenceFeature && marketFeatureHexId(selectedMarketFeature)!==marketFeatureHexId(marketPanelReferenceFeature) ? 'compare' : (selectedMarketFeature?'single':'idle')
+    };
+};
+// === MARKET TWO-HEX COMPARISON V1 END ===
 function marketAppendPopup(ctx){
     const popup=document.getElementById('popup'); if(!popup || !popup.classList.contains('visible'))return;
     const existing=popup.querySelector('.market-popup-section'); if(existing)existing.remove();
@@ -177,7 +217,14 @@ function marketBindModule(){
 }
 function marketBindMap(){
     if(typeof map==='undefined')return;
-    const bind=()=>map.on('click',(e)=>{ const f=map.queryRenderedFeatures(e.point,{layers:['atlas']})[0]||null; if(f) setTimeout(()=>marketRenderFeature(f),0); else {selectedMarketFeature=null;marketRenderIdle();} });
+    const bind=()=>map.on('click',(e)=>{
+        const f=map.queryRenderedFeatures(e.point,{layers:['atlas']})[0]||null;
+        if(f){
+            setTimeout(()=>marketRenderFeature(f),0);
+        }
+        // Clicking away may clear the popup, but deliberately leaves the
+        // Market panel selection history intact for comparison.
+    });
     if(map.loaded())bind(); else map.on('load',bind);
 }
 marketBindModule(); marketFetch(); marketBindMap();

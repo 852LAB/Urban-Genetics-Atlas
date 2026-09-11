@@ -5385,3 +5385,1047 @@ and (orientation:landscape){
 }
 /* MARKET SNAPSHOT ALIGNMENT V3 — END */
 /* V1.6 UI REFINEMENT — END */
+
+/* THREE PANEL STACK V3 PRODUCTION — START */
+/* =========================================================
+   URBAN GENETICS ATLAS — THREE PANEL STACK V3 TEST
+   Stable right rail · max 2 desktop · max 1 mobile
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   Right rail
+   --------------------------------------------------------- */
+#panel.panel-stack-v3,
+#panel.panel-stack-v3.panel-minimized {
+    display:flex !important;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:10px;
+    top:24px;
+    right:24px;
+    left:auto;
+    bottom:auto;
+    width:400px;
+    height:auto;
+    max-height:calc(100dvh - 48px);
+    min-height:0;
+    padding:0;
+    overflow:visible;
+    background:transparent !important;
+    border:none !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+}
+
+#panel.panel-stack-v3 .atlas-control-header {
+    display:none !important;
+}
+
+#panel.panel-stack-v3 .panel-scroll {
+    display:flex !important;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:10px;
+    width:100%;
+    max-height:calc(100dvh - 112px);
+    min-height:0;
+    overflow:hidden;
+}
+
+#panelMinimize {
+    display:none !important;
+}
+
+/* ---------------------------------------------------------
+   Separate Map View utility — top right, outside Fabric
+   --------------------------------------------------------- */
+#panel.panel-stack-v3 > .stack-map-view-control,
+#panel.panel-stack-v3 > #basemapControl {
+    align-self:flex-end;
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:7px;
+    flex:0 0 auto;
+    width:fit-content;
+    max-width:100%;
+    margin:0;
+    padding:7px 10px;
+    border:1px solid var(--panel-border);
+    border-radius:13px;
+    background:var(--panel-bg);
+    box-shadow:var(--panel-shadow);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+}
+
+#panel.panel-stack-v3 .stack-map-view-title {
+    flex:0 0 100%;
+    margin:0 0 1px 1px;
+    color:var(--text-secondary);
+    font-size:.62rem;
+    line-height:1;
+    font-weight:700;
+    letter-spacing:.08em;
+}
+
+#panel.panel-stack-v3 .stack-terrain-toggle {
+    margin-left:0;
+}
+
+#panel.panel-stack-v3 .stack-terrain-module-hidden {
+    display:none !important;
+}
+
+/* ---------------------------------------------------------
+   Individual cards
+   --------------------------------------------------------- */
+#panel.panel-stack-v3 .mode-panel {
+    position:relative;
+    box-sizing:border-box;
+    width:100%;
+    min-width:0;
+    min-height:0;
+    margin:0;
+    padding:14px 15px;
+    overflow:hidden;
+    background:var(--panel-bg);
+    border:1px solid var(--panel-border);
+    border-radius:16px;
+    box-shadow:var(--panel-shadow);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    transition:
+        width 240ms cubic-bezier(.22,.61,.36,1),
+        max-height 240ms cubic-bezier(.22,.61,.36,1),
+        padding 240ms cubic-bezier(.22,.61,.36,1),
+        border-radius 240ms cubic-bezier(.22,.61,.36,1),
+        background 180ms ease;
+}
+
+#panel.panel-stack-v3 .mode-panel.expanded {
+    flex:1 1 auto;
+    width:100%;
+    max-height:none !important;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed {
+    flex:0 0 64px;
+    width:64px;
+    height:64px;
+    max-height:64px !important;
+    padding:0;
+    border-radius:18px;
+}
+
+/* With two desktop panels open, share available height. */
+#panel.panel-stack-v3.two-panels-open .mode-panel.expanded {
+    flex:1 1 0;
+    min-height:180px;
+}
+
+/* Neutralise older max-height / :has rules from canonical stylesheet. */
+#panel.panel-stack-v3:has(#analysisSection.collapsed) #fabricSection.expanded,
+#panel.panel-stack-v3:has(#fabricSection.collapsed) #analysisSection.expanded,
+#panel.panel-stack-v3:has(#marketSection.collapsed) #analysisSection.expanded,
+#panel.panel-stack-v3:has(#marketSection.collapsed) #fabricSection.expanded,
+#panel.panel-stack-v3 #analysisSection.expanded,
+#panel.panel-stack-v3 #fabricSection.expanded,
+#panel.panel-stack-v3 #marketSection.expanded {
+    max-height:none !important;
+}
+
+/* ---------------------------------------------------------
+   Headers / icon-as-toggle
+   --------------------------------------------------------- */
+#panel.panel-stack-v3 .mode-header {
+    display:flex;
+    align-items:flex-start;
+    justify-content:flex-start;
+    gap:13px;
+    width:100%;
+    flex:0 0 auto;
+}
+
+#panel.panel-stack-v3 .mode-header-text {
+    flex:1 1 auto;
+    min-width:0;
+    padding-top:1px;
+}
+
+#panel.panel-stack-v3 .mode-title {
+    margin-bottom:5px;
+    font-size:1.26rem;
+    line-height:1.12;
+    font-weight:680;
+    letter-spacing:-0.014em;
+}
+
+#panel.panel-stack-v3 .mode-description {
+    margin-bottom:14px;
+}
+
+#panel.panel-stack-v3 .mode-icon-toggle {
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 52px;
+    width:52px;
+    height:52px;
+    margin:-5px 0 0 -4px;
+    padding:1px;
+    border:none;
+    border-radius:13px;
+    background:transparent;
+    color:inherit;
+    transform:none !important;
+    cursor:pointer;
+    opacity:1;
+}
+
+#panel.panel-stack-v3 .mode-icon-toggle:hover,
+#panel.panel-stack-v3 .mode-icon-toggle:focus-visible {
+    background:rgba(255,255,255,.22);
+    outline:none;
+}
+
+#panel.panel-stack-v3 .mode-stack-icon {
+    display:block;
+    width:47px;
+    height:47px;
+    object-fit:contain;
+    opacity:.90;
+    pointer-events:none;
+    user-select:none;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed .mode-header {
+    width:100%;
+    height:100%;
+    min-height:64px;
+    padding:0;
+    justify-content:center;
+    align-items:center;
+    gap:0;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed .mode-header-text {
+    display:none !important;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed .mode-icon-toggle {
+    width:100%;
+    height:100%;
+    flex-basis:100%;
+    margin:0;
+    padding:0;
+    border-radius:17px;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed .mode-stack-icon {
+    width:45px;
+    height:45px;
+    opacity:.88;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed > :not(.mode-header) {
+    display:none !important;
+}
+
+#panel.panel-stack-v3 .mode-panel.expanded .mode-body {
+    min-height:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+}
+
+/* ---------------------------------------------------------
+   About trigger moved to brand
+   --------------------------------------------------------- */
+#brand .atlas-about-trigger {
+    width:20px;
+    height:20px;
+    margin-left:5px;
+    padding:0;
+    border:none;
+    background:transparent;
+    color:var(--text-secondary);
+    font-size:.74rem;
+    line-height:1;
+    vertical-align:middle;
+}
+
+#brand .version {
+    display:flex;
+    align-items:center;
+    gap:2px;
+}
+
+/* ---------------------------------------------------------
+   Native MapLibre navigation — bottom right
+   --------------------------------------------------------- */
+.maplibregl-ctrl-top-right {
+    top:auto !important;
+    right:auto !important;
+}
+
+.maplibregl-ctrl-bottom-right {
+    right:24px;
+    bottom:42px;
+}
+
+/* ---------------------------------------------------------
+   Mobile / tablet — one expanded panel maximum
+   --------------------------------------------------------- */
+@media (max-width:900px) {
+    #panel.panel-stack-v3,
+    #panel.panel-stack-v3.panel-minimized {
+        top:10px;
+        right:10px;
+        bottom:auto;
+        left:auto;
+        width:min(330px, calc(100vw - 20px));
+        max-height:calc(100dvh - 20px);
+        gap:8px;
+    }
+
+    #panel.panel-stack-v3 .panel-scroll {
+        gap:8px;
+        max-height:calc(100dvh - 82px);
+    }
+
+    #panel.panel-stack-v3 > .stack-map-view-control,
+    #panel.panel-stack-v3 > #basemapControl {
+        padding:6px 8px;
+        border-radius:12px;
+        gap:6px;
+    }
+
+    #panel.panel-stack-v3 .mode-panel.expanded {
+        padding:11px 12px;
+        border-radius:14px;
+    }
+
+    #panel.panel-stack-v3.two-panels-open .mode-panel.expanded {
+        /* JS prevents two mobile panels; defensive fallback. */
+        min-height:0;
+    }
+
+    #panel.panel-stack-v3 .mode-panel.collapsed {
+        flex-basis:58px;
+        width:58px;
+        height:58px;
+        max-height:58px !important;
+        border-radius:16px;
+    }
+
+    #panel.panel-stack-v3 .mode-panel.collapsed .mode-header {
+        min-height:58px;
+    }
+
+    #panel.panel-stack-v3 .mode-panel.collapsed .mode-stack-icon {
+        width:41px;
+        height:41px;
+    }
+
+    #panel.panel-stack-v3 .mode-icon-toggle {
+        flex-basis:46px;
+        width:46px;
+        height:46px;
+    }
+
+    #panel.panel-stack-v3 .mode-stack-icon {
+        width:41px;
+        height:41px;
+    }
+
+    #panel.panel-stack-v3 .mode-title {
+        font-size:1.14rem;
+    }
+
+    .maplibregl-ctrl-bottom-right {
+        right:10px;
+        bottom:40px;
+    }
+}
+
+@media (max-width:900px) and (orientation:landscape) {
+    #panel.panel-stack-v3,
+    #panel.panel-stack-v3.panel-minimized {
+        top:8px;
+        right:8px;
+        width:min(410px, calc(100vw - 16px));
+        max-height:calc(100dvh - 16px);
+    }
+
+    #panel.panel-stack-v3 .panel-scroll {
+        max-height:calc(100dvh - 76px);
+    }
+}
+
+/* === PANEL STACK V3.1 VIEWPORT LAYOUT HOTFIX START === */
+/*
+   V3 correctly introduced the multi-panel rail, but the rail only had a
+   max-height. The expanded cards therefore remained shrinkable flex items;
+   their headers/master toggles survived while the nested .mode-body could be
+   squeezed down to a few pixels. Give the rail a definite viewport height,
+   let expanded cards share the remaining space, and make only their bodies
+   scroll. The transparent rail itself does not intercept map interaction.
+*/
+#panel.panel-stack-v3,
+#panel.panel-stack-v3.panel-minimized {
+    height:calc(100dvh - 48px) !important;
+    max-height:calc(100dvh - 48px) !important;
+    min-height:0 !important;
+    pointer-events:none;
+}
+
+#panel.panel-stack-v3 > .stack-map-view-control,
+#panel.panel-stack-v3 > #basemapControl {
+    pointer-events:auto;
+}
+
+#panel.panel-stack-v3 .panel-scroll {
+    display:flex !important;
+    flex-direction:column !important;
+    flex:1 1 auto !important;
+    height:auto !important;
+    max-height:none !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+    pointer-events:none;
+}
+
+#panel.panel-stack-v3 .mode-panel {
+    min-height:0 !important;
+    pointer-events:auto;
+}
+
+#panel.panel-stack-v3 .mode-panel.expanded,
+#panel.panel-stack-v3.one-panel-open .mode-panel.expanded,
+#panel.panel-stack-v3.two-panels-open .mode-panel.expanded {
+    display:flex !important;
+    flex-direction:column !important;
+    flex:1 1 0 !important;
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+    overflow:hidden !important;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed {
+    display:flex !important;
+    flex-direction:column !important;
+    flex:0 0 64px !important;
+    width:64px !important;
+    height:64px !important;
+    min-height:64px !important;
+    max-height:64px !important;
+}
+
+#panel.panel-stack-v3 .mode-panel.expanded .mode-body {
+    display:block !important;
+    flex:1 1 auto !important;
+    width:100% !important;
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+}
+
+@media (max-width:900px) {
+    #panel.panel-stack-v3,
+    #panel.panel-stack-v3.panel-minimized {
+        height:calc(100dvh - 20px) !important;
+        max-height:calc(100dvh - 20px) !important;
+    }
+
+    #panel.panel-stack-v3 .panel-scroll {
+        flex:1 1 auto !important;
+        min-height:0 !important;
+        max-height:none !important;
+        overflow:hidden !important;
+    }
+
+    #panel.panel-stack-v3 .mode-panel.expanded,
+    #panel.panel-stack-v3.one-panel-open .mode-panel.expanded,
+    #panel.panel-stack-v3.two-panels-open .mode-panel.expanded {
+        display:flex !important;
+        flex-direction:column !important;
+        flex:1 1 0 !important;
+        height:auto !important;
+        min-height:0 !important;
+        max-height:none !important;
+        overflow:hidden !important;
+    }
+
+    #panel.panel-stack-v3 .mode-panel.collapsed {
+        flex:0 0 58px !important;
+        width:58px !important;
+        height:58px !important;
+        min-height:58px !important;
+        max-height:58px !important;
+    }
+
+    #panel.panel-stack-v3 .mode-panel.expanded .mode-body {
+        display:block !important;
+        flex:1 1 auto !important;
+        height:auto !important;
+        min-height:0 !important;
+        max-height:none !important;
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+        -webkit-overflow-scrolling:touch;
+    }
+}
+/* === PANEL STACK V3.1 VIEWPORT LAYOUT HOTFIX END === */
+
+/* === PANEL STACK V3.2 EXPANDED HEADER ICON HOTFIX START === */
+/*
+   Expanded cards use the panel icon as the collapse control. Keep the title
+   anchored at the left and place that control at the far right, where it reads
+   naturally as the card's close/minimise action. Collapsed icon cards retain
+   their centred icon-only presentation.
+*/
+#panel.panel-stack-v3 .mode-panel.expanded .mode-header {
+    align-items:flex-start !important;
+    justify-content:space-between !important;
+}
+
+#panel.panel-stack-v3 .mode-panel.expanded .mode-header-text {
+    order:1;
+    flex:1 1 auto !important;
+    min-width:0 !important;
+}
+
+#panel.panel-stack-v3 .mode-panel.expanded .mode-icon-toggle {
+    order:2;
+    flex:0 0 52px !important;
+    width:52px !important;
+    height:52px !important;
+    margin:-5px -4px 0 0 !important;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed .mode-icon-toggle {
+    order:initial;
+    margin:0 !important;
+}
+/* === PANEL STACK V3.2 EXPANDED HEADER ICON HOTFIX END === */
+
+/* === PANEL STACK V3.3 CONTENT-FIT ARCHITECTURE START === */
+/*
+   Expanded cards now shrink-wrap their currently visible content until the
+   stack reaches its viewport budget. Only then does the card become internally
+   scrollable. Collapsed icon cards always retain their reserved footprint.
+
+   JS writes --stack-fit-height for each expanded card after measuring the
+   currently selected/expanded content. These rules deliberately override the
+   V3.1 equal-height flex behaviour while retaining its viewport-safe rail.
+*/
+#panel.panel-stack-v3 .panel-scroll {
+    justify-content:flex-start !important;
+}
+
+#panel.panel-stack-v3 .mode-panel.expanded,
+#panel.panel-stack-v3.one-panel-open .mode-panel.expanded,
+#panel.panel-stack-v3.two-panels-open .mode-panel.expanded {
+    flex:0 0 auto !important;
+    height:var(--stack-fit-height, auto) !important;
+    max-height:var(--stack-fit-height, calc(100% - 148px)) !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+}
+
+#panel.panel-stack-v3 .mode-panel.expanded .mode-body {
+    flex:1 1 auto !important;
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    overscroll-behavior:contain;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed {
+    flex:0 0 64px !important;
+    width:64px !important;
+    height:64px !important;
+    min-height:64px !important;
+    max-height:64px !important;
+}
+
+/* A scrollbar appears only when measured content is taller than its allocation. */
+#panel.panel-stack-v3 .mode-panel.expanded:not(.panel-content-scrolls) .mode-body {
+    scrollbar-width:auto;
+}
+
+@media (max-width:900px) {
+    #panel.panel-stack-v3 .mode-panel.expanded,
+    #panel.panel-stack-v3.one-panel-open .mode-panel.expanded,
+    #panel.panel-stack-v3.two-panels-open .mode-panel.expanded {
+        flex:0 0 auto !important;
+        height:var(--stack-fit-height, auto) !important;
+        max-height:var(--stack-fit-height, calc(100% - 124px)) !important;
+    }
+
+    #panel.panel-stack-v3 .mode-panel.collapsed {
+        flex:0 0 58px !important;
+        width:58px !important;
+        height:58px !important;
+        min-height:58px !important;
+        max-height:58px !important;
+    }
+}
+/* === PANEL STACK V3.3 CONTENT-FIT ARCHITECTURE END === */
+
+/* === PANEL STACK V3.4 COLLAPSED OPACITY CONTROLS START === */
+/*
+   Fabric and Analysis collapse to a full-width utility strip rather than an
+   icon-only square. Their master opacity remains immediately available while
+   the icon at right remains the sole expand/collapse control. Market has no
+   master opacity, so its collapsed state stays as the compact icon card.
+*/
+#panel.panel-stack-v3 .stack-collapsed-opacity {
+    display:none;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity {
+    width:100% !important;
+    max-width:100% !important;
+    flex-basis:64px !important;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .mode-header {
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    width:100% !important;
+    height:64px !important;
+    min-height:64px !important;
+    padding:6px 7px 6px 12px !important;
+    gap:10px !important;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .stack-collapsed-opacity {
+    display:flex;
+    flex:1 1 auto;
+    min-width:0;
+    align-items:center;
+    gap:10px;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .stack-collapsed-opacity-meta {
+    display:flex;
+    flex:0 0 64px;
+    flex-direction:column;
+    gap:1px;
+    min-width:0;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .stack-collapsed-opacity-label {
+    color:var(--text-secondary);
+    font-size:.62rem;
+    font-weight:700;
+    letter-spacing:.08em;
+    line-height:1.05;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .stack-collapsed-opacity-value {
+    color:var(--text-primary);
+    font-size:.76rem;
+    font-variant-numeric:tabular-nums;
+    line-height:1.15;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .stack-collapsed-opacity-range {
+    flex:1 1 auto;
+    width:auto;
+    min-width:74px;
+    margin:0;
+    cursor:pointer;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .mode-icon-toggle {
+    order:2 !important;
+    flex:0 0 52px !important;
+    width:52px !important;
+    height:52px !important;
+    margin:0 !important;
+    padding:0 !important;
+    border-radius:14px !important;
+}
+
+#panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .mode-stack-icon {
+    width:43px !important;
+    height:43px !important;
+}
+
+/* The compact proxy is intentionally absent when the full panel is open. */
+#panel.panel-stack-v3 .mode-panel.expanded .stack-collapsed-opacity {
+    display:none !important;
+}
+
+@media (max-width:900px) {
+    #panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity {
+        flex-basis:58px !important;
+        min-height:58px !important;
+        max-height:58px !important;
+    }
+
+    #panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .mode-header {
+        height:58px !important;
+        min-height:58px !important;
+        padding:5px 6px 5px 10px !important;
+        gap:8px !important;
+    }
+
+    #panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .stack-collapsed-opacity-meta {
+        flex-basis:58px;
+    }
+
+    #panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .mode-icon-toggle {
+        flex-basis:48px !important;
+        width:48px !important;
+        height:48px !important;
+        border-radius:13px !important;
+    }
+
+    #panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .mode-stack-icon {
+        width:39px !important;
+        height:39px !important;
+    }
+}
+/* === PANEL STACK V3.4 COLLAPSED OPACITY CONTROLS END === */
+
+/* === PANEL STACK V3.5 MOBILE PLACEMENT START === */
+/*
+   Mobile separates the two utility zones:
+   - Map View remains a compact utility at the upper-right, below the brand.
+   - Fabric / Analysis / Market anchor at the bottom-right and grow upward.
+   - Native MapLibre navigation buttons are hidden on mobile; attribution remains.
+*/
+@media (max-width:900px) {
+    #panel.panel-stack-v3,
+    #panel.panel-stack-v3.panel-minimized {
+        top:auto !important;
+        right:10px !important;
+        bottom:max(10px, env(safe-area-inset-bottom, 0px)) !important;
+        left:auto !important;
+        width:min(330px, calc(100vw - 20px)) !important;
+        height:calc(100dvh - 96px) !important;
+        max-height:calc(100dvh - 96px) !important;
+    }
+
+    /* Remove Map View from the legend rail's flow while retaining it as a
+       separate upper-right utility. */
+    #panel.panel-stack-v3 > .stack-map-view-control,
+    #panel.panel-stack-v3 > #basemapControl {
+        position:fixed !important;
+        top:76px !important;
+        right:10px !important;
+        bottom:auto !important;
+        left:auto !important;
+        z-index:42 !important;
+        width:fit-content !important;
+        max-width:min(330px, calc(100vw - 20px)) !important;
+        pointer-events:auto !important;
+    }
+
+    /* The rail keeps a viewport budget for content-fit calculations, while
+       its visible cards sit against the lower-right edge and expand upward. */
+    #panel.panel-stack-v3 .panel-scroll {
+        flex:1 1 auto !important;
+        height:100% !important;
+        max-height:none !important;
+        justify-content:flex-end !important;
+        align-items:flex-end !important;
+    }
+
+    /* Hide only the navigation button group. Keep MapLibre attribution. */
+    .maplibregl-ctrl-bottom-right > .maplibregl-ctrl-group {
+        display:none !important;
+    }
+}
+
+@media (max-width:900px) and (orientation:landscape) {
+    #panel.panel-stack-v3,
+    #panel.panel-stack-v3.panel-minimized {
+        right:8px !important;
+        bottom:max(8px, env(safe-area-inset-bottom, 0px)) !important;
+        width:min(410px, calc(100vw - 16px)) !important;
+        height:calc(100dvh - 78px) !important;
+        max-height:calc(100dvh - 78px) !important;
+    }
+
+    #panel.panel-stack-v3 > .stack-map-view-control,
+    #panel.panel-stack-v3 > #basemapControl {
+        top:64px !important;
+        right:8px !important;
+        max-width:min(410px, calc(100vw - 16px)) !important;
+    }
+}
+/* === PANEL STACK V3.5 MOBILE PLACEMENT END === */
+
+/* === PANEL STACK V3.6 MOBILE UNIFIED RAIL START === */
+/*
+   On mobile, Map View and the three Atlas panels behave as one bottom-right
+   control rail. Map View stays at the top of that rail, with exactly the same
+   gap used between legend cards. The whole group grows upward from the bottom
+   edge and is prevented from reaching the Atlas brand/header by a live CSS
+   variable measured from the actual header geometry.
+*/
+@media (max-width:900px) {
+    #panel.panel-stack-v3,
+    #panel.panel-stack-v3.panel-minimized {
+        top:auto !important;
+        right:10px !important;
+        bottom:max(10px, env(safe-area-inset-bottom, 0px)) !important;
+        left:auto !important;
+        width:min(330px, calc(100vw - 20px)) !important;
+        height:auto !important;
+        max-height:calc(
+            100dvh - var(--mobile-stack-top-guard, 76px) - max(10px, env(safe-area-inset-bottom, 0px))
+        ) !important;
+        gap:8px !important;
+        justify-content:flex-end !important;
+        align-items:flex-end !important;
+    }
+
+    /* Map View returns to normal flow as the first item in the same rail. */
+    #panel.panel-stack-v3 > .stack-map-view-control,
+    #panel.panel-stack-v3 > #basemapControl {
+        position:relative !important;
+        top:auto !important;
+        right:auto !important;
+        bottom:auto !important;
+        left:auto !important;
+        z-index:auto !important;
+        order:0 !important;
+        align-self:flex-end !important;
+        flex:0 0 auto !important;
+        margin:0 !important;
+        width:fit-content !important;
+        max-width:100% !important;
+        pointer-events:auto !important;
+    }
+
+    /* Panel cards form the second item. Natural content height is retained;
+       only the viewport-safe maximum produces internal scrolling. */
+    #panel.panel-stack-v3 .panel-scroll {
+        order:1 !important;
+        flex:0 1 auto !important;
+        width:100% !important;
+        height:auto !important;
+        max-height:calc(
+            100dvh - var(--mobile-stack-top-guard, 76px) - max(10px, env(safe-area-inset-bottom, 0px)) - var(--mobile-map-view-height, 48px) - 8px
+        ) !important;
+        min-height:0 !important;
+        justify-content:flex-end !important;
+        align-items:flex-end !important;
+        overflow:hidden !important;
+    }
+
+    /* Native navigation remains hidden on mobile; attribution remains. */
+    .maplibregl-ctrl-bottom-right > .maplibregl-ctrl-group {
+        display:none !important;
+    }
+}
+
+@media (max-width:900px) and (orientation:landscape) {
+    #panel.panel-stack-v3,
+    #panel.panel-stack-v3.panel-minimized {
+        right:8px !important;
+        bottom:max(8px, env(safe-area-inset-bottom, 0px)) !important;
+        width:min(410px, calc(100vw - 16px)) !important;
+        max-height:calc(
+            100dvh - var(--mobile-stack-top-guard, 64px) - max(8px, env(safe-area-inset-bottom, 0px))
+        ) !important;
+        gap:8px !important;
+    }
+
+    #panel.panel-stack-v3 .panel-scroll {
+        max-height:calc(
+            100dvh - var(--mobile-stack-top-guard, 64px) - max(8px, env(safe-area-inset-bottom, 0px)) - var(--mobile-map-view-height, 44px) - 8px
+        ) !important;
+    }
+}
+/* === PANEL STACK V3.6 MOBILE UNIFIED RAIL END === */
+
+/* === PANEL STACK V3.7 COMPACT ATTRIBUTION START === */
+/*
+   Provider attribution remains fully available through MapLibre's native
+   compact control, but the resting state is a discreet circular information
+   button rather than a persistent white strip.
+*/
+.maplibregl-ctrl-bottom-left {
+    left:10px !important;
+    bottom:58px !important;
+    z-index:24 !important;
+    pointer-events:none;
+}
+
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl {
+    margin:0 !important;
+    pointer-events:auto;
+}
+
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib {
+    border-radius:9px !important;
+    box-shadow:none !important;
+    font-size:10px !important;
+    line-height:1.25 !important;
+}
+
+/* Resting compact state: no white attribution strip, just the native i button. */
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) {
+    background:transparent !important;
+    padding:0 !important;
+    min-height:0 !important;
+}
+
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib-button {
+    width:24px !important;
+    height:24px !important;
+    min-width:24px !important;
+    min-height:24px !important;
+    border-radius:50% !important;
+    background-color:rgba(255,255,255,0.58) !important;
+    box-shadow:0 1px 5px rgba(15,23,42,0.12) !important;
+    opacity:0.76;
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    transition:opacity 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+}
+
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib-button:hover,
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib-button:focus-visible {
+    opacity:1;
+    background-color:rgba(255,255,255,0.86) !important;
+    box-shadow:0 2px 8px rgba(15,23,42,0.16) !important;
+}
+
+/* When deliberately opened, keep the required credits readable but lighter
+   than the stock MapLibre white slab. */
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib.maplibregl-compact-show {
+    background:rgba(255,255,255,0.88) !important;
+    box-shadow:0 2px 12px rgba(15,23,42,0.12) !important;
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+}
+
+@media (max-width:900px) {
+    .maplibregl-ctrl-bottom-left {
+        left:7px !important;
+        bottom:34px !important;
+    }
+
+    .maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib-button {
+        width:22px !important;
+        height:22px !important;
+        min-width:22px !important;
+        min-height:22px !important;
+        opacity:0.68;
+    }
+}
+/* === PANEL STACK V3.7 COMPACT ATTRIBUTION END === */
+
+/* === PANEL STACK V3.8 ATTRIBUTION LAYOUT START === */
+/*
+   The JS measures the real rendered status/rights heights and sets the corner
+   bottom dynamically. These are calm fallback positions for first paint.
+*/
+#copyright {
+    left:10px !important;
+    bottom:8px !important;
+}
+
+#status {
+    left:10px !important;
+    bottom:28px !important;
+}
+
+.maplibregl-ctrl-bottom-left {
+    left:10px !important;
+    bottom:66px !important;
+}
+
+/* The expanded box grows away from the same bottom-left anchor. */
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib {
+    transform:none !important;
+    transform-origin:left bottom !important;
+}
+
+@media (max-width:900px) {
+    #copyright {
+        left:7px !important;
+        bottom:5px !important;
+    }
+
+    .maplibregl-ctrl-bottom-left {
+        left:7px !important;
+        bottom:21px !important;
+    }
+
+    /*
+       Keep the native i button itself on the same physical bottom-left point
+       in both compact and expanded states. Credits open to its right/upward.
+    */
+    .maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib {
+        position:relative !important;
+        transform:none !important;
+        transform-origin:left bottom !important;
+    }
+
+    .maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib-button {
+        position:absolute !important;
+        left:0 !important;
+        right:auto !important;
+        top:auto !important;
+        bottom:0 !important;
+        margin:0 !important;
+    }
+
+    .maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) {
+        width:22px !important;
+        height:22px !important;
+        min-width:22px !important;
+        min-height:22px !important;
+    }
+
+    .maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib.maplibregl-compact-show {
+        min-height:22px !important;
+        padding:4px 7px 4px 30px !important;
+        transform:none !important;
+    }
+}
+/* === PANEL STACK V3.8 ATTRIBUTION LAYOUT END === */
+
+/* === PANEL STACK V3.9 ATTRIBUTION + NAV FINAL START === */
+/*
+   Desktop attribution positioning is measured in JS. The rules below are
+   first-paint fallbacks only; JS overwrites them with !important once the
+   rendered status and rights-note dimensions are known.
+*/
+
+/* Defensive: no native zoom/compass control should appear on either desktop
+   or mobile, even if an older cached script briefly creates one. */
+.maplibregl-ctrl-bottom-right > .maplibregl-ctrl-group {
+    display:none !important;
+}
+
+/* Keep the compact attribution visually discreet. The exact vertical offset
+   is calculated by JS so there is one standard 8px gap above the status bar. */
+@media (min-width:901px) {
+    .maplibregl-ctrl-bottom-left {
+        left:10px !important;
+        bottom:74px !important;
+    }
+}
+/* === PANEL STACK V3.9 ATTRIBUTION + NAV FINAL END === */
+/* THREE PANEL STACK V3 PRODUCTION — END */

@@ -320,3 +320,49 @@ Minor formatting on UI market snapshot.
 - Public AI context regenerated.
 - R2/CORS/range verification performed before Git push.
 - GitHub Pages and public AI files verified after push.
+
+# Urban Genetics Atlas — V1.6-20260912-000148
+
+**Date:** 2026-09-12 00:01:48 CST
+**Live:** https://852lab.github.io/Urban-Genetics-Atlas/
+
+## Release changes
+
+- Application files released from Development: `index.html`, `atlas.js`, `styles.css`, `site/market-data.js`, `site/market-data.css`, `site/atlas-stats.json`.
+- PMTiles: `852LAB_V1.6.pmtiles` → `atlas/852LAB_V1.6.pmtiles`
+- GeoJSON: `MTR_Lines_TEST.geojson` → `mtr/MTR_Lines_TEST.geojson`
+- GeoJSON: `Reclaimed_Land_V1.1.geojson` → `reclaimed/Reclaimed_Land_V1.1.geojson`
+- GeoJSON: `Buildings_Age_or_Heritage_Grade.geojson` → `buildings/Buildings_Age_or_Heritage_Grade.geojson`
+- Terrain: `51941` objects — **unchanged**
+
+## Public AI context
+
+- `llms.txt` — AI entry point.
+- `llms-full.txt` — full plain-text AI briefing.
+- `atlas-context.md` / `atlas-context.txt` — current project context.
+
+## Automated checks
+
+- Runtime dependencies discovered from fresh Development `atlas.js`.
+- All discovered local runtime resources exist.
+- R2 destination collisions checked.
+- External basemap sources remain external and were not copied to R2.
+- Compact local archive prepared; fixed terrain is not duplicated per release.
+- Public AI context regenerated.
+- R2/CORS/range verification performed before Git push.
+- GitHub Pages and public AI files verified after push.
+
+## Maintainer release notes
+
+UI & navigation update:
+
+- Reworked Atlas controls into three dedicated Fabric, Analysis and Market panels with custom icons.
+- Added responsive content-fit panel behaviour for desktop and mobile.
+- Added persistent Fabric and Analysis opacity controls, including when panels are minimised.
+- Separated Map View controls from Fabric; Terrain now operates independently from Fabric opacity.
+- Improved Reclaimed Land visibility above Satellite/Terrain.
+- Added two-location Market comparison using the retained previous hex and current popup selection.
+- Corrected UGS profile-bar scaling.
+- Added compact auto-minimising MapLibre attribution.
+- Removed native zoom/compass controls.
+- General mobile, spacing, alignment and responsive UI refinements.

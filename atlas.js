@@ -99,7 +99,9 @@ const map = new maplibregl.Map({
         atlasInitialCenter,
 
     zoom:
-        atlasInitialZoom
+        atlasInitialZoom,
+
+    attributionControl:false
 
 });
 
@@ -116,13 +118,192 @@ const map = new maplibregl.Map({
 const ATLAS_SOURCE_LAYER =
     'atlas';
 
+
+// === PANEL STACK V3.7 COMPACT ATTRIBUTION START ===
+// Keep source/provider attribution accessible but visually quiet. MapLibre's
+// native compact control is deliberately used rather than hiding attribution.
+map.addControl(
+    new maplibregl.AttributionControl({
+        compact:true
+    }),
+    'bottom-left'
+);
+// === PANEL STACK V3.7 COMPACT ATTRIBUTION END ===
+
+// === PANEL STACK V3.8 ATTRIBUTION LAYOUT START ===
+// Keep attribution compact by default, close it after use, and treat the
+// attribution/status/rights note as one small bottom-left UI stack.
+(function initialiseAtlasAttributionLayout(){
+
+    const GAP = 8;
+    const MOBILE_QUERY = window.matchMedia('(max-width:900px)');
+    let autoCloseTimer = null;
+    let resizeObserver = null;
+
+    function attributionElements(){
+        const corner = document.querySelector('.maplibregl-ctrl-bottom-left');
+        const attribution = corner?.querySelector('.maplibregl-ctrl-attrib');
+        const button = attribution?.querySelector('.maplibregl-ctrl-attrib-button');
+        return { corner, attribution, button };
+    }
+
+    function clearAutoClose(){
+        if(autoCloseTimer !== null){
+            clearTimeout(autoCloseTimer);
+            autoCloseTimer = null;
+        }
+    }
+
+    function closeAtlasAttribution(){
+        const { attribution, button } = attributionElements();
+        if(!attribution){
+            return;
+        }
+        clearAutoClose();
+        attribution.classList.remove('maplibregl-compact-show');
+        if(button){
+            button.setAttribute('aria-expanded','false');
+        }
+    }
+
+    function scheduleAttributionClose(delay=8000){
+        const { attribution } = attributionElements();
+        if(!attribution?.classList.contains('maplibregl-compact-show')){
+            return;
+        }
+        clearAutoClose();
+        autoCloseTimer = setTimeout(closeAtlasAttribution, delay);
+    }
+
+    function layoutAtlasAttribution(){
+        const { corner } = attributionElements();
+        const status = document.getElementById('status');
+        const rights = document.getElementById('copyright');
+        const mapNode = map?.getContainer?.();
+
+        if(!corner || !rights || !mapNode){
+            return;
+        }
+
+        const mapRect = mapNode.getBoundingClientRect();
+        const mobile = MOBILE_QUERY.matches;
+
+        // Keep the left edges aligned with the rest of the Atlas chrome.
+        corner.style.setProperty('left', mobile ? '7px' : '10px', 'important');
+        rights.style.setProperty('left', mobile ? '7px' : '10px', 'important');
+
+        // Status is intentionally hidden on mobile, so attribution sits one
+        // standard gap above the rights note. On desktop, status sits one gap
+        // above the rights note and attribution one gap above the status.
+        const rightsRect = rights.getBoundingClientRect();
+
+        if(mobile || !status || getComputedStyle(status).display === 'none'){
+            const bottom = Math.max(
+                GAP,
+                Math.round(mapRect.bottom - rightsRect.top + GAP)
+            );
+            corner.style.setProperty('bottom', `${bottom}px`, 'important');
+            return;
+        }
+
+        status.style.setProperty('left', '10px', 'important');
+        const statusBottom = Math.max(
+            GAP,
+            Math.round(mapRect.bottom - rightsRect.top + GAP)
+        );
+        status.style.setProperty('bottom', `${statusBottom}px`, 'important');
+
+        // Reading the rectangle after setting bottom gives the true rendered
+        // height, including padding and any future language/content changes.
+        const statusRect = status.getBoundingClientRect();
+        const attributionBottom = Math.max(
+            GAP,
+            Math.round(mapRect.bottom - statusRect.top + GAP)
+        );
+        corner.style.setProperty('bottom', `${attributionBottom}px`, 'important');
+    }
+
+    function bindAtlasAttribution(){
+        const { attribution } = attributionElements();
+        const status = document.getElementById('status');
+        const rights = document.getElementById('copyright');
+
+        if(!attribution){
+            requestAnimationFrame(bindAtlasAttribution);
+            return;
+        }
+
+        // Explicitly start every page load in compact state.
+        closeAtlasAttribution();
+        layoutAtlasAttribution();
+
+        const classObserver = new MutationObserver(() => {
+            if(attribution.classList.contains('maplibregl-compact-show')){
+                scheduleAttributionClose(8000);
+            }else{
+                clearAutoClose();
+            }
+            // Expanded and compact states share exactly the same anchor.
+            requestAnimationFrame(layoutAtlasAttribution);
+        });
+        classObserver.observe(attribution, {
+            attributes:true,
+            attributeFilter:['class']
+        });
+
+        attribution.addEventListener('pointerenter', clearAutoClose);
+        attribution.addEventListener('pointerleave', () => {
+            scheduleAttributionClose(3000);
+        });
+
+        // Any interaction elsewhere in the Atlas returns attribution to its
+        // compact state immediately.
+        document.addEventListener('pointerdown', event => {
+            if(
+                attribution.classList.contains('maplibregl-compact-show') &&
+                !attribution.contains(event.target)
+            ){
+                closeAtlasAttribution();
+            }
+        }, true);
+
+        map.on('movestart', closeAtlasAttribution);
+
+        window.addEventListener('resize', () => {
+            requestAnimationFrame(layoutAtlasAttribution);
+        });
+
+        if(typeof ResizeObserver !== 'undefined'){
+            resizeObserver = new ResizeObserver(() => {
+                requestAnimationFrame(layoutAtlasAttribution);
+            });
+            if(status){ resizeObserver.observe(status); }
+            if(rights){ resizeObserver.observe(rights); }
+        }
+
+        // Exposed only as a lightweight diagnostic/helper.
+        window.UGAAttributionState = () => ({
+            expanded: attribution.classList.contains('maplibregl-compact-show'),
+            mobile: MOBILE_QUERY.matches,
+            cornerBottom: getComputedStyle(attribution.closest('.maplibregl-ctrl-bottom-left')).bottom
+        });
+    }
+
+    requestAnimationFrame(bindAtlasAttribution);
+
+})();
+// === PANEL STACK V3.8 ATTRIBUTION LAYOUT END ===
+// === PANEL STACK V3.9 DESKTOP ATTRIBUTION POSITION FIX ===
+// Measured bottom-left offsets now override CSS fallbacks with !important.
+
+
 map.dragRotate.disable();
 map.touchZoomRotate.disableRotation();
 
-map.addControl(
-    new maplibregl.NavigationControl(),
-    'top-right'
-);
+// === PANEL STACK V3.9 NAVIGATION CONTROL REMOVAL START ===
+// Native MapLibre zoom/compass controls are intentionally omitted on both
+// desktop and mobile; direct map gestures remain available.
+// === PANEL STACK V3.9 NAVIGATION CONTROL REMOVAL END ===
 
 perfMark('Map initialised');
 
@@ -3995,7 +4176,6 @@ function updateAnalysisOpacity(){
 }
 
 const FABRIC_OPACITY_LAYERS = [
-    ['terrain', 'raster-opacity', 0.15],
     ['reclaimed', 'fill-opacity', 0.65],
     ['reclaimed-outline', 'line-opacity', 1.00],
     ['buildingAge', 'circle-opacity', 0.65],
@@ -9408,3 +9588,766 @@ document.addEventListener(
 
 updateLegendInfoButton();
 updateStatus();
+
+// =====================================================
+// THREE PANEL STACK V3 — PRODUCTION UI
+// Stable top-right rail · desktop max 2 · mobile max 1
+// LRU eviction · separate Map View · terrain independent
+// =====================================================
+(function initThreePanelStackV3(){
+    const panel = document.getElementById('panel');
+    const panelScroll = document.getElementById('panelScroll');
+    if(!panel || !panelScroll || panel.dataset.stackV3 === 'ready') return;
+
+    panel.dataset.stackV3 = 'ready';
+    panel.classList.add('panel-stack-v3');
+    panel.classList.remove('panel-minimized');
+
+    const entries = [
+        {
+            key:'fabric',
+            section:document.getElementById('fabricSection'),
+            toggle:document.getElementById('fabricSectionToggle'),
+            title:'Urban Fabric',
+            icon:'assets/Fabric_Icon.png'
+        },
+        {
+            key:'analysis',
+            section:document.getElementById('analysisSection'),
+            toggle:document.getElementById('analysisSectionToggle'),
+            title:'Urban Analysis',
+            icon:'assets/Analysis_Icon.png'
+        },
+        {
+            key:'market',
+            section:document.getElementById('marketSection'),
+            toggle:document.getElementById('marketSectionToggle'),
+            title:'Market Data',
+            icon:'assets/Market_Icon.png'
+        }
+    ].filter(x => x.section && x.toggle);
+
+    if(entries.length !== 3){
+        console.warn('[ATLAS UI] Three-panel stack V3 not initialised: expected Fabric, Analysis and Market.');
+        return;
+    }
+
+    // Canonical visible order, independent of source HTML order.
+    for(const entry of entries){
+        panelScroll.appendChild(entry.section);
+    }
+
+    // The former global hamburger is superseded by the three persistent icons.
+    const oldMinimise = document.getElementById('panelMinimize');
+    if(oldMinimise){
+        oldMinimise.hidden = true;
+        oldMinimise.setAttribute('aria-hidden','true');
+        oldMinimise.tabIndex = -1;
+    }
+
+    // Preserve the global Atlas information trigger when the old outer header is hidden.
+    const aboutTrigger = document.querySelector('.atlas-control-header .info-trigger[data-info-key="about"]');
+    const version = document.querySelector('#brand .version');
+    if(aboutTrigger && version && !version.contains(aboutTrigger)){
+        aboutTrigger.classList.add('atlas-about-trigger');
+        aboutTrigger.setAttribute('aria-label','About the Urban Genetics Atlas');
+        aboutTrigger.setAttribute('title','About the Atlas');
+        version.appendChild(aboutTrigger);
+    }
+
+    // -------------------------------------------------
+    // Separate Map View utility
+    // -------------------------------------------------
+    // Basemap / satellite / buildings remain outside Fabric.
+    // Terrain is promoted here as a view control too, and is therefore
+    // kept independent from Fabric master visibility / opacity.
+    const basemapControl = document.getElementById('basemapControl');
+    const terrainToggle = document.getElementById('terrainToggle');
+    const terrainModule = document.getElementById('terrainModule');
+    const fabricToggle = document.getElementById('fabricToggle');
+    const fabricOpacity = document.getElementById('fabricOpacity');
+
+    if(basemapControl){
+        basemapControl.classList.add('stack-map-view-control');
+        basemapControl.setAttribute('aria-label','Map view');
+
+        if(!basemapControl.querySelector('.stack-map-view-title')){
+            const title = document.createElement('span');
+            title.className = 'stack-map-view-title';
+            title.textContent = 'MAP VIEW';
+            basemapControl.insertBefore(title, basemapControl.firstChild);
+        }
+
+        if(terrainToggle && !basemapControl.querySelector('.stack-terrain-toggle')){
+            const terrainLabel = document.createElement('label');
+            terrainLabel.className = 'basemap-building-toggle stack-terrain-toggle';
+            terrainLabel.title = 'Show or hide terrain';
+            terrainLabel.appendChild(terrainToggle); // move original input; existing listener follows it
+            const text = document.createElement('span');
+            text.textContent = 'TERRAIN';
+            terrainLabel.appendChild(text);
+            basemapControl.appendChild(terrainLabel);
+        }
+
+        if(basemapControl.parentElement !== panel){
+            panel.insertBefore(basemapControl, panelScroll);
+        }
+    }
+
+    if(terrainModule){
+        terrainModule.classList.add('stack-terrain-module-hidden');
+        terrainModule.setAttribute('aria-hidden','true');
+    }
+
+    // Terrain now belongs to Map View, not the Fabric master.
+    function restoreIndependentTerrain(){
+        try{
+            if(terrainToggle && map.getLayer('terrain')){
+                map.setLayoutProperty(
+                    'terrain',
+                    'visibility',
+                    terrainToggle.checked ? 'visible' : 'none'
+                );
+                map.setPaintProperty('terrain','raster-opacity',0.15);
+            }
+        }catch(error){
+            console.warn('[ATLAS UI] Could not restore independent terrain state:', error);
+        }
+    }
+
+    terrainToggle?.addEventListener('change', () => requestAnimationFrame(restoreIndependentTerrain));
+    fabricToggle?.addEventListener('change', () => requestAnimationFrame(restoreIndependentTerrain));
+    fabricOpacity?.addEventListener('input', () => requestAnimationFrame(restoreIndependentTerrain));
+
+    // -------------------------------------------------
+    // Icon headers
+    // -------------------------------------------------
+    // Reuse the existing accessible section-toggle buttons as icon buttons.
+    for(const entry of entries){
+        const header = entry.section.querySelector('.mode-header');
+        if(!header) continue;
+
+        entry.toggle.classList.add('mode-icon-toggle');
+        entry.toggle.textContent = '';
+        entry.toggle.setAttribute('title', `Open or collapse ${entry.title}`);
+
+        if(!entry.toggle.querySelector('.mode-stack-icon')){
+            const img = document.createElement('img');
+            img.className = 'mode-stack-icon';
+            img.src = entry.icon;
+            img.alt = '';
+            img.setAttribute('aria-hidden','true');
+            entry.toggle.appendChild(img);
+        }
+
+        // Icon first, then title/description. No separate chevron remains.
+        header.insertBefore(entry.toggle, header.firstChild);
+    }
+
+    let syncing = false;
+    let interactionSerial = 0;
+    const mobile = window.matchMedia('(max-width:900px)');
+
+    function panelLimit(){
+        return mobile.matches ? 1 : 2;
+    }
+
+    function markInteraction(entry){
+        entry.lastInteraction = ++interactionSerial;
+        for(const item of entries){
+            item.section.classList.toggle('panel-most-recent', item === entry);
+        }
+    }
+
+    function expandedEntries(){
+        return entries.filter(x => x.section.classList.contains('expanded'));
+    }
+
+    function syncToggle(entry, expanded){
+        entry.toggle.setAttribute('aria-expanded', String(expanded));
+        entry.toggle.setAttribute(
+            'aria-label',
+            expanded ? `Collapse ${entry.title}` : `Expand ${entry.title}`
+        );
+        entry.toggle.setAttribute('title', expanded ? `Collapse ${entry.title}` : `Open ${entry.title}`);
+    }
+
+    function setEntry(entry, expanded){
+        entry.section.classList.toggle('expanded', expanded);
+        entry.section.classList.toggle('collapsed', !expanded);
+        syncToggle(entry, expanded);
+    }
+
+    function updateStackState(){
+        const count = expandedEntries().length;
+        panelScroll.dataset.expandedCount = String(count);
+        panel.classList.toggle('two-panels-open', count === 2);
+        panel.classList.toggle('one-panel-open', count === 1);
+        panel.classList.toggle('all-panels-collapsed', count === 0);
+    }
+
+    function closeLeastRecent(exceptEntry, targetLimit = panelLimit()){
+        let current = expandedEntries().filter(x => x !== exceptEntry);
+        while(expandedEntries().length >= targetLimit && current.length){
+            current.sort((a,b) => (a.lastInteraction || 0) - (b.lastInteraction || 0));
+            const oldest = current.shift();
+            setEntry(oldest, false);
+            current = expandedEntries().filter(x => x !== exceptEntry);
+        }
+    }
+
+    function enforcePanelLimit(preferredEntry = null){
+        const limit = panelLimit();
+        let open = expandedEntries();
+        while(open.length > limit){
+            const candidates = open.filter(x => x !== preferredEntry);
+            candidates.sort((a,b) => (a.lastInteraction || 0) - (b.lastInteraction || 0));
+            const victim = candidates[0] || open[0];
+            setEntry(victim, false);
+            open = expandedEntries();
+        }
+        updateStackState();
+    }
+
+    function openEntry(entry){
+        if(entry.section.classList.contains('expanded')){
+            markInteraction(entry);
+            return;
+        }
+
+        syncing = true;
+        closeLeastRecent(entry);
+        setEntry(entry, true);
+        markInteraction(entry);
+        enforcePanelLimit(entry);
+        syncing = false;
+    }
+
+    function toggleEntry(entry){
+        syncing = true;
+        if(entry.section.classList.contains('expanded')){
+            setEntry(entry, false);
+            const stillOpen = expandedEntries();
+            if(stillOpen.length){
+                const recent = stillOpen.sort((a,b) => (b.lastInteraction || 0) - (a.lastInteraction || 0))[0];
+                markInteraction(recent);
+            }
+        }else{
+            closeLeastRecent(entry);
+            setEntry(entry, true);
+            markInteraction(entry);
+        }
+        enforcePanelLimit(entry);
+        syncing = false;
+    }
+
+    function collapseAll(){
+        syncing = true;
+        for(const entry of entries) setEntry(entry, false);
+        updateStackState();
+        syncing = false;
+    }
+
+    function entryForToggle(toggle){
+        return entries.find(x => x.toggle === toggle) || null;
+    }
+
+    // The icon is the sole expand/collapse affordance.
+    document.addEventListener('click', event => {
+        const toggle = event.target.closest(
+            '#fabricSectionToggle, #analysisSectionToggle, #marketSectionToggle'
+        );
+        if(!toggle) return;
+        const entry = entryForToggle(toggle);
+        if(!entry) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        toggleEntry(entry);
+    }, true);
+
+    // Any deliberate interaction with an expanded panel makes it the most recent.
+    panelScroll.addEventListener('pointerdown', event => {
+        const section = event.target.closest('.mode-panel');
+        const entry = entries.find(x => x.section === section);
+        if(entry && entry.section.classList.contains('expanded')){
+            markInteraction(entry);
+        }
+    }, true);
+
+    panelScroll.addEventListener('focusin', event => {
+        const section = event.target.closest('.mode-panel');
+        const entry = entries.find(x => x.section === section);
+        if(entry && entry.section.classList.contains('expanded')){
+            markInteraction(entry);
+        }
+    }, true);
+
+    // Keep compatibility with existing code that changes section classes.
+    const observer = new MutationObserver(mutations => {
+        if(syncing) return;
+
+        const newlyExpanded = mutations
+            .map(m => entries.find(x => x.section === m.target))
+            .filter(Boolean)
+            .find(x => x.section.classList.contains('expanded'));
+
+        syncing = true;
+        if(newlyExpanded){
+            markInteraction(newlyExpanded);
+            enforcePanelLimit(newlyExpanded);
+        }
+        for(const entry of entries){
+            syncToggle(entry, entry.section.classList.contains('expanded'));
+        }
+        updateStackState();
+        panel.classList.remove('panel-minimized');
+        syncing = false;
+    });
+
+    for(const entry of entries){
+        observer.observe(entry.section, {attributes:true, attributeFilter:['class']});
+    }
+
+    function initialState(){
+        panel.classList.remove('panel-minimized');
+        if(mobile.matches){
+            collapseAll();
+        }else{
+            syncing = true;
+            for(const entry of entries) setEntry(entry, entry.key === 'analysis');
+            markInteraction(entries.find(x => x.key === 'analysis'));
+            updateStackState();
+            syncing = false;
+        }
+    }
+
+    requestAnimationFrame(initialState);
+
+    mobile.addEventListener('change', event => {
+        panel.classList.remove('panel-minimized');
+        syncing = true;
+        if(event.matches){
+            // Mobile: keep only the most recently interacted open panel.
+            const open = expandedEntries();
+            if(open.length > 1){
+                open.sort((a,b) => (b.lastInteraction || 0) - (a.lastInteraction || 0));
+                const keep = open[0];
+                for(const entry of open.slice(1)) setEntry(entry, false);
+                markInteraction(keep);
+            }
+            updateStackState();
+        }else if(expandedEntries().length === 0){
+            const analysis = entries.find(x => x.key === 'analysis') || entries[0];
+            setEntry(analysis, true);
+            markInteraction(analysis);
+            updateStackState();
+        }
+        syncing = false;
+    });
+
+    // -------------------------------------------------
+    // Reclaimed land / satellite draw-order safeguard
+    // -------------------------------------------------
+    // Reclaimed land must be above the satellite and terrain raster layers.
+    // Rather than anchoring it to a basemap road layer (whose position can be
+    // below the custom raster overlays), place it immediately above Terrain.
+    function ensureFabricLayerOrder(){
+        try{
+            const styleLayers = map.getStyle()?.layers || [];
+
+            // Satellite below terrain.
+            if(map.getLayer('satellite') && map.getLayer('terrain')){
+                map.moveLayer('satellite', 'terrain');
+            }
+
+            // Find the first layer currently above Terrain and use it as the
+            // insertion anchor. This guarantees reclaimed fill/outline are
+            // above both Terrain and Satellite while remaining below later
+            // building/label/overlay layers.
+            const refreshed = map.getStyle()?.layers || [];
+            const terrainIndex = refreshed.findIndex(layer => layer.id === 'terrain');
+            const skip = new Set(['reclaimed','reclaimed-outline']);
+            let aboveTerrainId = null;
+            if(terrainIndex >= 0){
+                for(let i = terrainIndex + 1; i < refreshed.length; i++){
+                    const id = refreshed[i]?.id;
+                    if(id && !skip.has(id)){
+                        aboveTerrainId = id;
+                        break;
+                    }
+                }
+            }
+
+            if(map.getLayer('reclaimed')){
+                if(aboveTerrainId) map.moveLayer('reclaimed', aboveTerrainId);
+                else map.moveLayer('reclaimed');
+            }
+            if(map.getLayer('reclaimed-outline')){
+                if(aboveTerrainId) map.moveLayer('reclaimed-outline', aboveTerrainId);
+                else map.moveLayer('reclaimed-outline');
+            }
+        }catch(error){
+            console.warn('[ATLAS UI] Could not re-assert satellite / reclamation layer order:', error);
+        }
+    }
+
+    const basemapToggle = document.getElementById('basemapToggle');
+    const reclaimedToggle = document.getElementById('reclaimedToggle');
+    basemapToggle?.addEventListener('change', () => requestAnimationFrame(ensureFabricLayerOrder));
+    reclaimedToggle?.addEventListener('change', () => requestAnimationFrame(ensureFabricLayerOrder));
+    map.once('idle', () => {
+        ensureFabricLayerOrder();
+        restoreIndependentTerrain();
+    });
+
+    console.info('[ATLAS UI] Three-panel stack V3 initialised.');
+})();
+
+// === PANEL STACK V3.3 CONTENT-FIT ARCHITECTURE START ===
+//
+// Expanded panels use their natural visible-content height where possible.
+// The stack only introduces internal scrolling once the combined content would
+// exceed the viewport-safe rail. Desktop supports up to two expanded panels;
+// mobile remains one-at-a-time through the existing V3 controller.
+//
+(function initPanelStackContentFitV33(){
+    const panel = document.getElementById('panel');
+    const panelScroll = document.getElementById('panelScroll');
+    if(!panel || !panelScroll || panel.dataset.stackContentFitV33 === 'ready') return;
+
+    const sections = [
+        document.getElementById('fabricSection'),
+        document.getElementById('analysisSection'),
+        document.getElementById('marketSection')
+    ].filter(Boolean);
+
+    if(sections.length !== 3) return;
+
+    panel.dataset.stackContentFitV33 = 'ready';
+
+    let layoutFrame = 0;
+    let followupTimer = 0;
+
+    function px(value){
+        const n = Number.parseFloat(value);
+        return Number.isFinite(n) ? n : 0;
+    }
+
+    function panelNaturalHeight(section){
+        const body = section.querySelector('.mode-body');
+        const border = Math.max(0, section.offsetHeight - section.clientHeight);
+
+        if(!body){
+            return Math.ceil(section.scrollHeight + border);
+        }
+
+        // section.scrollHeight already contains the visible body box. Replace
+        // that box with body.scrollHeight to recover the full currently-visible
+        // nested content even when the body is already scroll-constrained.
+        const natural =
+            section.scrollHeight -
+            body.clientHeight +
+            body.scrollHeight +
+            border;
+
+        return Math.ceil(Math.max(natural, 0));
+    }
+
+    function allocateTwo(naturalA, naturalB, available){
+        const a = Math.max(0, naturalA);
+        const b = Math.max(0, naturalB);
+        const room = Math.max(0, available);
+
+        if(a + b <= room){
+            return [a, b];
+        }
+
+        // Max-min fair allocation: a naturally short panel keeps only what it
+        // needs and the larger panel receives the remaining room. If both are
+        // tall, they share the available height evenly.
+        const half = room / 2;
+
+        if(a <= b && a <= half){
+            return [a, Math.max(0, room - a)];
+        }
+
+        if(b < a && b <= half){
+            return [Math.max(0, room - b), b];
+        }
+
+        return [half, Math.max(0, room - half)];
+    }
+
+    function layoutPanels(){
+        layoutFrame = 0;
+
+        const railHeight = panelScroll.clientHeight;
+        if(railHeight <= 0) return;
+
+        const expanded = sections.filter(section => section.classList.contains('expanded'));
+        const collapsed = sections.filter(section => !section.classList.contains('expanded'));
+
+        for(const section of collapsed){
+            section.style.removeProperty('--stack-fit-height');
+            section.classList.remove('panel-content-scrolls');
+            delete section.dataset.fitNaturalHeight;
+            delete section.dataset.fitAllocatedHeight;
+        }
+
+        if(expanded.length === 0) return;
+
+        const scrollStyle = getComputedStyle(panelScroll);
+        const gap = px(scrollStyle.rowGap || scrollStyle.gap);
+        const totalGaps = gap * Math.max(0, sections.length - 1);
+
+        const collapsedHeight = collapsed.reduce((sum, section) => {
+            return sum + section.getBoundingClientRect().height;
+        }, 0);
+
+        const available = Math.max(0, railHeight - totalGaps - collapsedHeight);
+        const naturals = expanded.map(panelNaturalHeight);
+
+        let allocations;
+        if(expanded.length === 1){
+            allocations = [Math.min(naturals[0], available)];
+        }else if(expanded.length === 2){
+            allocations = allocateTwo(naturals[0], naturals[1], available);
+        }else{
+            // Defensive fallback. Existing V3 logic prevents this on desktop
+            // and mobile, but an even split remains viewport-safe if it occurs.
+            const each = available / expanded.length;
+            allocations = expanded.map(() => each);
+        }
+
+        expanded.forEach((section, index) => {
+            const natural = Math.max(0, naturals[index]);
+            const allocated = Math.max(0, Math.floor(allocations[index]));
+            const value = `${allocated}px`;
+
+            if(section.style.getPropertyValue('--stack-fit-height') !== value){
+                section.style.setProperty('--stack-fit-height', value);
+            }
+
+            section.dataset.fitNaturalHeight = String(Math.round(natural));
+            section.dataset.fitAllocatedHeight = String(allocated);
+            section.classList.toggle('panel-content-scrolls', natural > allocated + 2);
+        });
+    }
+
+    function scheduleLayout(followup = true){
+        if(layoutFrame) cancelAnimationFrame(layoutFrame);
+        layoutFrame = requestAnimationFrame(layoutPanels);
+
+        if(followup){
+            clearTimeout(followupTimer);
+            followupTimer = setTimeout(() => {
+                if(layoutFrame) cancelAnimationFrame(layoutFrame);
+                layoutFrame = requestAnimationFrame(layoutPanels);
+            }, 260);
+        }
+    }
+
+    // Structural changes: panel open/close, nested accordions, market snapshot
+    // population and other content that changes the natural card height.
+    const mutationObserver = new MutationObserver(() => scheduleLayout());
+    mutationObserver.observe(panelScroll, {
+        subtree:true,
+        childList:true,
+        characterData:true,
+        attributes:true,
+        attributeFilter:['class','hidden','aria-expanded']
+    });
+
+    // Viewport / rail changes, including Map View wrapping at narrower widths.
+    if('ResizeObserver' in window){
+        const resizeObserver = new ResizeObserver(() => scheduleLayout(false));
+        resizeObserver.observe(panelScroll);
+        const mapView = panel.querySelector('.stack-map-view-control, #basemapControl');
+        if(mapView) resizeObserver.observe(mapView);
+    }
+
+    // Existing controls can reveal/hide nested content synchronously or after
+    // a short transition; schedule both the immediate and settled measurement.
+    panelScroll.addEventListener('click', () => scheduleLayout(), true);
+    panelScroll.addEventListener('change', () => scheduleLayout(), true);
+    panelScroll.addEventListener('input', () => scheduleLayout(false), true);
+    window.addEventListener('resize', () => scheduleLayout());
+
+    // Tiny diagnostic hook for future UI work. It changes nothing and simply
+    // reports the measured/allocated height of each card.
+    window.atlasPanelFitState = function(){
+        return sections.map(section => ({
+            id:section.id,
+            state:section.classList.contains('expanded') ? 'expanded' : 'collapsed',
+            natural:Number(section.dataset.fitNaturalHeight || 0),
+            allocated:Number(section.dataset.fitAllocatedHeight || 0),
+            scrolling:section.classList.contains('panel-content-scrolls')
+        }));
+    };
+
+    requestAnimationFrame(() => scheduleLayout());
+    console.info('[ATLAS UI] Panel content-fit architecture V3.3 initialised.');
+})();
+// === PANEL STACK V3.3 CONTENT-FIT ARCHITECTURE END ===
+
+// === PANEL STACK V3.4 COLLAPSED OPACITY CONTROLS START ===
+// Fabric and Analysis keep their master opacity available even while their
+// main panels are collapsed. The compact control mirrors the canonical range
+// input so there remains one source of truth for each opacity value.
+(function initCollapsedOpacityControlsV34(){
+    const configs = [
+        {
+            sectionId:'fabricSection',
+            sourceId:'fabricOpacity',
+            sourceOutputId:'fabricOpacityValue',
+            label:'Fabric opacity',
+            className:'fabric'
+        },
+        {
+            sectionId:'analysisSection',
+            sourceId:'analysisOpacity',
+            sourceOutputId:'analysisOpacityValue',
+            label:'Analysis opacity',
+            className:'analysis'
+        }
+    ];
+
+    for(const config of configs){
+        const section = document.getElementById(config.sectionId);
+        const source = document.getElementById(config.sourceId);
+        const sourceOutput = document.getElementById(config.sourceOutputId);
+        const header = section?.querySelector('.mode-header');
+        const iconToggle = section?.querySelector('.mode-icon-toggle');
+
+        if(!section || !source || !header || !iconToggle) continue;
+        if(header.querySelector('.stack-collapsed-opacity')) continue;
+
+        section.classList.add('has-collapsed-opacity');
+
+        const compact = document.createElement('div');
+        compact.className = `stack-collapsed-opacity stack-collapsed-opacity-${config.className}`;
+        compact.setAttribute('aria-label', `${config.label} while panel is collapsed`);
+
+        const meta = document.createElement('div');
+        meta.className = 'stack-collapsed-opacity-meta';
+
+        const label = document.createElement('span');
+        label.className = 'stack-collapsed-opacity-label';
+        label.textContent = 'OPACITY';
+
+        const value = document.createElement('output');
+        value.className = 'stack-collapsed-opacity-value';
+        value.textContent = `${Math.round(Number(source.value) || 0)}%`;
+
+        meta.append(label, value);
+
+        const proxy = document.createElement('input');
+        proxy.type = 'range';
+        proxy.className = 'stack-collapsed-opacity-range';
+        proxy.min = source.min || '0';
+        proxy.max = source.max || '100';
+        proxy.step = source.step || '1';
+        proxy.value = source.value;
+        proxy.setAttribute('aria-label', config.label);
+
+        compact.append(meta, proxy);
+        header.insertBefore(compact, iconToggle);
+
+        function syncFromSource(){
+            proxy.value = source.value;
+            value.textContent = `${Math.round(Number(source.value) || 0)}%`;
+        }
+
+        function applyProxyValue(){
+            source.value = proxy.value;
+            source.dispatchEvent(new Event('input', {bubbles:true}));
+            value.textContent = `${Math.round(Number(proxy.value) || 0)}%`;
+        }
+
+        proxy.addEventListener('input', applyProxyValue);
+        proxy.addEventListener('change', () => {
+            applyProxyValue();
+            source.dispatchEvent(new Event('change', {bubbles:true}));
+        });
+        source.addEventListener('input', syncFromSource);
+        source.addEventListener('change', syncFromSource);
+
+        // Keep slider gestures from becoming panel-collapse/expand gestures.
+        for(const eventName of ['click','pointerdown','pointerup','touchstart','touchend']){
+            compact.addEventListener(eventName, event => event.stopPropagation());
+        }
+
+        if(sourceOutput){
+            const observer = new MutationObserver(syncFromSource);
+            observer.observe(sourceOutput, {childList:true, characterData:true, subtree:true});
+        }
+
+        syncFromSource();
+    }
+
+    console.info('[ATLAS UI] Collapsed Fabric/Analysis opacity controls V3.4 initialised.');
+})();
+// === PANEL STACK V3.4 COLLAPSED OPACITY CONTROLS END ===
+
+// === PANEL STACK V3.6 MOBILE UNIFIED RAIL START ===
+// Keep the complete mobile control rail below the actual Atlas header. The
+// header changes height briefly during the arrival animation, so static pixel
+// offsets are not reliable. ResizeObserver keeps the safe top boundary current.
+(function initMobileUnifiedRailV36(){
+    const panel=document.getElementById('panel');
+    const header=document.getElementById('header');
+    if(!panel || !header || panel.dataset.mobileUnifiedRailV36==='ready') return;
+
+    panel.dataset.mobileUnifiedRailV36='ready';
+    const mobile=window.matchMedia('(max-width:900px)');
+    let raf=0;
+
+    function numberPx(value){
+        const n=Number.parseFloat(value);
+        return Number.isFinite(n)?n:0;
+    }
+
+    function update(){
+        raf=0;
+        if(!mobile.matches){
+            panel.style.removeProperty('--mobile-stack-top-guard');
+            panel.style.removeProperty('--mobile-map-view-height');
+            return;
+        }
+
+        const panelStyle=getComputedStyle(panel);
+        const railGap=Math.max(0, numberPx(panelStyle.rowGap || panelStyle.gap) || 8);
+        const headerBottom=Math.max(0, header.getBoundingClientRect().bottom);
+        const mapView=panel.querySelector('.stack-map-view-control, #basemapControl');
+        const mapViewHeight=mapView ? Math.ceil(mapView.getBoundingClientRect().height) : 0;
+
+        // The minimum separation from the header is deliberately the same as
+        // the separation used between Map View and each legend panel.
+        panel.style.setProperty('--mobile-stack-top-guard', `${Math.ceil(headerBottom + railGap)}px`);
+        panel.style.setProperty('--mobile-map-view-height', `${mapViewHeight}px`);
+    }
+
+    function schedule(){
+        if(raf) cancelAnimationFrame(raf);
+        raf=requestAnimationFrame(update);
+    }
+
+    if('ResizeObserver' in window){
+        const observer=new ResizeObserver(schedule);
+        observer.observe(header);
+        observer.observe(panel);
+        const mapView=panel.querySelector('.stack-map-view-control, #basemapControl');
+        if(mapView) observer.observe(mapView);
+    }
+
+    mobile.addEventListener('change', schedule);
+    window.addEventListener('resize', schedule);
+    window.addEventListener('orientationchange', schedule);
+    panel.addEventListener('click', schedule, true);
+
+    requestAnimationFrame(schedule);
+    console.info('[ATLAS UI] Mobile unified Map View + legend rail V3.6 initialised.');
+})();
+// === PANEL STACK V3.6 MOBILE UNIFIED RAIL END ===
