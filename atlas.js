@@ -6230,12 +6230,14 @@ function ugsProfileRow(
     }
 
 
+    // UGS v0.2 profile percentiles are stored on a 0–1 unit scale.
+    // Convert to CSS percentage points only at render time.
     const numericPct =
         Math.max(
             0,
             Math.min(
                 100,
-                Number(pct)
+                Number(pct) * 100
             )
         );
 

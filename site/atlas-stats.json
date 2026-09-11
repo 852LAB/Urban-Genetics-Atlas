@@ -1,9 +1,9 @@
 {
   "schemaVersion": "editorial-stats-v2",
-  "generatedAtUtc": "2026-09-11T11:28:54.926744+00:00",
+  "generatedAtUtc": "2026-09-11T11:57:20.343630+00:00",
   "atlas": {
     "totalHexes": 39885,
-    "releaseId": "V1.6-20260911-192850",
+    "releaseId": "V1.6-20260911-195715",
     "spatialMaster": "ATLAS_SPATIAL_MASTER_CURRENT.csv"
   },
   "coverage": {

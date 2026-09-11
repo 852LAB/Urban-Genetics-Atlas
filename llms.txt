@@ -18,4 +18,4 @@ Important distinctions:
 - UGS describes urban condition; it is not a redevelopment prediction.
 - Market Exposure is a separate market-and-urban coincidence indicator, not a valuation or forecast.
 
-Current release: V1.6-20260911-192850
+Current release: V1.6-20260911-195715
