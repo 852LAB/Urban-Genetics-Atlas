@@ -6429,3 +6429,303 @@ and (orientation:landscape){
 }
 /* === PANEL STACK V3.9 ATTRIBUTION + NAV FINAL END === */
 /* THREE PANEL STACK V3 PRODUCTION — END */
+
+/* UI + MARKET TRANSACTION V1 PRODUCTION — START */
+/* =========================================================
+   URBAN GENETICS ATLAS — UI + MARKET TRANSACTION V1 TEST
+   Non-destructive stylesheet loaded after canonical styles.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   Information controls — stronger, clearer hierarchy
+   --------------------------------------------------------- */
+.info-trigger {
+    width:19px !important;
+    height:19px !important;
+    border:1px solid rgba(55,61,66,.78) !important;
+    background:rgba(64,70,75,.92) !important;
+    color:#fff !important;
+    font-size:0 !important;
+    box-shadow:0 1px 4px rgba(0,0,0,.10);
+}
+.info-trigger::before {
+    content:"i";
+    display:block;
+    font:700 .69rem/1 Inter,system-ui,sans-serif;
+    transform:translateY(-.2px);
+}
+.info-trigger:hover,
+.info-trigger:focus-visible,
+.info-trigger[aria-expanded="true"] {
+    background:rgba(36,42,47,.98) !important;
+    border-color:rgba(36,42,47,.98) !important;
+    color:#fff !important;
+    transform:translateY(-1px);
+}
+.mode-title-line .info-trigger {
+    width:18px !important;
+    height:18px !important;
+}
+.mode-title-line .info-trigger::before { font-size:.72rem; }
+.atlas-about-trigger {
+    width:21px !important;
+    height:21px !important;
+}
+.atlas-about-trigger::before { font-size:.76rem; }
+.legend-title-row .info-trigger {
+    width:20px !important;
+    height:20px !important;
+}
+.legend-title-row .info-trigger::before { font-size:.64rem; }
+
+/* ---------------------------------------------------------
+   Collapsed Fabric / Analysis / Market bars
+   --------------------------------------------------------- */
+#panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .stack-collapsed-opacity-meta {
+    flex-basis:118px !important;
+    gap:3px !important;
+}
+#panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .stack-collapsed-opacity-label {
+    color:var(--text-secondary) !important;
+    font-size:.62rem !important; /* matches MAP VIEW */
+    font-weight:700 !important;
+    letter-spacing:.08em !important;
+    line-height:1 !important;
+    white-space:nowrap;
+}
+#panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .stack-collapsed-opacity-value {
+    color:var(--text-primary) !important;
+    font-size:.62rem !important;
+    font-weight:500;
+    line-height:1.05 !important;
+    white-space:nowrap;
+}
+
+/* ---------------------------------------------------------
+   Transaction Pulse market styling
+   --------------------------------------------------------- */
+.market-transaction-group {
+    border-top:1px solid rgba(70,76,82,.10);
+    padding-top:10px;
+}
+.market-transaction-head {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin:7px 0 8px;
+}
+.market-transaction-head > div {
+    min-width:0;
+    padding:7px 8px;
+    border-radius:9px;
+    background:rgba(255,255,255,.30);
+}
+.market-transaction-head span,
+.market-transaction-head small {
+    display:block;
+    color:var(--text-secondary);
+}
+.market-transaction-head span { font-size:.62rem; }
+.market-transaction-head strong {
+    display:block;
+    margin:2px 0 1px;
+    font-size:.90rem;
+    font-variant-numeric:tabular-nums;
+}
+.market-transaction-head small { font-size:.56rem; line-height:1.25; }
+.market-transaction-source {
+    margin-top:6px;
+    color:var(--text-secondary);
+    font-size:.57rem;
+    line-height:1.35;
+}
+.market-transaction-spark polyline {
+    stroke:#753A91;
+}
+
+/* ---------------------------------------------------------
+   Mobile master drawer — whole rail can disappear to one button
+   --------------------------------------------------------- */
+@media (min-width:901px) {
+    #panelMinimize { display:none !important; }
+}
+
+@media (max-width:900px) {
+    :root {
+        --uga-mobile-master-size:58px;
+        --uga-mobile-master-gap:8px;
+        --uga-mobile-master-reserve:66px;
+    }
+
+    #panelMinimize {
+        display:flex !important;
+        position:fixed !important;
+        z-index:2500 !important;
+        top:auto !important;
+        right:10px !important;
+        bottom:max(10px, env(safe-area-inset-bottom, 0px)) !important;
+        width:var(--uga-mobile-master-size) !important;
+        height:var(--uga-mobile-master-size) !important;
+        border-radius:16px !important;
+        background:rgba(248,248,247,.86) !important;
+        border:1px solid rgba(77,84,90,.14) !important;
+        box-shadow:0 8px 24px rgba(0,0,0,.12) !important;
+        backdrop-filter:blur(16px);
+        -webkit-backdrop-filter:blur(16px);
+    }
+    #panelMinimize::before {
+        content:"×" !important;
+        display:flex !important;
+        align-items:center;
+        justify-content:center;
+        width:100%; height:100%;
+        color:#4a5055;
+        font:400 1.45rem/1 Arial,sans-serif !important;
+    }
+    #panelMinimize.panel-control-minimized::before {
+        content:"☰" !important;
+        font-size:1.25rem !important;
+    }
+
+    /* Hidden really means hidden again on mobile. */
+    #panel.panel-stack-v3.panel-minimized {
+        display:none !important;
+    }
+
+    /* When open, reserve a final row for the master close control. */
+    #panel.panel-stack-v3:not(.panel-minimized) {
+        bottom:calc(max(10px, env(safe-area-inset-bottom, 0px)) + var(--uga-mobile-master-reserve)) !important;
+        max-height:calc(
+            100dvh - var(--mobile-stack-top-guard, 76px) - max(10px, env(safe-area-inset-bottom, 0px)) - var(--uga-mobile-master-reserve)
+        ) !important;
+    }
+    #panel.panel-stack-v3:not(.panel-minimized) .panel-scroll {
+        max-height:calc(
+            100dvh - var(--mobile-stack-top-guard, 76px) - max(10px, env(safe-area-inset-bottom, 0px)) - var(--uga-mobile-master-reserve) - var(--mobile-map-view-height, 48px) - 8px
+        ) !important;
+    }
+
+    #panel.panel-stack-v3 .mode-panel.collapsed.has-collapsed-opacity .stack-collapsed-opacity-meta {
+        flex-basis:110px !important;
+    }
+}
+
+@media (max-width:900px) and (orientation:landscape) {
+    #panelMinimize {
+        right:8px !important;
+        bottom:max(8px, env(safe-area-inset-bottom, 0px)) !important;
+    }
+    #panel.panel-stack-v3:not(.panel-minimized) {
+        bottom:calc(max(8px, env(safe-area-inset-bottom, 0px)) + var(--uga-mobile-master-reserve)) !important;
+        max-height:calc(
+            100dvh - var(--mobile-stack-top-guard, 64px) - max(8px, env(safe-area-inset-bottom, 0px)) - var(--uga-mobile-master-reserve)
+        ) !important;
+    }
+    #panel.panel-stack-v3:not(.panel-minimized) .panel-scroll {
+        max-height:calc(
+            100dvh - var(--mobile-stack-top-guard, 64px) - max(8px, env(safe-area-inset-bottom, 0px)) - var(--uga-mobile-master-reserve) - var(--mobile-map-view-height, 44px) - 8px
+        ) !important;
+    }
+}
+
+
+/* ---------------------------------------------------------
+   Market context overlay — secondary layer shown with any analysis
+   --------------------------------------------------------- */
+.market-context-map-control {
+    margin:10px 0 12px;
+    padding:10px;
+    border-radius:10px;
+    background:rgba(255,255,255,.24);
+    border:1px solid rgba(70,76,82,.09);
+}
+.market-context-map-head {
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:8px;
+    margin-bottom:6px;
+}
+.market-context-map-head label {
+    color:var(--text-primary);
+    font-size:.64rem;
+    font-weight:700;
+    letter-spacing:.04em;
+}
+.market-context-map-head span {
+    color:var(--text-secondary);
+    font-size:.54rem;
+    text-align:right;
+}
+#marketContextOverlay {
+    width:100%;
+}
+.market-context-opacity { margin-top:8px; }
+.market-context-opacity-head {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:4px;
+    color:var(--text-secondary);
+    font-size:.58rem;
+}
+#marketContextOpacity { width:100%; }
+
+/* ---------------------------------------------------------
+   V1.2 — Market Data compact bar
+   --------------------------------------------------------- */
+#panel.panel-stack-v3 #marketSection.collapsed.has-collapsed-opacity .stack-collapsed-opacity-meta {
+    flex-basis:118px !important;
+}
+#panel.panel-stack-v3 #marketSection.collapsed.has-collapsed-opacity .stack-collapsed-opacity-label {
+    font-size:.62rem !important;
+    font-weight:700 !important;
+    letter-spacing:.08em !important;
+}
+#panel.panel-stack-v3 #marketSection.collapsed.has-collapsed-opacity .stack-collapsed-opacity-value {
+    font-size:.62rem !important;
+}
+@media (max-width:900px) {
+    #panel.panel-stack-v3 #marketSection.collapsed.has-collapsed-opacity .stack-collapsed-opacity-meta {
+        flex-basis:110px !important;
+    }
+}
+
+/* ---------------------------------------------------------
+   V1.4 — neutral slider grammar
+   All interactive range controls use the same grey treatment.
+   --------------------------------------------------------- */
+#panel input[type="range"] {
+    accent-color:#6f767d !important;
+}
+#panel input[type="range"]:focus-visible {
+    outline:1px solid rgba(78,84,90,.55) !important;
+    outline-offset:2px;
+}
+
+/* Keep the custom building-height range visually consistent too. */
+#panel .building-height-slider-track {
+    background:rgba(100,108,116,.18) !important;
+}
+#panel .building-height-slider-fill {
+    background:rgba(100,108,116,.52) !important;
+}
+#panel .building-height-slider input[type="range"]::-webkit-slider-thumb {
+    border-color:rgba(55,61,66,.28) !important;
+    background:#f5f5f3 !important;
+}
+#panel .building-height-slider input[type="range"]::-moz-range-thumb {
+    border-color:rgba(55,61,66,.28) !important;
+    background:#f5f5f3 !important;
+}
+
+/* Explicitly neutralise the canonical and compact opacity ranges. */
+#panel .group-opacity-control input[type="range"],
+#panel #marketContextOpacity,
+#panel .stack-collapsed-opacity-range,
+#panel #reclamation-year,
+#panel #building-age-year {
+    accent-color:#6f767d !important;
+}
+/* === UI + MARKET TRANSACTION V1.4 PANEL/SLIDER POLISH END === */
+/* UI + MARKET TRANSACTION V1 PRODUCTION — END */

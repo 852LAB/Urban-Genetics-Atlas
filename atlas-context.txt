@@ -26,8 +26,8 @@ https://852lab.github.io/Urban-Genetics-Atlas/
 
 - Page title: **Urban Genetics Atlas**
 - UI version label: **Beta**
-- Release ID: **V1.6-20260912-000148**
-- Generated: **2026-09-11 16:04 UTC**
+- Release ID: **V1.6-20260912-192048**
+- Generated: **2026-09-12 11:23 UTC**
 - PMTiles: **atlas/852LAB_V1.6.pmtiles**
 - Public GeoJSON resources: **3**
 - Terrain objects: **51941**
@@ -68,6 +68,8 @@ Recorded evidence, derived analysis, strategic assumptions and predictions are n
 - `Population per Building` — Population Intensity
 - `Latent Urban Capacity` — Latent Urban Capacity
 - `Market Exposure` — Market Exposure
+- `Transaction Exposure` — Transaction Exposure
+- `Transaction Pulse` — Transaction Pulse
 - `All` — All Contexts
 - `Residential` — Residential
 - `Commercial / Mixed` — Commercial / Mixed
@@ -76,6 +78,11 @@ Recorded evidence, derived analysis, strategic assumptions and predictions are n
 - `Village / Other Development` — Village / Other Development
 - `Constrained / Non-urban` — Constrained / Non-urban
 - `Other / Unclassified` — Other / Unclassified
+- `Off` — Off
+- `Market Momentum` — Market Momentum
+- `Market Exposure` — Market Exposure
+- `Transaction Pulse` — Transaction Pulse
+- `Transaction Exposure` — Transaction Exposure
 
 ## Current analytical interpretation
 
@@ -259,7 +266,13 @@ Market observations retain the geography of their official source. Regional pric
 
 Market Exposure is not a property valuation, investment recommendation or forecast.
 
-Market data is kept separate from Development Pressure, Renewal Potential, Genesis Potential and the Urban Genetic Signature so that market behaviour can be compared with urban conditions rather than silently embedded within those models.
+**Transaction Activity** uses monthly Land Registry ASP building-unit registration statistics at the geography published by the source. It does not invent 100 m transaction counts.
+
+**Transaction Pulse** asks whether recent transaction activity is strong or weak relative to the same source geography's own recent history, and whether that activity is strengthening or weakening. It combines an activity-level signal with a 12-month trend signal. Because the underlying observation is regional or district-level, neighbouring hexes within the same source geography can share the same Pulse.
+
+**Transaction Exposure** combines Transaction Pulse with the same local opportunity structure used by Market Exposure. It therefore shows where stronger observed transaction activity overlaps with stronger local Development Pressure and Capacity Opportunity. The local differentiation comes from the Atlas analysis, not from pretending the Land Registry source is more spatially precise than it is.
+
+Market data is kept separate from Development Pressure, Renewal Potential, Genesis Potential and the Urban Genetic Signature so that market behaviour can be compared with urban conditions rather than silently embedded within those models. The interface can also display a secondary Market overlay so broader market context and local analysis can be compared directly rather than always collapsed into a single composite.
 
 ## Missing data and confidence
 

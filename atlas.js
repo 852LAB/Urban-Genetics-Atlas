@@ -681,6 +681,15 @@ const basemapSatelliteLabel =
 const buildingBaseToggle =
     document.getElementById('buildingBaseToggle');
 
+const marketContextOverlay =
+    document.getElementById('marketContextOverlay');
+
+const marketContextOpacity =
+    document.getElementById('marketContextOpacity');
+
+const marketContextOpacityValue =
+    document.getElementById('marketContextOpacityValue');
+
 
 // =====================================================
 // EDITORIAL INFORMATION / STATISTICS SYSTEM
@@ -1284,6 +1293,99 @@ function analysisInfoPanel(theme){
                         Latent capacity is not the same as vacant land,
                         development feasibility, land ownership or permission to
                         build immediately.
+                    </p>`
+                )
+        },
+
+        'Transaction Exposure':{
+            title:'Transaction Exposure',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        Transaction Exposure is a local analytical layer. It asks
+                        where stronger observed Transaction Pulse overlaps with
+                        stronger local Development Pressure and Capacity Opportunity.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'WHY IS IT MORE GRANULAR?',
+                    `<p>
+                        Transaction Pulse retains the geography published by the
+                        Land Registry, so neighbouring hexes within the same source
+                        geography can share the same pulse. Transaction Exposure
+                        does not invent finer transaction counts; it combines that
+                        wider activity signal with local Atlas conditions that vary
+                        from hex to hex.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW IS IT CALCULATED?',
+                    `<p><strong>Local Opportunity</strong> = equal-weight Development Pressure + Capacity Opportunity.</p>
+                     <p><strong>Transaction Exposure</strong> = Transaction Pulse × Local Opportunity.</p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ IT',
+                    `<p>
+                        It is not a 100 m transaction count, property valuation,
+                        forecast or investment signal. Use Transaction Pulse to read
+                        the observed market context and Transaction Exposure to see
+                        where that context intersects with local urban conditions.
+                    </p>`
+                )
+        },
+
+        'Transaction Pulse':{
+            title:'Transaction Pulse',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        Transaction Pulse is a descriptive market analysis built
+                        from Land Registry sale-and-purchase agreement activity.
+                        It asks whether recent transaction activity is stronger or
+                        weaker than the same source geography's recent norm, and
+                        whether activity is rising or falling compared with a year ago.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'WHAT TO NOTICE',
+                    `<p>
+                        This layer is intentionally different from Market Exposure.
+                        Transaction Pulse is based on observed registration activity;
+                        Market Exposure combines wider price/rent momentum with local
+                        Atlas conditions.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW IS IT CALCULATED?',
+                    `<p>
+                        <strong>Activity Level</strong> compares the latest three-month
+                        average number of ASP building-unit transactions with the
+                        median monthly count over the latest 24 months.
+                    </p>
+                    <p>
+                        <strong>Activity Trend</strong> compares that recent three-month
+                        average with the same three months one year earlier.
+                    </p>
+                    <p>
+                        <strong>Transaction Pulse</strong> is the equal-weight mean of
+                        the normalised Activity Level and Activity Trend signals.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ IT',
+                    `<p>
+                        Values inherit the geography published by the Land Registry;
+                        they are not direct transaction counts for each 100 m hex.
+                        Registration statistics can also lag the underlying transaction
+                        date because instruments are lodged after execution.
                     </p>`
                 )
         },
@@ -2327,31 +2429,10 @@ function setFabricMaster(enabled){
         return;
     }
 
-    if(enabled){
-
-        fabricSection.classList.remove(
-            'collapsed'
-        );
-
-        fabricSection.classList.add(
-            'expanded'
-        );
-
-        fabricBody.style.display = '';
-
-    } else {
-
-        fabricSection.classList.remove(
-            'expanded'
-        );
-
-        fabricSection.classList.add(
-            'collapsed'
-        );
-
-        fabricBody.style.display = 'none';
-
-    }
+    // V1.4: the master visibility switch controls the map layers only.
+    // It must not collapse the panel or hide its controls; users may wish
+    // to switch the current fabric off, adjust another layer, then restore it.
+    fabricBody.style.display = '';
 
 }
 
@@ -3194,6 +3275,62 @@ const LEGENDS = {
         `
     },
 
+    'Transaction Exposure': {
+
+        title: 'Transaction Exposure',
+
+        description:
+            'Shows where stronger transaction activity overlaps with stronger local Development Pressure and Capacity Opportunity.',
+
+        gradient:
+            'linear-gradient(90deg,#E0E1DE,#D8D3DE,#CEC6E4,#AA9AD0,#806BB6,#5B478F,#382D63)',
+
+        interpretation: `
+            <div class='legend-item'>
+                <strong>Lower</strong>
+                — Limited overlap between transaction activity and local opportunity conditions.
+            </div>
+
+            <div class='legend-item'>
+                <strong>Mid-range</strong>
+                — Transaction activity overlaps with meaningful local pressure or capacity opportunity.
+            </div>
+
+            <div class='legend-item'>
+                <strong>Higher</strong>
+                — Stronger transaction activity coincides with stronger local opportunity conditions.
+            </div>
+        `
+    },
+
+    'Transaction Pulse': {
+
+        title: 'Transaction Pulse',
+
+        description:
+            'Shows whether recent Land Registry building-unit transaction activity is strong or soft relative to its recent norm, while also considering its 12-month direction.',
+
+        gradient:
+            'linear-gradient(90deg,#E0E1DE,#DED2D2,#E1BFC0,#D98F94,#C96473,#99485F,#5F2C46)',
+
+        interpretation: `
+            <div class='legend-item'>
+                <strong>Softer</strong>
+                — Recent transaction activity is below its recent norm and/or falling.
+            </div>
+
+            <div class='legend-item'>
+                <strong>Typical</strong>
+                — Activity is close to the recent range for that source geography.
+            </div>
+
+            <div class='legend-item'>
+                <strong>Stronger</strong>
+                — Recent activity is elevated and/or rising compared with a year ago.
+            </div>
+        `
+    },
+
     'Market Exposure': {
 
         title: 'Market Exposure',
@@ -3801,6 +3938,134 @@ function colourExpression(){
     }
 
 // -----------------------------------------------------
+// Transaction Exposure — Transaction Pulse × Local Opportunity
+// -----------------------------------------------------
+
+    if(theme === 'Transaction Exposure'){
+
+        const activity =
+            window.UGA_MARKET_ANALYTICS?.transaction_activity || null;
+
+        const hadScores = activity?.had_scores || {};
+        const matchParts = [];
+
+        for(const [hadName,rawScore] of Object.entries(hadScores)){
+            const score = Number(rawScore);
+            if(Number.isFinite(score)) matchParts.push(hadName,score);
+        }
+
+        if(matchParts.length === 0){
+            return 'rgba(255,255,255,0.00)';
+        }
+
+        const pulseExpression = [
+            'match', ['get','HAD_EN'], ...matchParts, -1
+        ];
+
+        const pressureComponent = [
+            'max',0,['min',1,['to-number',['get','Development Pressure v2'],0]]
+        ];
+        const capacityComponent = [
+            'max',0,['min',1,['to-number',['get','Analysis_v2_Capacity_Opportunity'],0]]
+        ];
+        const localOpportunity = ['/', ['+',pressureComponent,capacityComponent], 2];
+        const txExposure = ['*',pulseExpression,localOpportunity];
+
+        const assessable = [
+            'all',
+            ['has','Development Pressure v2'],
+            ['has','Analysis_v2_Capacity_Opportunity'],
+            ['!=',['get','Development Pressure v2'],null],
+            ['!=',['get','Analysis_v2_Capacity_Opportunity'],null],
+            ['>=',pulseExpression,0]
+        ];
+
+        const d = activity?.transaction_exposure?.distribution || {};
+        const fallback = [0.00,0.15,0.25,0.35,0.45,0.55,0.70,0.85];
+        const raw = [d.min,d.p25,d.p50,d.p75,d.p90,d.p95,d.p99,d.max]
+            .map((v,i)=>Number.isFinite(Number(v)) ? Number(v) : fallback[i]);
+        const stops = [...raw];
+        // Guarantee strictly increasing interpolation stops without changing
+        // the underlying score. This only protects very flat test distributions.
+        for(let i=1;i<stops.length;i++){
+            if(stops[i] <= stops[i-1]) stops[i] = Math.min(1,stops[i-1] + 0.000001);
+        }
+
+        return [
+            'case', assessable,
+            [
+                'interpolate',['linear'],txExposure,
+                stops[0], 'rgba(224,225,222,0.16)',
+                stops[1], 'rgba(216,211,222,0.22)',
+                stops[2], 'rgba(206,198,228,0.30)',
+                stops[3], 'rgba(170,154,208,0.44)',
+                stops[4], 'rgba(128,107,182,0.60)',
+                stops[5], 'rgba(91,71,143,0.72)',
+                stops[6], 'rgba(56,45,99,0.82)',
+                stops[7], 'rgba(35,29,66,0.90)'
+            ],
+            'rgba(255,255,255,0.00)'
+        ];
+    }
+
+// -----------------------------------------------------
+// Transaction Pulse
+// -----------------------------------------------------
+
+    if(theme === 'Transaction Pulse'){
+
+        const activity =
+            window.UGA_MARKET_ANALYTICS?.transaction_activity || null;
+
+        const hadScores =
+            activity?.had_scores || {};
+
+        const matchParts = [];
+
+        for(const [hadName,rawScore] of Object.entries(hadScores)){
+
+            const score = Number(rawScore);
+
+            if(Number.isFinite(score)){
+                matchParts.push(hadName,score);
+            }
+
+        }
+
+        if(matchParts.length === 0){
+            return 'rgba(255,255,255,0.00)';
+        }
+
+        const pulseExpression = [
+            'match',
+            ['get','HAD_EN'],
+            ...matchParts,
+            -1
+        ];
+
+        return [
+            'case',
+            ['>=',pulseExpression,0],
+            [
+                'interpolate',
+                ['linear'],
+                pulseExpression,
+
+                0.00, 'rgba(224,225,222,0.16)',
+                0.25, 'rgba(222,210,210,0.23)',
+                0.40, 'rgba(225,191,192,0.30)',
+                0.50, 'rgba(217,143,148,0.44)',
+                0.60, 'rgba(201,100,115,0.60)',
+                0.75, 'rgba(153,72,95,0.74)',
+                0.90, 'rgba(95,44,70,0.86)',
+                1.00, 'rgba(61,29,48,0.92)'
+            ],
+            'rgba(255,255,255,0.00)'
+        ];
+
+    }
+
+// -----------------------------------------------------
 // Market Exposure
 // -----------------------------------------------------// -----------------------------------------------------
 // Market Exposure
@@ -4283,43 +4548,21 @@ function updateAnalysisVisibility(){
     }
 
 
-    // Analysis selector
-
+    // V1.4: keep the panel controls available even while the analysis map
+    // layer is hidden. Visibility is a map state, not a panel state.
     if(analysisSelectorControl){
-
-        analysisSelectorControl.style.display =
-            analysisToggle.checked
-                ? ''
-                : 'none';
-
+        analysisSelectorControl.style.display = '';
     }
-
-
-    // Planning Context controls
 
     if(analysisControls){
-
-        const planningContextAvailable =
-            planningContextApplies();
-
         analysisControls.style.display =
-            planningContextAvailable &&
-            analysisToggle.checked
+            planningContextApplies()
                 ? 'flex'
                 : 'none';
-
     }
 
-
-    // Analysis legend
-
     if(analysisLegend){
-
-        analysisLegend.style.display =
-            analysisToggle.checked
-                ? 'block'
-                : 'none';
-
+        analysisLegend.style.display = 'block';
     }
 
 }
@@ -4333,60 +4576,160 @@ analysisToggle.addEventListener(
     'change',
     () => {
 
+        // V1.4: master visibility changes the map only. The Analysis panel
+        // remains exactly as the user left it; only the panel icon minimises it.
         updateAnalysisVisibility();
-
-
-        if(analysisToggle.checked){
-
-            analysisSection.classList.remove(
-                'collapsed'
-            );
-
-            analysisSection.classList.add(
-                'expanded'
-            );
-
-            analysisSectionToggle.setAttribute(
-                'aria-expanded',
-                'true'
-            );
-
-            analysisSectionToggle.setAttribute(
-                'aria-label',
-                'Collapse Urban Analysis'
-            );
-
-            analysisSectionToggle.textContent =
-                '▾';
-
-        } else {
-
-            analysisSection.classList.remove(
-                'expanded'
-            );
-
-            analysisSection.classList.add(
-                'collapsed'
-            );
-
-            analysisSectionToggle.setAttribute(
-                'aria-expanded',
-                'false'
-            );
-
-            analysisSectionToggle.setAttribute(
-                'aria-label',
-                'Expand Urban Analysis'
-            );
-
-            analysisSectionToggle.textContent =
-                '▸';
-
-        }
 
     }
 );
 
+
+// =====================================================
+// MARKET CONTEXT OVERLAY
+// =====================================================
+// V1.3 adds Transaction Exposure to the secondary Market overlay and
+// gives each market signal a deliberately distinct colour family.
+
+function marketContextMomentumExpression(){
+    const analytics = window.UGA_MARKET_ANALYTICS?.regions || {};
+    const value = key => {
+        const n=Number(analytics?.[key]?.market_momentum);
+        return Number.isFinite(n) ? n : -1;
+    };
+    const hk=['Central and Western District','Eastern District','Southern District','Wan Chai District'];
+    const kln=['Kowloon City District','Kwun Tong District','Sham Shui Po District','Wong Tai Sin District','Yau Tsim Mong District'];
+    return ['case',
+        ['in',['get','HAD_EN'],['literal',hk]], value('Hong Kong'),
+        ['in',['get','HAD_EN'],['literal',kln]], value('Kowloon'),
+        ['all',['has','HAD_EN'],['!=',['get','HAD_EN'],null],['!=',['get','HAD_EN'],'']], value('New Territories'),
+        -1
+    ];
+}
+
+function marketContextPulseExpression(){
+    const scores=window.UGA_MARKET_ANALYTICS?.transaction_activity?.had_scores || {};
+    const parts=[];
+    for(const [name,raw] of Object.entries(scores)){
+        const n=Number(raw); if(Number.isFinite(n)) parts.push(name,n);
+    }
+    return parts.length ? ['match',['get','HAD_EN'],...parts,-1] : -1;
+}
+
+function marketContextExposureExpression(){
+    const momentum=marketContextMomentumExpression();
+    const pressure=[
+        'max',0,['min',1,['to-number',['get','Development Pressure v2'],0]]
+    ];
+    const capacity=[
+        'max',0,['min',1,['to-number',['get','Analysis_v2_Capacity_Opportunity'],0]]
+    ];
+    const localOpportunity=['/', ['+',pressure,capacity], 2];
+    const exposure=['*',momentum,localOpportunity];
+    const assessable=[
+        'all',
+        ['has','Development Pressure v2'],
+        ['has','Analysis_v2_Capacity_Opportunity'],
+        ['!=',['get','Development Pressure v2'],null],
+        ['!=',['get','Analysis_v2_Capacity_Opportunity'],null],
+        ['>=',momentum,0]
+    ];
+    return {exposure,assessable};
+}
+
+
+function marketContextTransactionExposureExpression(){
+    const pulse=marketContextPulseExpression();
+    const pressure=[
+        'max',0,['min',1,['to-number',['get','Development Pressure v2'],0]]
+    ];
+    const capacity=[
+        'max',0,['min',1,['to-number',['get','Analysis_v2_Capacity_Opportunity'],0]]
+    ];
+    const localOpportunity=['/', ['+',pressure,capacity], 2];
+    const exposure=['*',pulse,localOpportunity];
+    const assessable=[
+        'all',
+        ['has','Development Pressure v2'],
+        ['has','Analysis_v2_Capacity_Opportunity'],
+        ['!=',['get','Development Pressure v2'],null],
+        ['!=',['get','Analysis_v2_Capacity_Opportunity'],null],
+        ['>=',pulse,0]
+    ];
+    return {exposure,assessable};
+}
+
+function marketContextColourExpression(){
+    const mode=marketContextOverlay?.value || 'Off';
+
+    // Market Momentum — warm amber/orange: broad market direction.
+    if(mode==='Market Momentum'){
+        const x=marketContextMomentumExpression();
+        return ['case',['>=',x,0],['interpolate',['linear'],x,
+            0.00,'#E0E1DE',0.35,'#DDD7C8',0.50,'#E5D49A',0.65,'#E2B45D',0.80,'#D48739',1.00,'#713820'
+        ],'rgba(255,255,255,0)'];
+    }
+
+    // Market Exposure — aqua/blue/navy: market movement × local opportunity.
+    if(mode==='Market Exposure'){
+        const {exposure,assessable}=marketContextExposureExpression();
+        return ['case',assessable,['interpolate',['linear'],exposure,
+            0.000000,'#E0E1DE',0.206466,'#D6D8D8',0.363558,'#CDD2D3',0.465686,'#B7E0E3',0.540181,'#62C0CF',0.578715,'#348DC4',0.663285,'#3156A4',0.746058,'#172B62'
+        ],'rgba(255,255,255,0)'];
+    }
+
+    // Transaction Pulse — rose/coral/wine: observed transaction activity.
+    if(mode==='Transaction Pulse'){
+        const x=marketContextPulseExpression();
+        if(x===-1) return 'rgba(255,255,255,0)';
+        return ['case',['>=',x,0],['interpolate',['linear'],x,
+            0.00,'#E0E1DE',0.25,'#DED2D2',0.40,'#E1BFC0',0.55,'#D98F94',0.70,'#C96473',0.85,'#99485F',1.00,'#5F2C46'
+        ],'rgba(255,255,255,0)'];
+    }
+
+    // Transaction Exposure — lavender/violet/deep purple: activity × local opportunity.
+    if(mode==='Transaction Exposure'){
+        const {exposure,assessable}=marketContextTransactionExposureExpression();
+        const d=window.UGA_MARKET_ANALYTICS?.transaction_activity?.transaction_exposure?.distribution || {};
+        const fallback=[0.00,0.15,0.25,0.35,0.45,0.55,0.70,0.85];
+        const raw=[d.min,d.p25,d.p50,d.p75,d.p90,d.p95,d.p99,d.max]
+            .map((v,i)=>Number.isFinite(Number(v)) ? Number(v) : fallback[i]);
+        const stops=[...raw];
+        for(let i=1;i<stops.length;i++){
+            if(stops[i] <= stops[i-1]) stops[i]=Math.min(1,stops[i-1]+0.000001);
+        }
+        return ['case',assessable,['interpolate',['linear'],exposure,
+            stops[0],'#E0E1DE',stops[1],'#D8D3DE',stops[2],'#CEC6E4',stops[3],'#AA9AD0',stops[4],'#806BB6',stops[5],'#5B478F',stops[6],'#382D63',stops[7],'#231D42'
+        ],'rgba(255,255,255,0)'];
+    }
+
+    return 'rgba(255,255,255,0)';
+}
+
+function updateMarketContextOverlay(){
+    if(typeof map==='undefined' || !map.getSource('atlas') || !map.getLayer('atlas')) return;
+    if(!map.getLayer('market-context-overlay')){
+        map.addLayer({
+            id:'market-context-overlay', type:'fill', source:'atlas',
+            'source-layer':ATLAS_SOURCE_LAYER,
+            paint:{'fill-color':'rgba(255,255,255,0)','fill-opacity':0,'fill-outline-color':'rgba(255,255,255,0)'}
+        },'atlas');
+    }
+    const mode=marketContextOverlay?.value || 'Off';
+    const opacity=marketContextOpacity ? Number(marketContextOpacity.value)/100 : 0.30;
+    map.setPaintProperty('market-context-overlay','fill-color',marketContextColourExpression());
+    map.setPaintProperty('market-context-overlay','fill-opacity',mode==='Off'?0:opacity);
+    if(map.getLayer('atlas')) map.moveLayer('market-context-overlay','atlas');
+    if(marketContextOpacityValue) marketContextOpacityValue.value=`${Math.round(opacity*100)}%`;
+}
+window.UGARefreshMarketContextOverlay=updateMarketContextOverlay;
+window.UGAMarketContextOverlayState=()=>({
+    mode:marketContextOverlay?.value || 'Off',
+    opacity:marketContextOpacity ? Number(marketContextOpacity.value) : 30,
+    layer:typeof map!=='undefined' && !!map.getLayer('market-context-overlay')
+});
+
+marketContextOverlay?.addEventListener('change',updateMarketContextOverlay);
+marketContextOpacity?.addEventListener('input',updateMarketContextOverlay);
 
 // =====================================================
 // MAP LAYER MANAGEMENT
@@ -4445,6 +4788,8 @@ function drawAtlas(){
 
     }
 
+
+    updateMarketContextOverlay();
 
     // -------------------------------------------------
     // Layer ordering
@@ -4592,7 +4937,9 @@ const PLANNING_CONTEXT_ANALYSES = [
 
     'Latent Urban Capacity',
 
-    'Market Exposure'
+    'Market Exposure',
+
+    'Transaction Exposure'
 
 ];
 
@@ -8055,10 +8402,17 @@ function updateStatus(){
     const statsKey =
         ANALYSIS_STATS_KEYS[theme];
 
-    const coverage =
+    let coverage =
         statsKey
             ? atlasStats?.coverage?.[statsKey]
             : null;
+
+    if(theme === 'Transaction Pulse'){
+        coverage =
+            window.UGA_MARKET_ANALYTICS
+                ?.transaction_activity
+                ?.coverage || null;
+    }
 
     const total =
         Number(
@@ -8119,41 +8473,9 @@ themeSelect.addEventListener(
 
         hidePopup();
 
-        // Changing the analysis theme automatically
-        // re-enables Urban Analysis.
-
-        if(!analysisToggle.checked){
-
-            analysisToggle.checked =
-                true;
-
-            analysisSection.classList.remove(
-                'collapsed'
-            );
-
-            analysisSection.classList.add(
-                'expanded'
-            );
-
-
-            analysisBody.style.display =
-                '';
-
-
-            analysisSectionToggle.setAttribute(
-                'aria-expanded',
-                'true'
-            );
-
-            analysisSectionToggle.setAttribute(
-                'aria-label',
-                'Collapse Urban Analysis'
-            );
-
-            analysisSectionToggle.textContent =
-                '▾';
-
-        }
+        // V1.4: changing the selected analysis preserves the current master
+        // visibility state. A user can hide the map layer, choose another
+        // analysis, and then turn the layer back on without the panel moving.
 
 
         // Planning Context availability
@@ -8163,8 +8485,7 @@ themeSelect.addEventListener(
 
 
         analysisControls.style.display =
-            planningContextAvailable &&
-            analysisToggle.checked
+            planningContextAvailable
                 ? 'flex'
                 : 'none';
 
@@ -9590,7 +9911,13 @@ updateLegendInfoButton();
 updateStatus();
 
 // =====================================================
-// THREE PANEL STACK V3 — PRODUCTION UI
+// UI + MARKET TRANSACTION V1.4 — PANEL INTERACTION POLISH
+// Master visibility toggles no longer expand/collapse panels.
+// Panel icons are the sole panel minimise/expand affordance.
+// =====================================================
+
+// =====================================================
+// THREE PANEL STACK V3 — PRODUCTION UI + MARKET TRANSACTION V1
 // Stable top-right rail · desktop max 2 · mobile max 1
 // LRU eviction · separate Map View · terrain independent
 // =====================================================
@@ -9601,7 +9928,9 @@ updateStatus();
 
     panel.dataset.stackV3 = 'ready';
     panel.classList.add('panel-stack-v3');
-    panel.classList.remove('panel-minimized');
+    if(!window.matchMedia('(max-width:900px)').matches){
+        panel.classList.remove('panel-minimized');
+    }
 
     const entries = [
         {
@@ -9637,13 +9966,24 @@ updateStatus();
         panelScroll.appendChild(entry.section);
     }
 
-    // The former global hamburger is superseded by the three persistent icons.
+    // Desktop uses the persistent three-panel rail directly. On mobile the
+    // original master control becomes a drawer toggle for the entire rail.
     const oldMinimise = document.getElementById('panelMinimize');
-    if(oldMinimise){
-        oldMinimise.hidden = true;
-        oldMinimise.setAttribute('aria-hidden','true');
-        oldMinimise.tabIndex = -1;
+    const mobileMasterQuery = window.matchMedia('(max-width:900px)');
+
+    function syncMasterPanelButton(){
+        if(!oldMinimise) return;
+        const mobileMode = mobileMasterQuery.matches;
+        oldMinimise.hidden = !mobileMode;
+        oldMinimise.setAttribute('aria-hidden',String(!mobileMode));
+        oldMinimise.tabIndex = mobileMode ? 0 : -1;
+        if(!mobileMode){
+            setPanelMinimized(false);
+        }
     }
+
+    syncMasterPanelButton();
+    mobileMasterQuery.addEventListener('change',syncMasterPanelButton);
 
     // Preserve the global Atlas information trigger when the old outer header is hidden.
     const aboutTrigger = document.querySelector('.atlas-control-header .info-trigger[data-info-key="about"]');
@@ -9723,22 +10063,30 @@ updateStatus();
     // Icon headers
     // -------------------------------------------------
     // Reuse the existing accessible section-toggle buttons as icon buttons.
+    // V1.4 deliberately re-asserts the image whenever toggle state is synced;
+    // older Analysis code used textContent for a chevron and could erase it.
+    function ensureEntryIcon(entry){
+        let img = entry.toggle.querySelector('.mode-stack-icon');
+        if(!img){
+            entry.toggle.textContent = '';
+            img = document.createElement('img');
+            img.className = 'mode-stack-icon';
+            img.alt = '';
+            img.setAttribute('aria-hidden','true');
+            entry.toggle.appendChild(img);
+        }
+        if(img.getAttribute('src') !== entry.icon){
+            img.src = entry.icon;
+        }
+    }
+
     for(const entry of entries){
         const header = entry.section.querySelector('.mode-header');
         if(!header) continue;
 
         entry.toggle.classList.add('mode-icon-toggle');
-        entry.toggle.textContent = '';
         entry.toggle.setAttribute('title', `Open or collapse ${entry.title}`);
-
-        if(!entry.toggle.querySelector('.mode-stack-icon')){
-            const img = document.createElement('img');
-            img.className = 'mode-stack-icon';
-            img.src = entry.icon;
-            img.alt = '';
-            img.setAttribute('aria-hidden','true');
-            entry.toggle.appendChild(img);
-        }
+        ensureEntryIcon(entry);
 
         // Icon first, then title/description. No separate chevron remains.
         header.insertBefore(entry.toggle, header.firstChild);
@@ -9764,6 +10112,7 @@ updateStatus();
     }
 
     function syncToggle(entry, expanded){
+        ensureEntryIcon(entry);
         entry.toggle.setAttribute('aria-expanded', String(expanded));
         entry.toggle.setAttribute(
             'aria-label',
@@ -9902,7 +10251,9 @@ updateStatus();
             syncToggle(entry, entry.section.classList.contains('expanded'));
         }
         updateStackState();
-        panel.classList.remove('panel-minimized');
+        if(!mobile.matches){
+            panel.classList.remove('panel-minimized');
+        }
         syncing = false;
     });
 
@@ -9911,10 +10262,11 @@ updateStatus();
     }
 
     function initialState(){
-        panel.classList.remove('panel-minimized');
         if(mobile.matches){
             collapseAll();
+            setPanelMinimized(true);
         }else{
+            setPanelMinimized(false);
             syncing = true;
             for(const entry of entries) setEntry(entry, entry.key === 'analysis');
             markInteraction(entries.find(x => x.key === 'analysis'));
@@ -9929,6 +10281,7 @@ updateStatus();
         panel.classList.remove('panel-minimized');
         syncing = true;
         if(event.matches){
+            setPanelMinimized(true);
             // Mobile: keep only the most recently interacted open panel.
             const open = expandedEntries();
             if(open.length > 1){
@@ -9939,6 +10292,7 @@ updateStatus();
             }
             updateStackState();
         }else if(expandedEntries().length === 0){
+            setPanelMinimized(false);
             const analysis = entries.find(x => x.key === 'analysis') || entries[0];
             setEntry(analysis, true);
             markInteraction(analysis);
@@ -10203,6 +10557,7 @@ updateStatus();
             sourceId:'fabricOpacity',
             sourceOutputId:'fabricOpacityValue',
             label:'Fabric opacity',
+            panelLabel:'URBAN FABRIC',
             className:'fabric'
         },
         {
@@ -10210,7 +10565,16 @@ updateStatus();
             sourceId:'analysisOpacity',
             sourceOutputId:'analysisOpacityValue',
             label:'Analysis opacity',
+            panelLabel:'URBAN ANALYSIS',
             className:'analysis'
+        },
+        {
+            sectionId:'marketSection',
+            sourceId:'marketContextOpacity',
+            sourceOutputId:'marketContextOpacityValue',
+            label:'Market opacity',
+            panelLabel:'MARKET DATA',
+            className:'market'
         }
     ];
 
@@ -10235,11 +10599,11 @@ updateStatus();
 
         const label = document.createElement('span');
         label.className = 'stack-collapsed-opacity-label';
-        label.textContent = 'OPACITY';
+        label.textContent = config.panelLabel;
 
         const value = document.createElement('output');
         value.className = 'stack-collapsed-opacity-value';
-        value.textContent = `${Math.round(Number(source.value) || 0)}%`;
+        value.textContent = `${config.label} · ${Math.round(Number(source.value) || 0)}%`;
 
         meta.append(label, value);
 
@@ -10257,13 +10621,13 @@ updateStatus();
 
         function syncFromSource(){
             proxy.value = source.value;
-            value.textContent = `${Math.round(Number(source.value) || 0)}%`;
+            value.textContent = `${config.label} · ${Math.round(Number(source.value) || 0)}%`;
         }
 
         function applyProxyValue(){
             source.value = proxy.value;
             source.dispatchEvent(new Event('input', {bubbles:true}));
-            value.textContent = `${Math.round(Number(proxy.value) || 0)}%`;
+            value.textContent = `${config.label} · ${Math.round(Number(proxy.value) || 0)}%`;
         }
 
         proxy.addEventListener('input', applyProxyValue);
@@ -10287,7 +10651,7 @@ updateStatus();
         syncFromSource();
     }
 
-    console.info('[ATLAS UI] Collapsed Fabric/Analysis opacity controls V3.4 initialised.');
+    console.info('[ATLAS UI] Collapsed Fabric/Analysis/Market opacity controls initialised.');
 })();
 // === PANEL STACK V3.4 COLLAPSED OPACITY CONTROLS END ===
 
@@ -10351,3 +10715,5 @@ updateStatus();
     console.info('[ATLAS UI] Mobile unified Map View + legend rail V3.6 initialised.');
 })();
 // === PANEL STACK V3.6 MOBILE UNIFIED RAIL END ===
+
+// === UI + MARKET TRANSACTION V1 PRODUCTION MARKER ===

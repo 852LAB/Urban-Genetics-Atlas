@@ -10,7 +10,7 @@
     <meta name="description" content="Explore how Hong Kong is built, connected and changing through urban data, spatial analysis and market context.">
     <link rel="icon" type="image/png" href="assets/Favicon.png">
     <link rel="canonical" href="https://852lab.github.io/Urban-Genetics-Atlas/">
-    <meta name="atlas-release" content="V1.6-20260912-000148">
+    <meta name="atlas-release" content="V1.6-20260912-192048">
     <link rel="alternate" type="text/plain" href="llms.txt">
     <link rel="alternate" type="text/plain" href="llms-full.txt">
     <link rel="alternate" type="text/plain" href="atlas-context.txt">
@@ -441,8 +441,20 @@
                     Latent Urban Capacity
                 </option>
 
+            </optgroup>
+
+            <optgroup label="Market Analysis">
+
                 <option value="Market Exposure">
                     Market Exposure
+                </option>
+
+                <option value="Transaction Exposure">
+                    Transaction Exposure
+                </option>
+
+                <option value="Transaction Pulse">
+                    Transaction Pulse
                 </option>
 
             </optgroup>
@@ -1659,6 +1671,27 @@ FABRIC BODY
                 aria-live="polite"
             >
                 <div class="market-snapshot-loading">Loading 12-month snapshot…</div>
+            </div>
+
+            <div class="market-context-map-control" id="marketContextMapControl">
+                <div class="market-context-map-head">
+                    <label for="marketContextOverlay">Map context overlay</label>
+                    <span>Optional secondary market layer</span>
+                </div>
+                <select id="marketContextOverlay" aria-label="Market context overlay">
+                    <option value="Off">Off</option>
+                    <option value="Market Momentum">Market Momentum</option>
+                    <option value="Market Exposure">Market Exposure</option>
+                    <option value="Transaction Pulse">Transaction Pulse</option>
+                    <option value="Transaction Exposure">Transaction Exposure</option>
+                </select>
+                <div class="market-context-opacity">
+                    <div class="market-context-opacity-head">
+                        <label for="marketContextOpacity">Context opacity</label>
+                        <output id="marketContextOpacityValue" for="marketContextOpacity">30%</output>
+                    </div>
+                    <input id="marketContextOpacity" type="range" min="0" max="60" value="30" step="1" aria-label="Market context overlay opacity">
+                </div>
             </div>
 
             <div id="marketDataStatus" class="market-data-status">
