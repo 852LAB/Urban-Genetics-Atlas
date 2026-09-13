@@ -26,8 +26,8 @@ https://852lab.github.io/Urban-Genetics-Atlas/
 
 - Page title: **Urban Genetics Atlas**
 - UI version label: **Beta**
-- Release ID: **V1.6-20260912-192048**
-- Generated: **2026-09-12 11:23 UTC**
+- Release ID: **V1.6-20260913-160341**
+- Generated: **2026-09-13 08:06 UTC**
 - PMTiles: **atlas/852LAB_V1.6.pmtiles**
 - Public GeoJSON resources: **3**
 - Terrain objects: **51941**

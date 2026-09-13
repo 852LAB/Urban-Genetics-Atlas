@@ -412,3 +412,50 @@ Market analysis + UI update:
 - Refined panel behaviour: Market now minimises to an opacity bar like Fabric and Analysis; master visibility switches no longer minimise panels; panel icons are the sole minimise/expand controls.
 - Restored the custom Analysis panel icon and standardised all interface sliders to a neutral grey treatment.
 - Refined information controls and general responsive UI presentation.
+
+# Urban Genetics Atlas — V1.6-20260913-160341
+
+**Date:** 2026-09-13 16:03:41 CST
+**Live:** https://852lab.github.io/Urban-Genetics-Atlas/
+
+## Release changes
+
+- Application files released from Development: `index.html`, `atlas.js`, `styles.css`, `site/market-data.js`, `site/market-data.css`, `site/atlas-stats.json`.
+- PMTiles: `852LAB_V1.6.pmtiles` → `atlas/852LAB_V1.6.pmtiles`
+- GeoJSON: `MTR_Lines_TEST.geojson` → `mtr/MTR_Lines_TEST.geojson`
+- GeoJSON: `Reclaimed_Land_V1.1.geojson` → `reclaimed/Reclaimed_Land_V1.1.geojson`
+- GeoJSON: `Buildings_Age_or_Heritage_Grade.geojson` → `buildings/Buildings_Age_or_Heritage_Grade.geojson`
+- Terrain: `51941` objects — **unchanged**
+
+## Public AI context
+
+- `llms.txt` — AI entry point.
+- `llms-full.txt` — full plain-text AI briefing.
+- `atlas-context.md` / `atlas-context.txt` — current project context.
+
+## Automated checks
+
+- Runtime dependencies discovered from fresh Development `atlas.js`.
+- All discovered local runtime resources exist.
+- R2 destination collisions checked.
+- External basemap sources remain external and were not copied to R2.
+- Compact local archive prepared; fixed terrain is not duplicated per release.
+- Public AI context regenerated.
+- R2/CORS/range verification performed before Git push.
+- GitHub Pages and public AI files verified after push.
+
+## Maintainer release notes
+
+Mobile interface refinement:
+
+- Reworked mobile controls into a single Layers launcher and shared control sheet, keeping the map as the primary interface.
+- Replaced the persistent stack of collapsed panels with four clear Map, Fabric, Analysis and Market tabs; only one section is shown at a time.
+- Improved mobile scrolling so each selected section behaves as one continuous control surface and all panel content remains reachable.
+- Unified the mobile sheet visually so navigation and selected content read as one element rather than nested floating panels.
+- Refined portrait alignment, spacing and information controls for a calmer, more compact mobile interface.
+- Added a dedicated landscape-mobile layout: a narrower right-side control sheet preserves more of the map while using the available screen height.
+- Map View now fits its content in landscape, while Fabric, Analysis and Market retain the taller sheet where additional controls require it.
+- Compacted landscape Map controls so Basemap, Satellite, Buildings and Terrain remain on a single line.
+- Refined panel shadow behaviour so shadows belong to the individual interface panels rather than their structural container.
+
+No changes to Atlas data, analytical models, Market calculations or PMTiles in this release.

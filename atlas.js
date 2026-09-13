@@ -9917,7 +9917,7 @@ updateStatus();
 // =====================================================
 
 // =====================================================
-// THREE PANEL STACK V3 — PRODUCTION UI + MARKET TRANSACTION V1
+// THREE PANEL STACK V3 — PRODUCTION UI + MARKET TRANSACTION V1 + MOBILE CONTROL SHEET V2.6
 // Stable top-right rail · desktop max 2 · mobile max 1
 // LRU eviction · separate Map View · terrain independent
 // =====================================================
@@ -10716,4 +10716,215 @@ updateStatus();
 })();
 // === PANEL STACK V3.6 MOBILE UNIFIED RAIL END ===
 
-// === UI + MARKET TRANSACTION V1 PRODUCTION MARKER ===
+// === UI + MARKET TRANSACTION V1 TEST MARKER ===
+
+
+// =====================================================
+// MOBILE CONTROL SHEET V2.6 — PRODUCTION
+// Mobile replaces the stacked rail with one bottom sheet and category tabs.
+// Desktop remains on the approved V1.4 three-panel architecture.
+// =====================================================
+(function initMobileControlSheetV2(){
+    const panel = document.getElementById('panel');
+    const panelScroll = document.getElementById('panelScroll');
+    const launcher = document.getElementById('panelMinimize');
+    const basemap = document.getElementById('basemapControl');
+    if(!panel || !panelScroll || !launcher || !basemap || panel.dataset.mobileSheetV2 === 'ready') return;
+
+    const mq = window.matchMedia('(max-width:900px)');
+    const entries = [
+        {key:'fabric', label:'FABRIC', section:document.getElementById('fabricSection'), icon:'assets/Fabric_Icon.png'},
+        {key:'analysis', label:'ANALYSIS', section:document.getElementById('analysisSection'), icon:'assets/Analysis_Icon.png'},
+        {key:'market', label:'MARKET', section:document.getElementById('marketSection'), icon:'assets/Market_Icon.png'}
+    ].filter(x => x.section);
+    if(entries.length !== 3) return;
+
+    panel.dataset.mobileSheetV2 = 'ready';
+
+    const chrome = document.createElement('div');
+    chrome.className = 'mobile-sheet-chrome';
+    chrome.setAttribute('aria-label','Atlas mobile controls');
+
+    const grip = document.createElement('button');
+    grip.type = 'button';
+    grip.className = 'mobile-sheet-grip';
+    grip.setAttribute('aria-label','Expand controls');
+    grip.setAttribute('aria-pressed','false');
+    grip.innerHTML = '<span aria-hidden="true"></span>';
+
+    const tabs = document.createElement('div');
+    tabs.className = 'mobile-sheet-tabs';
+    tabs.setAttribute('role','tablist');
+    tabs.setAttribute('aria-label','Atlas control categories');
+
+    const tabSpecs = [
+        {key:'map', label:'MAP', icon:null},
+        ...entries.map(x => ({key:x.key,label:x.label,icon:x.icon}))
+    ];
+
+    const tabButtons = new Map();
+    for(const spec of tabSpecs){
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'mobile-sheet-tab';
+        button.dataset.mobileSheetTab = spec.key;
+        button.setAttribute('role','tab');
+        button.setAttribute('aria-selected','false');
+        button.setAttribute('aria-label',spec.label === 'MAP' ? 'Map View' : spec.label);
+
+        if(spec.icon){
+            const img = document.createElement('img');
+            img.src = spec.icon;
+            img.alt = '';
+            img.setAttribute('aria-hidden','true');
+            button.appendChild(img);
+        }else{
+            const mapIcon = document.createElement('span');
+            mapIcon.className = 'mobile-sheet-map-icon';
+            mapIcon.setAttribute('aria-hidden','true');
+            mapIcon.innerHTML = '<i></i><i></i><i></i><i></i>';
+            button.appendChild(mapIcon);
+        }
+
+        const text = document.createElement('span');
+        text.textContent = spec.label;
+        button.appendChild(text);
+        tabs.appendChild(button);
+        tabButtons.set(spec.key,button);
+    }
+
+    chrome.appendChild(grip);
+    chrome.appendChild(tabs);
+    panel.insertBefore(chrome,panel.firstChild);
+
+    let activeKey = 'analysis';
+    let dragStartY = null;
+
+    function setActive(key, focus=false){
+        if(!tabButtons.has(key)) key='analysis';
+        activeKey=key;
+        panel.dataset.mobileSheetTab=key;
+        panel.classList.toggle('mobile-sheet-map-active',key==='map');
+
+        for(const [tabKey,button] of tabButtons){
+            const active=tabKey===key;
+            button.classList.toggle('active',active);
+            button.setAttribute('aria-selected',String(active));
+            button.tabIndex=active ? 0 : -1;
+        }
+
+        basemap.classList.toggle('mobile-sheet-active',key==='map');
+        panelScroll.classList.toggle('mobile-sheet-active',key!=='map');
+
+        // Keep the legacy V3 panel state aligned with the mobile tab state.
+        // This prevents the old collapsed-card rules from leaking a spare bar
+        // into the sheet and stops the V3 observer fighting tab navigation.
+        for(const entry of entries){
+            const active=entry.key===key;
+            entry.section.classList.toggle('mobile-sheet-active',active);
+            entry.section.classList.toggle('expanded',active && key!=='map');
+            entry.section.classList.toggle('collapsed',!active || key==='map');
+            entry.section.setAttribute('aria-hidden',String(!active || key==='map'));
+        }
+
+        // Each category is one continuous scroll surface. Returning to the top
+        // on tab change avoids inheriting a confusing scroll position from the
+        // previously selected category.
+        if(key!=='map'){
+            panelScroll.scrollTop=0;
+            const body=entries.find(entry => entry.key===key)?.section.querySelector('.mode-body');
+            if(body) body.scrollTop=0;
+        }
+
+        if(focus) tabButtons.get(key)?.focus({preventScroll:true});
+        requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+    }
+
+    function syncLauncherText(){
+        const closed=panel.classList.contains('panel-minimized');
+        launcher.classList.toggle('mobile-sheet-launcher',mq.matches);
+        launcher.dataset.mobileSheetClosed=String(closed);
+        launcher.setAttribute('aria-label',closed ? 'Open Atlas controls' : 'Close Atlas controls');
+    }
+
+    function setTall(tall){
+        panel.classList.toggle('mobile-sheet-tall',tall);
+        grip.setAttribute('aria-pressed',String(tall));
+        grip.setAttribute('aria-label',tall ? 'Reduce controls' : 'Expand controls');
+        requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+    }
+
+    function enterMobile(){
+        panel.classList.add('mobile-control-sheet-v2');
+        launcher.classList.add('mobile-sheet-launcher');
+        setActive(activeKey);
+        syncLauncherText();
+    }
+
+    function leaveMobile(){
+        panel.classList.remove('mobile-control-sheet-v2','mobile-sheet-tall','mobile-sheet-map-active');
+        panel.removeAttribute('data-mobile-sheet-tab');
+        launcher.classList.remove('mobile-sheet-launcher');
+        for(const entry of entries){
+            entry.section.classList.remove('mobile-sheet-active');
+            entry.section.removeAttribute('aria-hidden');
+        }
+        basemap.classList.remove('mobile-sheet-active');
+        panelScroll.classList.remove('mobile-sheet-active');
+    }
+
+    function syncMode(){
+        if(mq.matches) enterMobile();
+        else leaveMobile();
+    }
+
+    // Bind each tab directly rather than relying on delegation through the
+    // legacy panel stack. This is more reliable for touch input and isolates
+    // mobile category navigation from the old panel interaction handlers.
+    for(const [key,button] of tabButtons){
+        button.addEventListener('click',event => {
+            event.preventDefault();
+            event.stopPropagation();
+            setActive(key,false);
+        });
+    }
+
+    tabs.addEventListener('keydown',event => {
+        if(!['ArrowLeft','ArrowRight'].includes(event.key)) return;
+        const keys=tabSpecs.map(x => x.key);
+        const index=keys.indexOf(activeKey);
+        const delta=event.key==='ArrowRight' ? 1 : -1;
+        const next=keys[(index+delta+keys.length)%keys.length];
+        event.preventDefault();
+        setActive(next,true);
+    });
+
+    grip.addEventListener('click',()=>setTall(!panel.classList.contains('mobile-sheet-tall')));
+    grip.addEventListener('pointerdown',event => {
+        dragStartY=event.clientY;
+        try{ grip.setPointerCapture(event.pointerId); }catch(_e){}
+    });
+    grip.addEventListener('pointerup',event => {
+        if(dragStartY===null) return;
+        const dy=event.clientY-dragStartY;
+        dragStartY=null;
+        if(Math.abs(dy)<28) return;
+        setTall(dy<0);
+    });
+
+    // Existing canonical launcher logic still owns panel-minimized. Observe it
+    // so the pill text and state remain synchronised without duplicating logic.
+    new MutationObserver(() => syncLauncherText()).observe(panel,{attributes:true,attributeFilter:['class']});
+
+    mq.addEventListener('change',syncMode);
+    requestAnimationFrame(syncMode);
+
+    window.UGAMobileControlSheetState = () => ({
+        mobile:mq.matches,
+        open:!panel.classList.contains('panel-minimized'),
+        tab:activeKey,
+        tall:panel.classList.contains('mobile-sheet-tall')
+    });
+
+    console.info('[ATLAS UI] Mobile Control Sheet V2.6 initialised.');
+})();
