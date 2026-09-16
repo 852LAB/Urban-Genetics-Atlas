@@ -26,8 +26,8 @@ https://852lab.github.io/Urban-Genetics-Atlas/
 
 - Page title: **Urban Genetics Atlas**
 - UI version label: **Beta**
-- Release ID: **V1.6-20260913-160341**
-- Generated: **2026-09-13 08:06 UTC**
+- Release ID: **V1.6-20260916-122651**
+- Generated: **2026-09-16 04:30 UTC**
 - PMTiles: **atlas/852LAB_V1.6.pmtiles**
 - Public GeoJSON resources: **3**
 - Terrain objects: **51941**
@@ -310,3 +310,19 @@ Source datasets differ in date, scale, completeness and coverage. Missing values
 ## Public/private boundary
 
 This file contains public conceptual context only. It must not contain credentials, API keys, private endpoints, confidential working data or unreleased proprietary source material.
+
+<!-- IA-V1.7-PUBLIC-CONTEXT-START -->
+## Current public interface architecture
+
+The public Atlas is organised around five complementary domains rather than treating every calculated layer as generic “Urban Analysis”:
+
+- **Urban Fabric** — the physical city: land, buildings, infrastructure, connectivity and built-capacity measures.
+- **Urban Analysis** — higher-order cross-domain interpretations: Urban Genetic Signature, Development Pressure, Renewal Potential and Genesis Potential.
+- **Market** — official market / transaction context and local exposure analyses. Market source geography is retained rather than converted into invented 100 m observations.
+- **Demographics** — population and living-condition views. Population Intensity and Living Space are currently the established Atlas estimates and are being rebuilt from finer Census geography.
+- **Climate** — the developing environmental domain. The public panel is currently a “Coming soon” placeholder while urban heat and flood / coastal-exposure outputs are prepared.
+
+On desktop these domains are independent natural-height panels inside one vertically scrollable rail. Any combination may remain open, and map visibility / opacity are independent between domains. On mobile the Atlas uses a constrained shared control sheet with one selected domain at a time.
+
+The first-visit Welcome acts as a starting-point chooser rather than locking the visitor into a mode. Choosing a domain simply opens an appropriate first view; all other domains remain available.
+<!-- IA-V1.7-PUBLIC-CONTEXT-END -->

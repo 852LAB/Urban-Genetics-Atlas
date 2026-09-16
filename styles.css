@@ -7544,3 +7544,1085 @@ and (orientation:landscape){
     }
 }
 /* === MOBILE CONTROL SHEET V2.6.1 — MARKET SNAPSHOT LANDSCAPE FIT END === */
+
+/* IA V1.7 PRODUCTION — START */
+/* =============================================================
+   URBAN GENETICS ATLAS — INFORMATION ARCHITECTURE V1.5 STABLE RAIL TEST
+   ============================================================= */
+
+/* ---------- Welcome as an invitation / starting-point chooser ---------- */
+#welcomePanel .welcome-content[data-uga-ia-welcome="true"]{
+    max-width:720px;
+}
+.uga-welcome-lead{
+    margin:0 0 12px;
+    font-size:.88rem;
+    line-height:1.5;
+}
+.uga-welcome-prompt{
+    margin:0 0 14px;
+    font-size:.82rem;
+    line-height:1.45;
+}
+.uga-welcome-prompt span{
+    color:var(--text-secondary,#687078);
+}
+.uga-welcome-choices{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    margin:0 0 13px;
+}
+.uga-welcome-choice{
+    appearance:none;
+    width:100%;
+    min-height:78px;
+    padding:11px 12px;
+    border:1px solid rgba(63,70,76,.14);
+    border-radius:11px;
+    background:rgba(255,255,255,.50);
+    text-align:left;
+    color:inherit;
+    cursor:pointer;
+    transition:transform .12s ease, border-color .12s ease, background .12s ease;
+}
+.uga-welcome-choice:hover,
+.uga-welcome-choice:focus-visible{
+    transform:translateY(-1px);
+    border-color:rgba(44,52,58,.28);
+    background:rgba(255,255,255,.76);
+    outline:none;
+}
+.uga-choice-title{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:5px;
+    font-size:.78rem;
+    font-weight:700;
+    letter-spacing:.035em;
+    text-transform:uppercase;
+}
+.uga-choice-title em{
+    font-size:.54rem;
+    font-style:normal;
+    font-weight:600;
+    color:#767d83;
+    white-space:nowrap;
+}
+.uga-choice-copy{
+    display:block;
+    font-size:.72rem;
+    line-height:1.4;
+    color:var(--text-secondary,#687078);
+}
+.uga-welcome-choice-disabled{
+    opacity:.58;
+    cursor:default;
+}
+.uga-welcome-choice-disabled:hover{ transform:none; }
+.uga-welcome-caveat{
+    margin:0;
+    padding-top:10px;
+    border-top:1px solid rgba(60,66,72,.10);
+    font-size:.65rem;
+    line-height:1.42;
+    color:var(--text-secondary,#737a80);
+}
+
+/* ---------- New/re-homed domain content ---------- */
+.uga-domain-measures{
+    padding:1px 0 0;
+}
+.uga-domain-kicker{
+    margin:0 0 5px;
+    font-size:.58rem;
+    font-weight:700;
+    letter-spacing:.09em;
+    color:var(--text-secondary,#747b81);
+}
+.uga-domain-note{
+    margin:0 0 9px;
+    font-size:.65rem;
+    line-height:1.4;
+    color:var(--text-secondary,#6f767c);
+}
+.uga-method-note{
+    margin-top:9px;
+    padding:8px 9px;
+    border-radius:8px;
+    background:rgba(80,87,92,.055);
+}
+.uga-shared-legend-host:empty{ display:none; }
+.uga-coming-soon-badge{
+    align-self:center;
+    margin-left:auto;
+    margin-right:8px;
+    padding:3px 6px;
+    border:1px solid rgba(80,86,91,.15);
+    border-radius:999px;
+    font-size:.48rem;
+    font-weight:700;
+    letter-spacing:.07em;
+    color:#747a7f;
+    white-space:nowrap;
+}
+.uga-coming-soon-content p{
+    margin:0 0 8px;
+    font-size:.72rem;
+    line-height:1.45;
+}
+.uga-domain-master-toggle{ margin-bottom:10px; }
+
+/* ---------- Mobile category navigation: six explicit destinations ---------- */
+@media (max-width:900px){
+    #panel.panel-stack-v3.mobile-control-sheet-v2 .mobile-sheet-tabs[data-uga-ia-extended="true"]{
+        display:grid !important;
+        grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+        grid-auto-rows:36px !important;
+        gap:2px !important;
+    }
+    #panel.panel-stack-v3.mobile-control-sheet-v2 .mobile-sheet-tabs[data-uga-ia-extended="true"] .mobile-sheet-tab{
+        width:100% !important;
+        min-width:0 !important;
+        height:36px !important;
+        padding:0 2px !important;
+        gap:3px !important;
+        font-size:.48rem !important;
+        letter-spacing:.025em !important;
+        overflow:hidden;
+    }
+    #panel.panel-stack-v3.mobile-control-sheet-v2 .mobile-sheet-tabs[data-uga-ia-extended="true"] .mobile-sheet-tab > span:last-child{
+        min-width:0;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+    }
+    .uga-demographics-tab-icon,
+    .uga-climate-tab-icon{
+        position:relative;
+        display:inline-block;
+        flex:0 0 auto;
+        width:15px;
+        height:15px;
+        opacity:.78;
+    }
+    .uga-demographics-tab-icon::before{
+        content:"";
+        position:absolute;
+        left:5px;
+        top:1px;
+        width:5px;
+        height:5px;
+        border:1.4px solid currentColor;
+        border-radius:50%;
+    }
+    .uga-demographics-tab-icon::after{
+        content:"";
+        position:absolute;
+        left:2px;
+        bottom:1px;
+        width:11px;
+        height:6px;
+        border:1.4px solid currentColor;
+        border-radius:8px 8px 3px 3px;
+        border-bottom-width:1px;
+    }
+    .uga-climate-tab-icon::before,
+    .uga-climate-tab-icon::after{
+        content:"";
+        position:absolute;
+        left:7px;
+        top:1px;
+        width:1px;
+        height:13px;
+        background:currentColor;
+        transform-origin:center;
+    }
+    .uga-climate-tab-icon::after{ transform:rotate(90deg); }
+    .uga-climate-tab-icon{ transform:rotate(45deg); }
+
+    #panelScroll.mobile-sheet-active > #demographicsSection.mobile-sheet-active,
+    #panelScroll.mobile-sheet-active > #climateSection.mobile-sheet-active{
+        display:flex !important;
+        flex:0 0 auto !important;
+        flex-direction:column !important;
+        width:100% !important;
+        min-height:100% !important;
+        max-height:none !important;
+        margin:0 !important;
+        padding:12px 14px 14px !important;
+        background:transparent !important;
+        border:0 !important;
+        border-radius:0 !important;
+        box-shadow:none !important;
+        overflow:visible !important;
+        visibility:visible !important;
+        pointer-events:auto !important;
+    }
+    #panelScroll.mobile-sheet-active > #demographicsSection.mobile-sheet-active > .mode-body,
+    #panelScroll.mobile-sheet-active > #climateSection.mobile-sheet-active > .mode-body{
+        display:block !important;
+        flex:none !important;
+        width:100% !important;
+        max-height:none !important;
+        overflow:visible !important;
+    }
+    #panelScroll.mobile-sheet-active > #demographicsSection:not(.mobile-sheet-active),
+    #panelScroll.mobile-sheet-active > #climateSection:not(.mobile-sheet-active){
+        display:none !important;
+    }
+
+    #welcomePanel{
+        max-height:min(90dvh,760px) !important;
+    }
+    #welcomePanel .welcome-content{
+        overflow-y:auto;
+        -webkit-overflow-scrolling:touch;
+    }
+    .uga-welcome-choices{
+        grid-template-columns:1fr;
+        gap:6px;
+    }
+    .uga-welcome-choice{
+        min-height:58px;
+        padding:8px 10px;
+    }
+    .uga-choice-title{ margin-bottom:3px; font-size:.70rem; }
+    .uga-choice-copy{ font-size:.64rem; }
+}
+
+@media (max-width:900px) and (orientation:landscape){
+    #panel.panel-stack-v3.mobile-control-sheet-v2 .mobile-sheet-tabs[data-uga-ia-extended="true"]{
+        grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+        grid-auto-rows:32px !important;
+    }
+    #panel.panel-stack-v3.mobile-control-sheet-v2 .mobile-sheet-tabs[data-uga-ia-extended="true"] .mobile-sheet-tab{
+        height:32px !important;
+        font-size:.43rem !important;
+    }
+    #welcomePanel{
+        max-height:92dvh !important;
+    }
+    .uga-welcome-choices{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+    .uga-welcome-choice{
+        min-height:52px;
+    }
+}
+
+/* =============================================================
+   INFORMATION ARCHITECTURE V0.2 — CONSISTENCY PASS
+   Shared spacing, typography, selectors, icons and panel behaviour.
+   ============================================================= */
+
+/* ---------- Shared interface rhythm ---------- */
+#panel{
+    --uga-ia-control-gap:10px;
+    --uga-ia-label-gap:6px;
+    --uga-ia-section-inset:14px;
+    --uga-ia-select-height:36px;
+    --uga-ia-select-radius:10px;
+    --uga-ia-icon-box:38px;
+}
+
+.uga-domain-panel .mode-title-line{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    min-width:0;
+    margin-bottom:5px;
+}
+
+.uga-domain-panel .mode-title{
+    margin-bottom:0 !important;
+}
+
+.uga-domain-panel .mode-description{
+    margin-bottom:0 !important;
+}
+
+.uga-domain-master-toggle{
+    margin:10px 0 !important;
+}
+
+.uga-selector-block{
+    width:100%;
+    margin:0 0 12px !important;
+}
+
+.uga-selector-block + .uga-selector-block{
+    margin-top:2px !important;
+}
+
+.uga-selector-block > .section-label,
+.uga-selector-block .section-label{
+    margin:0 0 var(--uga-ia-label-gap) !important;
+    font-size:.64rem !important;
+    line-height:1.2 !important;
+    font-weight:700 !important;
+    letter-spacing:.065em !important;
+    text-transform:uppercase !important;
+    color:var(--text-secondary,#737a80) !important;
+}
+
+#panel select.uga-domain-select,
+#panel .uga-selector-block select{
+    box-sizing:border-box !important;
+    width:100% !important;
+    min-height:var(--uga-ia-select-height) !important;
+    height:var(--uga-ia-select-height) !important;
+    margin:0 !important;
+    padding:7px 34px 7px 10px !important;
+    border-radius:var(--uga-ia-select-radius) !important;
+    font-size:.78rem !important;
+    line-height:1.2 !important;
+}
+
+.uga-planning-selector-block{
+    margin-top:10px !important;
+}
+
+.uga-domain-measures{
+    padding:0 !important;
+}
+
+.uga-domain-kicker{
+    margin:0 0 5px !important;
+    font-size:.59rem !important;
+    line-height:1.2 !important;
+    font-weight:700 !important;
+    letter-spacing:.085em !important;
+}
+
+.uga-domain-note{
+    margin:0 0 10px !important;
+    font-size:.66rem !important;
+    line-height:1.42 !important;
+}
+
+.uga-method-note{
+    margin-top:2px !important;
+    margin-bottom:12px !important;
+    padding:8px 9px !important;
+}
+
+.uga-domain-panel .mode-divider,
+.uga-domain-measures .mode-divider{
+    margin:12px 0 !important;
+}
+
+/* ---------- Real domain icons ---------- */
+.uga-domain-icon-toggle{
+    flex:0 0 auto;
+    width:var(--uga-ia-icon-box);
+    height:var(--uga-ia-icon-box);
+    margin:0;
+    padding:3px;
+    border:0;
+    border-radius:10px;
+    background:transparent;
+    color:var(--text-secondary,#687078);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:background 160ms ease,transform 160ms ease,opacity 160ms ease;
+}
+.uga-domain-icon-toggle:hover,
+.uga-domain-icon-toggle:focus-visible{
+    background:rgba(255,255,255,.30);
+    outline:none;
+}
+.uga-domain-icon-toggle:active{ transform:scale(.96); }
+.uga-domain-icon-toggle img{
+    display:block;
+    width:32px;
+    height:32px;
+    object-fit:contain;
+    opacity:.78;
+}
+#demographicsSection .uga-domain-icon-toggle img,
+#climateSection .uga-domain-icon-toggle img{
+    transform:scale(.90);
+}
+
+/* Icon is the sole expand/collapse control for the new desktop panels,
+   matching the established Fabric / Analysis / Market interaction model. */
+.uga-domain-fallback-chevron{
+    display:none !important;
+}
+
+.uga-domain-collapsed-meta{
+    display:none;
+}
+
+/* ---------- Desktop compact state ---------- */
+/*
+   V1.4 owns the complete desktop collapsed-state treatment for
+   Demographics and Climate. Earlier bespoke rules are intentionally
+   removed here so there is one compact-panel contract only.
+*/
+
+/* ---------- Welcome cards use the same domain identity ---------- */
+.uga-choice-heading{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    min-width:0;
+}
+.uga-choice-icon{
+    width:19px;
+    height:19px;
+    flex:0 0 auto;
+    object-fit:contain;
+    opacity:.76;
+}
+.uga-choice-icon.uga-optical-small-icon{
+    transform:scale(.90);
+}
+
+/* ---------- Mobile / tablet ---------- */
+@media (max-width:900px){
+    /* Tabs are the navigation on mobile, so panel-level icons are hidden. */
+    .uga-domain-icon-toggle{
+        display:none !important;
+    }
+
+    #panel.panel-stack-v3.mobile-control-sheet-v2 .mobile-sheet-tabs[data-uga-ia-extended="true"]{
+        align-items:stretch !important;
+    }
+
+    #panel.panel-stack-v3.mobile-control-sheet-v2 .mobile-sheet-tabs[data-uga-ia-extended="true"] .mobile-sheet-tab{
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        gap:4px !important;
+        padding:0 3px !important;
+        font-size:.47rem !important;
+        line-height:1 !important;
+        font-weight:650 !important;
+        letter-spacing:.035em !important;
+    }
+
+    #panel.panel-stack-v3.mobile-control-sheet-v2 .mobile-sheet-tabs[data-uga-ia-extended="true"] .mobile-sheet-tab img,
+    #panel.panel-stack-v3.mobile-control-sheet-v2 .uga-mobile-domain-icon{
+        display:block !important;
+        width:16px !important;
+        height:16px !important;
+        flex:0 0 16px !important;
+        object-fit:contain !important;
+        opacity:.76 !important;
+    }
+
+    #panel.panel-stack-v3.mobile-control-sheet-v2 .uga-mobile-domain-icon{
+        transform:scale(.90);
+    }
+
+    #panelScroll.mobile-sheet-active > #demographicsSection.mobile-sheet-active,
+    #panelScroll.mobile-sheet-active > #climateSection.mobile-sheet-active{
+        padding-left:14px !important;
+        padding-right:14px !important;
+    }
+
+    .uga-domain-panel.mobile-sheet-active .mode-title-line{
+        margin-bottom:5px !important;
+    }
+
+    .uga-domain-panel.mobile-sheet-active .mode-description{
+        margin-bottom:10px !important;
+    }
+
+    .uga-selector-block{
+        margin-bottom:10px !important;
+    }
+
+    #panel select.uga-domain-select,
+    #panel .uga-selector-block select{
+        min-height:34px !important;
+        height:34px !important;
+        padding-top:6px !important;
+        padding-bottom:6px !important;
+        font-size:.74rem !important;
+    }
+
+    .uga-choice-icon{
+        width:17px;
+        height:17px;
+    }
+}
+
+@media (max-width:900px) and (orientation:landscape){
+    #panel.panel-stack-v3.mobile-control-sheet-v2 .mobile-sheet-tabs[data-uga-ia-extended="true"] .mobile-sheet-tab{
+        gap:3px !important;
+        padding:0 2px !important;
+        font-size:.42rem !important;
+        letter-spacing:.025em !important;
+    }
+    #panel.panel-stack-v3.mobile-control-sheet-v2 .mobile-sheet-tabs[data-uga-ia-extended="true"] .mobile-sheet-tab img,
+    #panel.panel-stack-v3.mobile-control-sheet-v2 .uga-mobile-domain-icon{
+        width:15px !important;
+        height:15px !important;
+        flex-basis:15px !important;
+    }
+}
+
+/* === INFORMATION ARCHITECTURE V0.2 CONSISTENCY PASS END === */
+
+/* =============================================================
+   INFORMATION ARCHITECTURE V0.3 — FIRST-CLASS RAIL INTEGRATION
+   ============================================================= */
+
+/* New domain art uses the same rendered box as the established icons.
+   Source PNG dimensions are irrelevant; optical correction is handled here. */
+:root{ --uga-domain-reference-icon-size:40px; }
+#demographicsSection .uga-domain-icon-toggle img,
+#climateSection .uga-domain-icon-toggle img{
+    width:var(--uga-domain-reference-icon-size) !important;
+    height:var(--uga-domain-reference-icon-size) !important;
+    transform:none !important;
+}
+#climateSection .uga-domain-icon-toggle img{ transform:scale(1.025) !important; }
+.uga-choice-icon.uga-optical-small-icon,
+.uga-mobile-domain-icon{ transform:none !important; }
+
+/* Expanded Demographics / Climate headers follow the established panel geometry:
+   text left, icon at the same top-right anchor used by Fabric/Analysis/Market. */
+.uga-domain-panel .uga-domain-mode-header{
+    position:relative !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) max-content !important;
+    align-items:start !important;
+    column-gap:12px !important;
+    width:100% !important;
+}
+.uga-domain-panel .uga-domain-mode-header > .mode-header-text{
+    grid-column:1 !important;
+    grid-row:1 !important;
+    min-width:0 !important;
+}
+.uga-domain-panel .uga-domain-mode-header > .uga-domain-icon-toggle{
+    grid-column:2 !important;
+    grid-row:1 !important;
+    justify-self:end !important;
+    align-self:start !important;
+    margin:0 !important;
+}
+
+/* Demographics gets the same opacity hierarchy as the map-based peer panels. */
+.uga-domain-opacity-host{ margin:0 0 12px; }
+.uga-domain-opacity-card{
+    padding:9px 10px 10px;
+    border:1px solid rgba(70,76,82,.11);
+    border-radius:10px;
+    background:rgba(255,255,255,.16);
+}
+.uga-domain-opacity-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin:0 0 7px;
+    font-size:.59rem;
+    line-height:1.15;
+    letter-spacing:.065em;
+    color:var(--text-secondary,#6f767d);
+}
+.uga-domain-opacity-head span{ font-weight:650; }
+.uga-domain-opacity-head strong{ font-weight:500; }
+.uga-domain-opacity-card input[type="range"],
+.uga-domain-collapsed-opacity input[type="range"]{
+    width:100%;
+    margin:0;
+    accent-color:#6f767d;
+}
+
+/* Demographics is now an independent map renderer rather than an Analysis
+   proxy. Its opacity controls remain visible in both expanded and collapsed
+   states and operate only the demographics layer. */
+#demographicsSection .uga-demographics-legend{
+    padding:10px 0 2px;
+}
+#demographicsSection .uga-demographics-legend-title{
+    margin:0 0 4px;
+    font-size:.72rem;
+    line-height:1.2;
+    font-weight:650;
+    color:var(--text-primary,#303840);
+}
+#demographicsSection .uga-demographics-legend-copy{
+    margin:0 0 9px;
+    font-size:.66rem;
+    line-height:1.42;
+    color:var(--text-secondary,#707880);
+}
+#demographicsSection .uga-demographics-gradient{
+    width:100%;
+    height:9px;
+    border-radius:999px;
+    box-shadow:inset 0 0 0 1px rgba(60,66,72,.08);
+}
+#demographicsSection .uga-demographics-gradient-labels{
+    display:flex;
+    justify-content:space-between;
+    margin-top:5px;
+    font-size:.60rem;
+    color:var(--text-secondary,#707880);
+}
+
+/* Market becomes an independent visible map-domain control. The toggle sits
+   on the same hierarchy as Fabric / Demographics master visibility controls. */
+#marketSection .uga-market-master-toggle{
+    margin:0 0 10px !important;
+}
+
+/* Current Market Context opacity was intentionally capped at 30% during the
+   first overlay implementation. V0.4 lets the existing renderer expose its
+   full 0–100% range; the JavaScript lifts the input maximum where required. */
+#marketSection input[type="range"]{
+    accent-color:#6f767d !important;
+}
+
+/* Keep the independent Demographics layer usable on mobile without coupling
+   panel navigation to Urban Analysis visibility. */
+@media (max-width:900px){
+    #demographicsSection .uga-demographics-legend{
+        padding-top:7px;
+    }
+}
+
+/* === INFORMATION ARCHITECTURE V0.4 END === */
+.uga-market-layer-legend{
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px solid rgba(70,76,82,.10);
+}
+.uga-market-layer-heading,
+.uga-fabric-measure-heading{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:5px;
+}
+.uga-market-layer-title,
+.uga-fabric-measure-title{
+    font-size:.75rem;
+    font-weight:650;
+    color:var(--text-primary,#303840);
+}
+.uga-market-layer-copy,
+.uga-fabric-measure-copy{
+    margin:0 0 9px;
+    font-size:.66rem;
+    line-height:1.42;
+    color:var(--text-secondary,#707880);
+}
+.uga-market-layer-gradient,
+.uga-fabric-measure-gradient{
+    width:100%; height:9px; border-radius:999px;
+    box-shadow:inset 0 0 0 1px rgba(60,66,72,.08);
+}
+.uga-market-layer-gradient-labels,
+.uga-fabric-measure-gradient-labels{
+    display:flex; justify-content:space-between;
+    margin-top:5px; font-size:.60rem;
+    color:var(--text-secondary,#707880);
+}
+.uga-market-layer-interpretation{
+    display:grid;
+    gap:5px;
+    margin-top:9px;
+}
+.uga-market-layer-interpretation > div{
+    display:grid;
+    grid-template-columns:52px 1fr;
+    gap:7px;
+    align-items:start;
+    font-size:.61rem;
+    line-height:1.35;
+    color:var(--text-secondary,#707880);
+}
+.uga-market-layer-interpretation strong{color:var(--text-primary,#303840);font-weight:650;}
+.uga-market-info-detail,
+.uga-fabric-measure-info-detail{
+    margin-top:9px;
+    padding:9px 10px;
+    border-radius:8px;
+    background:rgba(80,87,92,.055);
+    font-size:.63rem;
+    line-height:1.45;
+    color:var(--text-secondary,#687078);
+}
+.uga-market-info-detail p,
+.uga-fabric-measure-info-detail p{ margin:0 0 7px; }
+.uga-market-info-detail p:last-child,
+.uga-fabric-measure-info-detail p:last-child{ margin-bottom:0; }
+.uga-market-info-heading{font-weight:700;color:var(--text-primary,#303840);margin-bottom:6px;}
+
+
+
+/* =============================================================
+   INFORMATION ARCHITECTURE V1.6 — NATIVE FIVE-PANEL RAIL
+   Desktop contract:
+   - Map View fixed above the rail;
+   - one finite-height rail owns vertical scrolling;
+   - all five panels are natural-height peers;
+   - no top-level panel has an internal scrollbar;
+   - Demographics / Climate use the same header/icon/compact anatomy
+     as the established Fabric / Analysis / Market panels.
+   Mobile <=900px remains the established shared control sheet.
+   ============================================================= */
+
+@media (min-width:901px){
+    /* The shell must have a finite viewport height. Earlier IA tests removed
+       this bound, which made the rail itself impossible to scroll. */
+    #panel.panel-stack-v3,
+    #panel.panel-stack-v3.panel-minimized{
+        height:calc(100dvh - 48px) !important;
+        max-height:calc(100dvh - 48px) !important;
+        min-height:0 !important;
+        overflow:visible !important;
+    }
+
+    #panel.panel-stack-v3 > .stack-map-view-control,
+    #panel.panel-stack-v3 > #basemapControl{
+        flex:0 0 auto !important;
+    }
+
+    /* One and only one desktop scroll surface. */
+    #panel.panel-stack-v3 #panelScroll,
+    #panel.panel-stack-v3 .panel-scroll{
+        display:flex !important;
+        flex-direction:column !important;
+        align-items:stretch !important;
+        flex:1 1 0 !important;
+        height:0 !important;
+        min-height:0 !important;
+        max-height:none !important;
+        width:100% !important;
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+        overscroll-behavior:contain !important;
+        scroll-behavior:auto !important;
+        scrollbar-width:none !important;
+        -ms-overflow-style:none !important;
+    }
+    #panel.panel-stack-v3 #panelScroll::-webkit-scrollbar,
+    #panel.panel-stack-v3 .panel-scroll::-webkit-scrollbar{
+        display:none !important;
+        width:0 !important;
+        height:0 !important;
+    }
+
+    /* Every open panel contributes its complete natural height to the rail. */
+    #panel.panel-stack-v3 .mode-panel.expanded,
+    #panel.panel-stack-v3.one-panel-open .mode-panel.expanded,
+    #panel.panel-stack-v3.two-panels-open .mode-panel.expanded,
+    #panel.panel-stack-v3 #fabricSection.expanded,
+    #panel.panel-stack-v3 #analysisSection.expanded,
+    #panel.panel-stack-v3 #marketSection.expanded,
+    #panel.panel-stack-v3 #demographicsSection.expanded,
+    #panel.panel-stack-v3 #climateSection.expanded{
+        display:flex !important;
+        flex-direction:column !important;
+        flex:0 0 auto !important;
+        width:100% !important;
+        height:auto !important;
+        min-height:0 !important;
+        max-height:none !important;
+        overflow:visible !important;
+        box-sizing:border-box !important;
+    }
+
+    #panel.panel-stack-v3 .mode-panel.expanded > .mode-body,
+    #panel.panel-stack-v3 #fabricSection.expanded > #fabricBody,
+    #panel.panel-stack-v3 #analysisSection.expanded > #analysisBody,
+    #panel.panel-stack-v3 #marketSection.expanded > #marketDataBody,
+    #panel.panel-stack-v3 #demographicsSection.expanded > .mode-body,
+    #panel.panel-stack-v3 #climateSection.expanded > .mode-body{
+        display:block !important;
+        flex:0 0 auto !important;
+        width:100% !important;
+        height:auto !important;
+        min-height:0 !important;
+        max-height:none !important;
+        overflow:visible !important;
+        box-sizing:border-box !important;
+    }
+
+    /* Fabric accordions also add to Fabric's natural height. */
+    #fabricSection .fabric-module,
+    #fabricSection .fabric-module.expanded,
+    #fabricSection .fabric-module-content,
+    #fabricSection .fabric-module.expanded .fabric-module-content{
+        height:auto !important;
+        min-height:0 !important;
+        max-height:none !important;
+    }
+    #fabricSection .fabric-module.expanded .fabric-module-content{
+        overflow:visible !important;
+    }
+
+    /* Ignore every historical content-fit allocation written by V3.3. */
+    #panel.panel-stack-v3 .mode-panel.expanded{
+        --stack-fit-height:auto !important;
+    }
+    #panel.panel-stack-v3 .mode-panel.expanded.panel-content-scrolls .mode-body{
+        overflow:visible !important;
+    }
+
+    /* ---------------------------------------------------------
+       Demographics / Climate = exact peer-panel anatomy.
+       They inherit the established V3 header / compact-opacity structure
+       instead of using a parallel card or proxy-bar system.
+       --------------------------------------------------------- */
+    #demographicsSection,
+    #climateSection{
+        width:100% !important;
+    }
+
+    #demographicsSection.expanded .mode-header,
+    #climateSection.expanded .mode-header{
+        display:flex !important;
+        align-items:flex-start !important;
+        justify-content:space-between !important;
+        gap:13px !important;
+    }
+    #demographicsSection.expanded .mode-header-text,
+    #climateSection.expanded .mode-header-text{
+        display:block !important;
+        order:1 !important;
+        flex:1 1 auto !important;
+        min-width:0 !important;
+    }
+    #demographicsSection.expanded .mode-icon-toggle,
+    #climateSection.expanded .mode-icon-toggle{
+        display:flex !important;
+        order:2 !important;
+        flex:0 0 52px !important;
+        width:52px !important;
+        height:52px !important;
+        margin:-5px -4px 0 0 !important;
+    }
+    #demographicsSection.expanded .mode-stack-icon,
+    #climateSection.expanded .mode-stack-icon{
+        width:47px !important;
+        height:47px !important;
+        object-fit:contain !important;
+        opacity:.90 !important;
+    }
+    #demographicsSection.expanded .stack-collapsed-opacity,
+    #climateSection.expanded .stack-collapsed-opacity{
+        display:none !important;
+    }
+
+    /* Full-width compact bars use the same flex anatomy as Fabric / Analysis. */
+    #demographicsSection.collapsed.has-collapsed-opacity,
+    #climateSection.collapsed.has-collapsed-opacity{
+        display:block !important;
+        width:100% !important;
+        max-width:100% !important;
+        height:64px !important;
+        min-height:64px !important;
+        max-height:64px !important;
+        flex:0 0 64px !important;
+        padding:0 !important;
+        overflow:hidden !important;
+        border-radius:16px !important;
+    }
+    #demographicsSection.collapsed.has-collapsed-opacity > .mode-header,
+    #climateSection.collapsed.has-collapsed-opacity > .mode-header{
+        display:flex !important;
+        flex-direction:row !important;
+        align-items:center !important;
+        justify-content:space-between !important;
+        width:100% !important;
+        height:64px !important;
+        min-height:64px !important;
+        padding:6px 7px 6px 12px !important;
+        gap:10px !important;
+        box-sizing:border-box !important;
+    }
+    #demographicsSection.collapsed .mode-header-text,
+    #climateSection.collapsed .mode-header-text{
+        display:none !important;
+    }
+    #demographicsSection.collapsed > :not(.mode-header),
+    #climateSection.collapsed > :not(.mode-header){
+        display:none !important;
+    }
+    #demographicsSection.collapsed .uga-native-peer-compact,
+    #climateSection.collapsed .uga-native-peer-compact{
+        display:flex !important;
+        flex:1 1 auto !important;
+        min-width:0 !important;
+        align-items:center !important;
+        gap:10px !important;
+    }
+    #demographicsSection.collapsed .stack-collapsed-opacity-meta,
+    #climateSection.collapsed .stack-collapsed-opacity-meta{
+        display:flex !important;
+        flex:0 0 112px !important;
+        flex-direction:column !important;
+        gap:1px !important;
+        min-width:0 !important;
+    }
+    #demographicsSection.collapsed .stack-collapsed-opacity-label,
+    #climateSection.collapsed .stack-collapsed-opacity-label{
+        color:var(--text-secondary) !important;
+        font-size:.62rem !important;
+        font-weight:700 !important;
+        letter-spacing:.08em !important;
+        line-height:1.05 !important;
+        white-space:nowrap !important;
+    }
+    #demographicsSection.collapsed .stack-collapsed-opacity-value,
+    #climateSection.collapsed .stack-collapsed-opacity-value{
+        color:var(--text-primary) !important;
+        font-size:.76rem !important;
+        font-variant-numeric:tabular-nums !important;
+        line-height:1.15 !important;
+        white-space:nowrap !important;
+    }
+    #demographicsSection.collapsed .stack-collapsed-opacity-range,
+    #climateSection.collapsed .stack-collapsed-opacity-range{
+        display:block !important;
+        flex:1 1 auto !important;
+        width:auto !important;
+        min-width:74px !important;
+        margin:0 !important;
+        accent-color:#6f767d !important;
+    }
+    #climateSection.collapsed .stack-collapsed-opacity-range:disabled{
+        cursor:default !important;
+        opacity:.34 !important;
+    }
+    #demographicsSection.collapsed .mode-icon-toggle,
+    #climateSection.collapsed .mode-icon-toggle{
+        display:flex !important;
+        order:2 !important;
+        flex:0 0 52px !important;
+        width:52px !important;
+        height:52px !important;
+        margin:0 !important;
+        padding:0 !important;
+        border-radius:14px !important;
+    }
+    #demographicsSection.collapsed .mode-stack-icon,
+    #climateSection.collapsed .mode-stack-icon{
+        display:block !important;
+        width:43px !important;
+        height:43px !important;
+        object-fit:contain !important;
+        opacity:.90 !important;
+    }
+
+    /* Header information and local legend information use two distinct handlers. */
+    #demographicsSection .mode-title-line,
+    #climateSection .mode-title-line{
+        display:flex !important;
+        align-items:center !important;
+        gap:7px !important;
+    }
+    .uga-inline-info-trigger{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        width:17px;
+        height:17px;
+        min-width:17px;
+        min-height:17px;
+        padding:0;
+        border:0;
+        border-radius:50%;
+        background:#555d63;
+        color:#fff;
+        font-size:.62rem;
+        line-height:1;
+        font-weight:700;
+        cursor:pointer;
+        vertical-align:middle;
+    }
+    .uga-inline-info-trigger:hover,
+    .uga-inline-info-trigger:focus-visible{
+        background:#434a50;
+        outline:none;
+    }
+
+}
+
+/* Mobile keeps the current shared-sheet behaviour. The panel icons / compact
+   desktop bars do not participate in the mobile master-tab UI. */
+@media (max-width:900px){
+    #demographicsSection .mode-icon-toggle,
+    #climateSection .mode-icon-toggle,
+    #demographicsSection .uga-native-peer-compact,
+    #climateSection .uga-native-peer-compact{
+        display:none !important;
+    }
+}
+
+/* === INFORMATION ARCHITECTURE V1.6 END === */
+
+/* =============================================================
+   INFORMATION ARCHITECTURE V1.7 — PRODUCTION LEGEND + INFO CONSISTENCY
+   V1.6 rail/panel behaviour is intentionally unchanged.
+   ============================================================= */
+.uga-market-layer-heading,
+.uga-fabric-measure-heading,
+.uga-demographics-legend-heading{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:7px !important;
+    margin:0 0 6px !important;
+    min-width:0 !important;
+}
+.uga-market-layer-title,
+.uga-fabric-measure-title,
+#demographicsSection .uga-demographics-legend-title{
+    margin:0 !important;
+    min-width:0 !important;
+    font-size:.94rem !important;
+    line-height:1.25 !important;
+    font-weight:600 !important;
+    color:var(--text-primary,#303840) !important;
+}
+.uga-market-layer-copy,
+.uga-fabric-measure-copy,
+#demographicsSection .uga-demographics-legend-copy{
+    margin:0 0 9px !important;
+    font-size:.78rem !important;
+    line-height:1.55 !important;
+    color:var(--text-secondary,#707880) !important;
+}
+.uga-market-layer-note{
+    margin-top:9px !important;
+    font-size:.68rem !important;
+    line-height:1.45 !important;
+    color:var(--text-secondary,#707880) !important;
+}
+.uga-market-layer-interpretation > div{
+    font-size:.68rem !important;
+    line-height:1.4 !important;
+}
+@media (min-width:901px){
+    #demographicsSection .mode-icon-toggle,
+    #climateSection .mode-icon-toggle{
+        color:transparent !important;
+        font-size:0 !important;
+        text-indent:0 !important;
+    }
+    #demographicsSection .mode-icon-toggle::before,
+    #demographicsSection .mode-icon-toggle::after,
+    #climateSection .mode-icon-toggle::before,
+    #climateSection .mode-icon-toggle::after{
+        content:none !important;
+        display:none !important;
+    }
+}
+/* === INFORMATION ARCHITECTURE V1.7 END === */
+/* IA V1.7 PRODUCTION — END */

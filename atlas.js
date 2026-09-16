@@ -1,3 +1,4 @@
+// === IA V1.7 PRODUCTION ATLAS PATCH: FIVE-DOMAIN INFORMATION ARCHITECTURE ===
 // =====================================================
 // Urban Genetics Atlas V1.1
 // 852LAB Map Engine
@@ -1677,6 +1678,98 @@ function getInfoPanel(key){
                     </p>`
                 )
         };
+    }
+
+    if(key === 'demographics'){
+        return {
+            title:'Demographics',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        Demographics brings population and living-condition data
+                        into the same spatial framework as the rest of the Atlas.
+                        The current public views are Population Intensity and
+                        Living Space.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'CURRENT STATUS',
+                    `<p>
+                        These two layers are existing Atlas estimates. Their data
+                        foundations are being rebuilt using finer Census geography,
+                        so they should currently be read as comparative spatial
+                        estimates rather than exact 100 m population counts.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ IT',
+                    `<p>
+                        Demographics is an independent map domain. It can be shown
+                        on its own or compared directly with Fabric, Market and
+                        Urban Analysis using its own visibility and opacity controls.
+                    </p>`
+                )
+        };
+    }
+
+    if(key === 'climate'){
+        return {
+            title:'Climate',
+            html:
+                infoSection(
+                    'WHAT IS THIS?',
+                    `<p>
+                        Climate is the developing environmental domain of the Atlas.
+                        Initial work is focused on urban heat and flood / coastal
+                        exposure, with further climate relationships to follow.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'CURRENT STATUS',
+                    `<p>
+                        The public Climate panel is present as a structural placeholder
+                        while the first climate datasets and analyses are being prepared.
+                    </p>`
+                )
+        };
+    }
+
+    if(key === 'demographics:Population per Building'){
+        return {title:'Population Intensity',html:
+            infoSection('WHAT IS THIS?',`<p>Population Intensity is the current Atlas estimate of the number of residents associated with residential fabric in each 100 m hex.</p>`)
+            + infoSection('HOW IS IT CALCULATED?',`<p>The current public layer predates the new Demographics rebuild and distributes population spatially using the residential building context available to the Atlas. It is being replaced with a finer Census-geography method.</p>`)
+            + infoSection('HOW TO READ IT',`<p>Use it for comparative spatial pattern rather than as an exact building- or hex-level headcount. Stronger colour means higher estimated population intensity.</p>`)};
+    }
+    if(key === 'demographics:GFA per Capita'){
+        return {title:'Living Space',html:
+            infoSection('WHAT IS THIS?',`<p>Living Space compares estimated residential floor area with the population currently allocated to each hex.</p>`)
+            + infoSection('HOW IS IT CALCULATED?',`<p>The current measure is estimated residential floor area per resident. Because it depends on the existing population allocation, it will be recalculated as part of the new Demographics foundation.</p>`)
+            + infoSection('HOW TO READ IT',`<p>It is a spatial comparison, not a direct measurement of dwelling size, net saleable area, crowding or housing quality.</p>`)};
+    }
+    if(key === 'fabric:GFA - Saturation'){
+        return {title:'GFA Saturation',html:infoSection('WHAT IS THIS?',`<p>GFA Saturation estimates how much of a hex's modelled development capacity has already been realised.</p>`)+infoSection('HOW TO READ IT',`<p>Higher values mean more of the modelled capacity is already expressed. It is not a direct statement of development feasibility, ownership or permission to build.</p>`)};
+    }
+    if(key === 'fabric:Latent Urban Capacity'){
+        return {title:'Latent Urban Capacity',html:infoSection('WHAT IS THIS?',`<p>Latent Urban Capacity estimates the share of modelled development capacity that remains unrealised.</p>`)+infoSection('HOW TO READ IT',`<p>Higher values indicate a larger remaining share of modelled capacity. They do not necessarily mean vacant land or an immediately developable site.</p>`)};
+    }
+    if(key === 'fabric:MTR - Index (Built)'){
+        return {title:'MTR Built Accessibility',html:infoSection('WHAT IS THIS?',`<p>MTR Built Accessibility is a relative measure based on proximity and network connectivity to the existing MTR system.</p>`)+infoSection('HOW TO READ IT',`<p>It is not a direct measure of journey time, service frequency or passenger volume.</p>`)};
+    }
+    if(key === 'market:Market Momentum'){
+        return {title:'Market Momentum',html:infoSection('WHAT IS THIS?',`<p>Market Momentum summarises the direction of 12-month regional private-domestic price and rent movement.</p>`)+infoSection('HOW IS IT CALCULATED?',`<p>Regional price trend and rent trend are each converted to a bounded 0–1 score and combined equally: <strong>50% price + 50% rent</strong>.</p>`)+infoSection('HOW TO READ IT',`<p>The result retains the geography of the official RVD source. It is regional market context, not a 100 m property value, valuation or forecast.</p>`)};
+    }
+    if(key === 'market:Market Exposure'){
+        return {title:'Market Exposure',html:infoSection('WHAT IS THIS?',`<p>Market Exposure asks where wider Market Momentum overlaps with local Atlas opportunity conditions.</p>`)+infoSection('HOW IS IT CALCULATED?',`<p><strong>Local Opportunity</strong> combines Development Pressure and Capacity Opportunity equally. <strong>Market Exposure = Market Momentum × Local Opportunity.</strong></p>`)+infoSection('HOW TO READ IT',`<p>The market signal remains regional; local differentiation comes from Atlas conditions. It is not a valuation, investment recommendation or forecast.</p>`)};
+    }
+    if(key === 'market:Transaction Pulse'){
+        return {title:'Transaction Pulse',html:infoSection('WHAT IS THIS?',`<p>Transaction Pulse describes whether recent registered building-unit transaction activity is stronger or weaker than its recent reference level.</p>`)+infoSection('HOW IS IT CALCULATED?',`<p><strong>Activity level</strong> compares the latest 3-month average with the median monthly count over the latest 24 months. <strong>Trend</strong> compares the latest 3 months with the same 3 months one year earlier. The two scores are combined equally.</p>`)+infoSection('HOW TO READ IT',`<p>The result retains the geography published by the Land Registry source. Registration can lag the underlying transaction date.</p>`)};
+    }
+    if(key === 'market:Transaction Exposure'){
+        return {title:'Transaction Exposure',html:infoSection('WHAT IS THIS?',`<p>Transaction Exposure asks where Transaction Pulse overlaps with local urban opportunity.</p>`)+infoSection('HOW IS IT CALCULATED?',`<p><strong>Local Opportunity</strong> combines Development Pressure and Capacity Opportunity equally. <strong>Transaction Exposure = Transaction Pulse × Local Opportunity.</strong></p>`)+infoSection('HOW TO READ IT',`<p>The broad transaction signal is interpreted locally without inventing 100 m transaction counts.</p>`)};
     }
 
     if(key.startsWith('analysis:')){
@@ -10097,7 +10190,7 @@ updateStatus();
     const mobile = window.matchMedia('(max-width:900px)');
 
     function panelLimit(){
-        return mobile.matches ? 1 : 2;
+        return mobile.matches ? 1 : Number.POSITIVE_INFINITY;
     }
 
     function markInteraction(entry){
@@ -10125,6 +10218,9 @@ updateStatus();
         entry.section.classList.toggle('expanded', expanded);
         entry.section.classList.toggle('collapsed', !expanded);
         syncToggle(entry, expanded);
+        if(expanded && !mobile.matches){
+            requestAnimationFrame(() => window.UGAFocusRailPanel?.(entry.section));
+        }
     }
 
     function updateStackState(){
@@ -10379,6 +10475,18 @@ updateStatus();
 
     if(sections.length !== 3) return;
 
+    if(window.matchMedia('(min-width:901px)').matches){
+        panel.dataset.stackContentFitV33 = 'desktop-disabled-by-ia-v1-7-production';
+        for(const section of sections){
+            section.style.removeProperty('--stack-fit-height');
+            section.classList.remove('panel-content-scrolls');
+            delete section.dataset.fitNaturalHeight;
+            delete section.dataset.fitAllocatedHeight;
+        }
+        console.info('[ATLAS UI] V3.3 content-fit disabled on desktop by IA V1.7 production; outer rail owns scrolling.');
+        return;
+    }
+
     panel.dataset.stackContentFitV33 = 'ready';
 
     let layoutFrame = 0;
@@ -10436,6 +10544,16 @@ updateStatus();
 
     function layoutPanels(){
         layoutFrame = 0;
+
+        if(window.matchMedia('(min-width:901px)').matches){
+            for(const section of sections){
+                section.style.removeProperty('--stack-fit-height');
+                section.classList.remove('panel-content-scrolls');
+                delete section.dataset.fitNaturalHeight;
+                delete section.dataset.fitAllocatedHeight;
+            }
+            return;
+        }
 
         const railHeight = panelScroll.clientHeight;
         if(railHeight <= 0) return;
@@ -10928,3 +11046,1467 @@ updateStatus();
 
     console.info('[ATLAS UI] Mobile Control Sheet V2.6 initialised.');
 })();
+
+// === IA V1.7 PRODUCTION RUNTIME START ===
+/* =============================================================
+   URBAN GENETICS ATLAS — INFORMATION ARCHITECTURE V1.7 — PRODUCTION
+   Non-destructive runtime layer over the current canonical Atlas.
+   ============================================================= */
+(() => {
+    'use strict';
+
+    const VERSION = 'IA-v1.7-production';
+    const WELCOME_KEY = 'urbanGeneticsAtlasWelcomeDismissed';
+    const MOBILE_QUERY = window.matchMedia('(max-width:900px)');
+
+    const DOMAIN_PANEL_IDS = [
+        'fabricSection',
+        'analysisSection',
+        'marketSection',
+        'demographicsSection',
+        'climateSection'
+    ];
+    const railRecency = new Map();
+    let railSequence = 0;
+    let railReconciling = false;
+
+    const FABRIC_MEASURE_LAYER_ID = 'fabric-measure-atlas';
+    const fabricMeasureState = {
+        theme:'',
+        visible:true
+    };
+    let fabricMeasureLayerReady = false;
+
+    const DEMOGRAPHICS_LAYER_ID = 'demographics-atlas';
+    const demographicsState = {
+        visible:false,
+        opacity:100,
+        theme:'Population per Building'
+    };
+    let demographicsLayerReady = false;
+    let demographicsMapClickBound = false;
+    let marketLastVisibleSelection = null;
+
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    function dispatchChange(el){
+        if(!el) return;
+        el.dispatchEvent(new Event('change', { bubbles:true }));
+    }
+
+    function setChecked(el, checked){
+        if(!el) return;
+        if(el.checked !== checked){
+            el.checked = checked;
+            dispatchChange(el);
+        }
+    }
+
+    function optionValueMatching(select, matcher){
+        if(!select) return null;
+        const option = Array.from(select.options).find(o => matcher.test(`${o.value} ${o.textContent}`));
+        return option ? option.value : null;
+    }
+
+    function setSelectValue(select, value){
+        if(!select || value == null) return false;
+        const found = Array.from(select.options).some(o => o.value === value);
+        if(!found) return false;
+        select.value = value;
+        dispatchChange(select);
+        return true;
+    }
+
+    function panelIsMinimised(){
+        return $('#panel')?.classList.contains('panel-minimized');
+    }
+
+    function openPanelShell(){
+        const btn = $('#panelMinimize');
+        if(panelIsMinimised() && btn) btn.click();
+    }
+
+    function isCollapsed(section){
+        return !!section && section.classList.contains('collapsed') && !section.classList.contains('expanded');
+    }
+
+    function setSectionExpanded(section, expanded){
+        if(!section) return;
+        const body = $('.mode-body', section);
+        const toggle = $('.mode-chevron', section);
+        const iconToggle = $('.mode-icon-toggle, .uga-domain-icon-toggle', section);
+        section.classList.toggle('expanded', expanded);
+        section.classList.toggle('collapsed', !expanded);
+        if(body) body.style.display = expanded ? '' : 'none';
+        const title = $('.mode-title', section)?.textContent?.trim() || 'section';
+        if(toggle){
+            toggle.setAttribute('aria-expanded', String(expanded));
+            toggle.setAttribute('aria-label', `${expanded ? 'Collapse' : 'Expand'} ${title}`);
+            if(!toggle.classList.contains('mode-icon-toggle')){
+                toggle.textContent = expanded ? '▾' : '▸';
+            }
+        }
+        if(iconToggle){
+            iconToggle.setAttribute('aria-expanded', String(expanded));
+            iconToggle.setAttribute('aria-label', `${expanded ? 'Collapse' : 'Expand'} ${title}`);
+            iconToggle.title = `${expanded ? 'Collapse' : 'Expand'} ${title}`;
+        }
+    }
+
+    function domainPanels(){
+        return DOMAIN_PANEL_IDS.map(id => document.getElementById(id)).filter(Boolean);
+    }
+
+    function markPanelRecent(section){
+        if(!section) return;
+        railRecency.set(section.id, ++railSequence);
+    }
+
+    function nativePanelToggle(section){
+        if(!section) return null;
+        return section.querySelector(
+            '.mode-icon-toggle, .uga-domain-icon-toggle, .stack-mode-icon, .mode-icon-button, .mode-chevron, button[aria-controls]'
+        );
+    }
+
+    function setPanelExpandedCompat(section, expanded){
+        if(!section) return;
+        const current = section.classList.contains('expanded') && !section.classList.contains('collapsed');
+        if(current === expanded){
+            if(expanded) markPanelRecent(section);
+            return;
+        }
+
+        // New IA panels are controlled here. Existing Fabric / Analysis / Market
+        // retain their native click handlers so their opacity bars / icon states
+        // remain exactly in sync with the established rail behaviour.
+        if(section.dataset.ugaDomainPanel === 'true'){
+            setSectionExpanded(section, expanded);
+        } else {
+            const control = nativePanelToggle(section);
+            if(control){
+                control.click();
+            } else {
+                setSectionExpanded(section, expanded);
+            }
+        }
+        if(expanded) markPanelRecent(section);
+    }
+
+    function limitDesktopPanels(_preferred){
+        // V1.0 desktop policy: no automatic panel collapsing.
+        // Panels only minimise when their own top-level icon is clicked.
+        return;
+    }
+
+    function revealRailPanel(section){
+        if(!section || MOBILE_QUERY.matches) return;
+        requestAnimationFrame(() => window.UGAFocusRailPanel?.(section));
+    }
+
+    function activateDesktopSection(section){
+        if(!section) return;
+        openPanelShell();
+        setPanelExpandedCompat(section, true);
+        limitDesktopPanels(section);
+        revealRailPanel(section);
+    }
+
+
+    let analysisLegend = null;
+    let analysisControls = null;
+    let legendHome = null;
+    let controlsHome = null;
+    let proxyChanging = false;
+    let owner = 'analysis';
+
+    function prepareSharedAnalysisUI(){
+        analysisLegend = $('#analysisLegend');
+        analysisControls = $('#analysisControls');
+        if(analysisLegend && !$('#analysisLegendHome')){
+            legendHome = document.createElement('div');
+            legendHome.id = 'analysisLegendHome';
+            analysisLegend.parentNode.insertBefore(legendHome, analysisLegend);
+        } else {
+            legendHome = $('#analysisLegendHome');
+        }
+        if(analysisControls && !$('#analysisControlsHome')){
+            controlsHome = document.createElement('div');
+            controlsHome.id = 'analysisControlsHome';
+            analysisControls.parentNode.insertBefore(controlsHome, analysisControls);
+        } else {
+            controlsHome = $('#analysisControlsHome');
+        }
+    }
+
+    function moveSharedAnalysisUI(target){
+        installRailFocus();
+        prepareSharedAnalysisUI();
+        if(target === 'analysis'){
+            if(controlsHome && analysisControls) controlsHome.after(analysisControls);
+            if(legendHome && analysisLegend) legendHome.after(analysisLegend);
+            owner = 'analysis';
+            return;
+        }
+        const host = target === 'fabric' ? $('#fabricMeasureLegendHost') : $('#demographicsLegendHost');
+        if(!host) return;
+        if(analysisControls) host.appendChild(analysisControls);
+        if(analysisLegend) host.appendChild(analysisLegend);
+        owner = target;
+    }
+
+    function themeSelect(){ return $('#theme'); }
+    function analysisToggle(){ return $('#analysisToggle'); }
+
+    function restoreRehomedOwner(targetOwner){
+        if(targetOwner === 'analysis') return;
+        const analysisSection = $('#analysisSection');
+        if(MOBILE_QUERY.matches){
+            analysisSection?.classList.remove('mobile-sheet-active');
+            analysisSection?.setAttribute('aria-hidden','true');
+            return;
+        }
+        // V1.5 desktop contract: changing a selector or moving shared legend
+        // content must never open/close any top-level panel. Panel state is
+        // controlled only by that panel's own top-right icon.
+        return;
+    }
+
+    function activateTheme(value, targetOwner){
+        const select = themeSelect();
+        if(!select || value == null) return false;
+        proxyChanging = true;
+        const ok = setSelectValue(select, value);
+        proxyChanging = false;
+        if(!ok) return false;
+        setChecked(analysisToggle(), true);
+        moveSharedAnalysisUI(targetOwner);
+        restoreRehomedOwner(targetOwner);
+        return true;
+    }
+
+    function allowedAnalysisOption(option){
+        const t = `${option.value} ${option.textContent}`;
+        return /Urban Genetic Signature|UGS|Development Pressure|Renewal Potential|Genesis Potential/i.test(t);
+    }
+
+    function organiseAnalysisSelector(){
+        const select = themeSelect();
+        if(!select) return;
+        Array.from(select.options).forEach(option => {
+            if(!allowedAnalysisOption(option)){
+                option.hidden = true;
+                option.dataset.ugaRehomed = 'true';
+            }
+        });
+        const label = $('#analysisSelectorControl .section-label');
+        if(label) label.textContent = 'Choose an analysis:';
+        const desc = $('#analysisSection .mode-description');
+        if(desc) desc.textContent = 'Higher-order patterns that emerge when different parts of the city are read together.';
+        const title = $('#analysisSection .mode-title');
+        if(title) title.textContent = 'Urban Analysis';
+        $('#analysisSelectorControl')?.classList.add('uga-selector-block');
+        $('#analysisControls')?.classList.add('uga-selector-block','uga-planning-selector-block');
+        select.classList.add('uga-domain-select');
+        $('#capacityContext')?.classList.add('uga-domain-select');
+
+        select.addEventListener('change', () => {
+            if(proxyChanging) return;
+            owner = 'analysis';
+        });
+    }
+
+    function createFabricMeasures(){
+        const body = $('#fabricBody');
+        if(!body || $('#fabricMeasureControl')) return;
+        const first = body.firstElementChild;
+        const block = document.createElement('div');
+        block.id = 'fabricMeasureControl';
+        block.className = 'uga-domain-measures uga-selector-block';
+        block.innerHTML = `
+            <div class="uga-domain-kicker">BUILT-CITY MEASURES</div>
+            <div class="uga-domain-note">Derived readings of capacity and connectivity that describe the existing urban fabric.</div>
+            <label class="section-label" for="fabricMeasureTheme">Choose a measure:</label>
+            <select id="fabricMeasureTheme" class="uga-domain-select">
+                <option value="">None</option>
+                <option value="GFA - Saturation">GFA Saturation</option>
+                <option value="Latent Urban Capacity">Latent Urban Capacity</option>
+                <option value="MTR - Index (Built)">MTR Built Accessibility</option>
+            </select>
+            <div id="fabricMeasureLegendHost" class="uga-shared-legend-host"></div>
+            <hr class="mode-divider">
+        `;
+        body.insertBefore(block, first || null);
+        const title = $('#fabricSection .mode-title');
+        if(title) title.textContent = 'Fabric';
+        const desc = $('#fabricSection .mode-description');
+        if(desc) desc.textContent = 'The physical city — land, buildings, connections, history and capacity.';
+
+        const select = $('#fabricMeasureTheme');
+        select?.addEventListener('change', () => {
+            fabricMeasureState.theme = select.value || '';
+            updateFabricMeasureRenderer();
+            renderFabricMeasureLegend();
+        });
+    }
+
+    function makeModePanel({id,title,description,bodyHtml,comingSoon=false,iconSrc,infoKey}){
+        const section = document.createElement('section');
+        section.id = id;
+        section.className = `mode-panel collapsed has-collapsed-opacity uga-domain-panel${comingSoon ? ' uga-coming-soon-panel' : ''}`;
+        section.dataset.ugaDomainPanel = 'true';
+        const isClimate = id === 'climateSection';
+        const compactValue = isClimate
+            ? 'Opacity · <span data-uga-climate-opacity-value>100%</span>'
+            : 'Opacity · <span data-uga-demo-opacity-value>100%</span>';
+        section.innerHTML = `
+            <div class="mode-header">
+                <div class="mode-header-text">
+                    <div class="mode-title-line">
+                        <div class="mode-title">${title}</div>
+                        <button type="button" class="info-trigger" data-info-key="${infoKey || id.replace('Section','')}" aria-label="About ${title}" title="About ${title}">ⓘ</button>
+                        ${comingSoon ? '<span class="uga-coming-soon-badge">COMING SOON</span>' : ''}
+                    </div>
+                    <div class="mode-description">${description}</div>
+                </div>
+                <div class="stack-collapsed-opacity uga-native-peer-compact" aria-label="${title} compact controls">
+                    <div class="stack-collapsed-opacity-meta">
+                        <span class="stack-collapsed-opacity-label">${title.toUpperCase()}</span>
+                        <output class="stack-collapsed-opacity-value">${compactValue}</output>
+                    </div>
+                    <input type="range" class="stack-collapsed-opacity-range" ${isClimate ? 'data-uga-climate-opacity disabled' : 'data-uga-demo-opacity'} min="0" max="100" step="1" value="100" aria-label="${title} opacity${isClimate ? ' — coming soon' : ''}">
+                </div>
+                <button type="button" class="mode-icon-toggle uga-domain-icon-toggle" id="${id}Toggle" aria-expanded="false" aria-label="Expand ${title}" aria-controls="${id}Body" title="Expand ${title}">
+                    <img class="mode-stack-icon" src="${iconSrc}" alt="" aria-hidden="true">
+                </button>
+            </div>
+            <div id="${id}Body" class="mode-body" style="display:none;">${bodyHtml}</div>
+        `;
+        const button = section.querySelector('.mode-icon-toggle');
+        button?.addEventListener('click', event => {
+            if(MOBILE_QUERY.matches) return;
+            event.preventDefault();
+            event.stopPropagation();
+            const open = section.classList.contains('collapsed');
+            setSectionExpanded(section, open);
+            if(open) revealRailPanel(section);
+        });
+        // Slider gestures must never become expand/collapse gestures.
+        const compact = section.querySelector('.uga-native-peer-compact');
+        for(const eventName of ['click','pointerdown','pointerup','touchstart','touchend']){
+            compact?.addEventListener(eventName,event => event.stopPropagation());
+        }
+        return section;
+    }
+
+
+    function createDemographicsPanel(){
+        if($('#demographicsSection')) return;
+        const panelScroll = $('#panelScroll');
+        if(!panelScroll) return;
+        const section = makeModePanel({
+            id:'demographicsSection',
+            title:'Demographics',
+            description:'Where people live and how population and living conditions vary across the city.',
+            iconSrc:'assets/Demographics_Icon.png',
+            infoKey:'demographics',
+            bodyHtml:`
+                <label class="toggle uga-domain-master-toggle">
+                    <input type="checkbox" id="demographicsToggle">
+                    <span>Show Demographics</span>
+                </label>
+                <div id="demographicsOpacityHost" class="uga-domain-opacity-host"></div>
+                <div class="uga-selector-block uga-domain-selector-block">
+                <label class="section-label" for="demographicsTheme">Choose a demographic view:</label>
+                <select id="demographicsTheme" class="uga-domain-select">
+                    <option value="Population per Building">Population Intensity</option>
+                    <option value="GFA per Capita">Living Space (sqm/cap)</option>
+                </select>
+                </div>
+                <div class="uga-domain-note uga-method-note">Current Atlas estimates are shown here while the demographic foundation is being rebuilt from finer Census geography.</div>
+                <hr class="mode-divider">
+                <div id="demographicsLegendHost" class="uga-demographics-legend-host"></div>
+            `
+        });
+        panelScroll.appendChild(section);
+
+        const select = $('#demographicsTheme');
+        const toggle = $('#demographicsToggle');
+        select?.addEventListener('change', () => {
+            demographicsState.theme = select.value;
+            if(toggle && !toggle.checked){
+                toggle.checked = true;
+                demographicsState.visible = true;
+            }
+            updateDemographicsRenderer();
+            renderDemographicsLegend();
+        });
+        toggle?.addEventListener('change', () => {
+            demographicsState.visible = !!toggle.checked;
+            updateDemographicsRenderer();
+        });
+    }
+
+    function createClimatePanel(){
+        if($('#climateSection')) return;
+        const panelScroll = $('#panelScroll');
+        if(!panelScroll) return;
+        const section = makeModePanel({
+            id:'climateSection',
+            title:'Climate',
+            description:'Heat, terrain and environmental conditions across the city.',
+            comingSoon:true,
+            iconSrc:'assets/Climate_Icon.png',
+            infoKey:'climate',
+            bodyHtml:`
+                <div class="uga-coming-soon-content">
+                    <div class="uga-domain-kicker">CLIMATE MODULE</div>
+                    <p>Heat and flood / coastal exposure are being developed as the first public climate views.</p>
+                    <p class="uga-domain-note">Coming soon. No climate layer is shown yet.</p>
+                </div>
+            `
+        });
+        panelScroll.appendChild(section);
+    }
+
+    function improveMarketSection(){
+        const section = $('#marketSection');
+        if(!section) return;
+        const title = $('.mode-title', section);
+        if(title) title.textContent = 'Market';
+        let desc = $('.mode-description', section);
+        if(!desc){
+            desc = document.createElement('div');
+            desc.className = 'mode-description';
+            $('.mode-header-text', section)?.appendChild(desc);
+        }
+        if(desc) desc.textContent = 'Property and transaction activity — from broad market context to local exposure.';
+        ensureMarketVisibilityControl();
+        normaliseMarketOpacityRange();
+    }
+
+    function hideMarketFromAnalysis(){
+        const select = themeSelect();
+        if(!select) return;
+        Array.from(select.options).forEach(option => {
+            if(/market/i.test(`${option.value} ${option.textContent}`)){
+                option.hidden = true;
+                option.disabled = true;
+                option.dataset.ugaRehomed = 'true';
+            }
+        });
+        // Remove the now-empty / misleading "Market analysis" group header as
+        // Market is a first-class domain rather than an Urban Analysis mode.
+        Array.from(select.querySelectorAll('optgroup')).forEach(group => {
+            const options = Array.from(group.querySelectorAll('option'));
+            const hasVisible = options.some(option => !option.hidden && !option.disabled);
+            if(/market/i.test(group.label || '') || !hasVisible){
+                group.hidden = true;
+                group.disabled = true;
+                group.style.display = 'none';
+            }
+        });
+    }
+
+    function normaliseTopLevelControls(){
+        const selectorBlocks = [
+            $('#analysisSelectorControl'),
+            $('#analysisControls'),
+            $('#fabricMeasureControl'),
+            $('#demographicsSection .uga-domain-selector-block')
+        ].filter(Boolean);
+        selectorBlocks.forEach(block => block.classList.add('uga-selector-block'));
+        [$('#theme'),$('#capacityContext'),$('#fabricMeasureTheme'),$('#demographicsTheme')].filter(Boolean).forEach(select => select.classList.add('uga-domain-select'));
+        $$('#marketSection select').forEach(select => {
+            select.classList.add('uga-domain-select');
+            select.closest('div')?.classList.add('uga-market-selector-host');
+        });
+    }
+
+    function watchMarketControls(){
+        const market = $('#marketSection');
+        if(!market || market.dataset.ugaControlObserver === 'true') return;
+        market.dataset.ugaControlObserver = 'true';
+        let attempts = 0;
+        const settle = () => {
+            attempts += 1;
+            normaliseTopLevelControls();
+            ensureMarketVisibilityControl();
+            normaliseMarketOpacityRange();
+            syncMarketVisibilityToggle();
+            const ready = initialiseMarketViewPresentation();
+            if(ready || attempts >= 50) clearInterval(timer);
+        };
+        // Market content arrives asynchronously. Poll until its canonical control
+        // exists instead of observing our own DOM writes and creating a feedback loop.
+        const timer = setInterval(settle, 200);
+        settle();
+    }
+
+    const FABRIC_MEASURE_INFO = {
+        'GFA - Saturation':{
+            title:'GFA Saturation',
+            description:'Shows how much of the estimated development capacity is already realised in each hex.',
+            gradient:'linear-gradient(90deg,rgba(86,190,238,.30),rgb(80,162,238),rgb(57,12,109))',
+            info:'GFA Saturation compares estimated realised floor area with modelled development capacity. It describes capacity utilisation rather than development feasibility, ownership or permission to build.'
+        },
+        'Latent Urban Capacity':{
+            title:'Latent Urban Capacity',
+            description:'Shows the share of estimated development capacity that remains unrealised in each hex.',
+            gradient:'linear-gradient(90deg,rgba(226,226,244,.35),rgb(126,108,190),rgb(38,18,92))',
+            info:'Latent Urban Capacity is the remaining side of the modelled capacity relationship. A high value does not necessarily mean vacant land or an immediately developable site.'
+        },
+        'MTR - Index (Built)':{
+            title:'MTR Built Accessibility',
+            description:'Shows relative accessibility associated with the existing MTR network.',
+            gradient:'linear-gradient(90deg,rgba(220,245,220,.35),rgb(255,241,118),rgb(0,77,64))',
+            info:'MTR Built Accessibility is a relative measure based on proximity and network connectivity to the built MTR system. It is not a direct measure of journey time, service frequency or passenger volume.'
+        }
+    };
+
+    function fabricMeasureColourExpression(theme){
+        if(theme === 'GFA - Saturation'){
+            return ['case',
+                ['==',['coalesce',['to-number',['get','GFA - Saturation']],0],0],
+                'rgba(255,255,255,0.00)',
+                ['interpolate',['linear'],['coalesce',['to-number',['get','GFA - Saturation']],0],
+                    0.10,'rgba(86,190,238,0.25)',
+                    0.25,'rgba(111,184,206,0.55)',
+                    0.50,'rgba(80,162,238,0.62)',
+                    0.70,'rgba(41,73,254,0.62)',
+                    0.85,'rgba(73,2,204,0.62)',
+                    1.00,'rgba(57,12,109,0.62)']
+            ];
+        }
+        if(theme === 'Latent Urban Capacity'){
+            return ['interpolate',['linear'],['coalesce',['to-number',['get','Latent Urban Capacity']],0],
+                0.00,'rgba(255,255,255,0.00)',
+                0.10,'rgba(226,226,244,0.25)',
+                0.25,'rgba(194,186,226,0.55)',
+                0.40,'rgba(157,145,209,0.62)',
+                0.55,'rgba(126,108,190,0.62)',
+                0.70,'rgba(95,73,169,0.62)',
+                0.85,'rgba(68,45,139,0.62)',
+                1.00,'rgba(38,18,92,0.62)'];
+        }
+        if(theme === 'MTR - Index (Built)'){
+            return ['interpolate',['linear'],
+                ['/',['ln',['+',1,['coalesce',['to-number',['get','MTR - Index (Built)']],0]]],2],
+                0.00,'rgba(255,255,255,0.00)',
+                0.05,'rgba(220,245,220,0.25)',
+                0.15,'rgba(229,230,170,0.55)',
+                0.30,'rgba(255,241,118,0.62)',
+                0.45,'rgba(220,231,117,0.62)',
+                0.60,'rgba(156,204,101,0.62)',
+                0.75,'rgba(102,187,106,0.62)',
+                0.88,'rgba(46,125,50,0.62)',
+                1.00,'rgba(0,77,64,0.62)'];
+        }
+        return 'rgba(255,255,255,0.00)';
+    }
+
+    function fabricOpacityPercent(){
+        const input = findOpacitySlider($('#fabricSection'));
+        if(!input) return 100;
+        const raw = Number(input.value || 0);
+        const min = Number(input.min || 0);
+        const max = Number(input.max || 100);
+        if(max <= 1) return Math.round(Math.max(0,Math.min(1,raw)) * 100);
+        const span = Math.max(1e-9,max-min);
+        return Math.round(Math.max(0,Math.min(1,(raw-min)/span)) * 100);
+    }
+
+    function fabricMeasureOpacityExpression(){
+        const scale = fabricOpacityPercent() / 100;
+        return ['interpolate',['linear'],['zoom'],
+            8,0.55*scale,
+            12,0.78*scale,
+            15,0.90*scale];
+    }
+
+    function ensureFabricMeasureLayer(){
+        if(typeof map === 'undefined' || !map) return false;
+        if(map.getLayer(FABRIC_MEASURE_LAYER_ID)){
+            fabricMeasureLayerReady = true;
+            return true;
+        }
+        if(!map.getSource('atlas')) return false;
+        const before = map.getLayer('atlas') ? 'atlas' : (map.getLayer('hover') ? 'hover' : undefined);
+        const layer = {
+            id:FABRIC_MEASURE_LAYER_ID,
+            type:'fill',
+            source:'atlas',
+            'source-layer':demographicsSourceLayer(),
+            layout:{visibility:'none'},
+            paint:{
+                'fill-color':fabricMeasureColourExpression(fabricMeasureState.theme),
+                'fill-opacity':fabricMeasureOpacityExpression(),
+                'fill-outline-color':'rgba(60,60,60,0.035)'
+            }
+        };
+        try{
+            if(before) map.addLayer(layer,before); else map.addLayer(layer);
+        }catch(err){
+            fabricMeasureLayerReady=false;
+            console.error('[ATLAS IA] Fabric measure layer creation failed:',err);
+            return false;
+        }
+        fabricMeasureLayerReady=!!map.getLayer(FABRIC_MEASURE_LAYER_ID);
+        return fabricMeasureLayerReady;
+    }
+
+    function fabricMeasureVisible(){
+        const master=$('#fabricToggle');
+        return !!fabricMeasureState.theme && (!master || !!master.checked);
+    }
+
+    function updateFabricMeasureRenderer(){
+        if(!fabricMeasureState.theme){
+            if(typeof map !== 'undefined' && map?.getLayer?.(FABRIC_MEASURE_LAYER_ID)){
+                map.setLayoutProperty(FABRIC_MEASURE_LAYER_ID,'visibility','none');
+            }
+            return;
+        }
+        if(!ensureFabricMeasureLayer() || !map.getLayer(FABRIC_MEASURE_LAYER_ID)) return;
+        map.setPaintProperty(FABRIC_MEASURE_LAYER_ID,'fill-color',fabricMeasureColourExpression(fabricMeasureState.theme));
+        map.setPaintProperty(FABRIC_MEASURE_LAYER_ID,'fill-opacity',fabricMeasureOpacityExpression());
+        map.setLayoutProperty(FABRIC_MEASURE_LAYER_ID,'visibility',fabricMeasureVisible() ? 'visible' : 'none');
+    }
+
+    function renderFabricMeasureLegend(){
+        const host=$('#fabricMeasureLegendHost');
+        if(!host) return;
+        const info=FABRIC_MEASURE_INFO[fabricMeasureState.theme];
+        if(!info){ host.innerHTML=''; return; }
+        host.innerHTML=`
+            <div class="uga-fabric-measure-legend">
+                <div class="legend-title-row uga-fabric-measure-heading">
+                    <h3 class="uga-fabric-measure-title">${info.title}</h3>
+                    <button type="button" class="info-trigger uga-fabric-measure-info-trigger" data-info-key="fabric:${fabricMeasureState.theme}" aria-label="About ${info.title}" title="About ${info.title}">i</button>
+                </div>
+                <div class="uga-fabric-measure-copy">${info.description}</div>
+                <div class="uga-fabric-measure-gradient" style="background:${info.gradient}"></div>
+                <div class="uga-fabric-measure-gradient-labels"><span>Lower</span><span>Higher</span></div>
+            </div>`;
+    }
+
+    function initialiseFabricMeasureRenderer(){
+        const select=$('#fabricMeasureTheme');
+        if(select) fabricMeasureState.theme=select.value || '';
+        const master=$('#fabricToggle');
+        master?.addEventListener('change',updateFabricMeasureRenderer);
+        const fabric=$('#fabricSection');
+        if(fabric && fabric.dataset.ugaFabricRendererBound!=='true'){
+            fabric.dataset.ugaFabricRendererBound='true';
+            const opacityEvent=event=>{
+                const input=event.target;
+                if(!(input instanceof HTMLInputElement) || input.type!=='range') return;
+                const context=`${input.id||''} ${input.className||''} ${input.closest('div,section,label')?.textContent||''}`;
+                if(/opacity/i.test(context)) updateFabricMeasureRenderer();
+            };
+            fabric.addEventListener('input',opacityEvent,true);
+            fabric.addEventListener('change',opacityEvent,true);
+        }
+        const boot=()=>{
+            updateFabricMeasureRenderer();
+            renderFabricMeasureLegend();
+        };
+        if(typeof map!=='undefined' && map){
+            if(map.loaded()) boot(); else map.on('load',boot);
+        }
+    }
+
+    function demographicsColourExpression(theme){
+        if(theme === 'GFA per Capita'){
+            return [
+                'interpolate',['linear'],
+                ['sqrt',['coalesce',['to-number',['get','GFA per Capita']],0]],
+                0,'rgba(255,255,255,0.00)',
+                3,'rgba(220,245,220,0.25)',
+                5,'rgba(185,226,185,0.55)',
+                7,'rgba(161,217,155,0.62)',
+                9,'rgba(135,196,116,0.62)',
+                11,'rgba(95,171,65,0.62)',
+                13,'rgba(56,139,35,0.62)',
+                15,'rgba(16,68,0,0.62)'
+            ];
+        }
+        return [
+            'interpolate',['linear'],
+            ['ln',['+',1,['coalesce',['to-number',['get','Population per Building']],0]]],
+            0,'rgba(255,255,255,0.00)',
+            1,'rgba(245,240,220,0.25)',
+            2,'rgba(230,199,170,0.55)',
+            3,'rgba(252,146,114,0.62)',
+            4,'rgba(253,131,104,0.62)',
+            5,'rgba(238,88,74,0.62)',
+            6,'rgba(199,62,67,0.62)',
+            7,'rgba(112,35,45,0.62)'
+        ];
+    }
+
+    function demographicsOpacityExpression(){
+        const scale = Math.max(0, Math.min(1, demographicsState.opacity / 100));
+        return [
+            'interpolate',['linear'],['zoom'],
+            8, 0.55 * scale,
+            12, 0.78 * scale,
+            15, 0.90 * scale
+        ];
+    }
+
+    function demographicsSourceLayer(){
+        try{
+            const atlasLayer = map.getLayer('atlas');
+            if(atlasLayer && atlasLayer['source-layer']) return atlasLayer['source-layer'];
+        } catch(_err){}
+        return (typeof ATLAS_SOURCE_LAYER !== 'undefined' && ATLAS_SOURCE_LAYER) ? ATLAS_SOURCE_LAYER : 'atlas';
+    }
+
+    function ensureDemographicsLayer(){
+        if(typeof map === 'undefined' || !map) return false;
+        if(map.getLayer(DEMOGRAPHICS_LAYER_ID)){
+            demographicsLayerReady = true;
+            return true;
+        }
+        if(!map.getSource('atlas')) return false;
+        const before = map.getLayer('hover') ? 'hover' : undefined;
+        const layer = {
+            id:DEMOGRAPHICS_LAYER_ID,
+            type:'fill',
+            source:'atlas',
+            'source-layer':demographicsSourceLayer(),
+            layout:{ visibility:demographicsState.visible ? 'visible' : 'none' },
+            paint:{
+                'fill-color':demographicsColourExpression(demographicsState.theme),
+                'fill-opacity':demographicsOpacityExpression(),
+                'fill-outline-color':'rgba(60,60,60,0.035)'
+            }
+        };
+        try{
+            if(before) map.addLayer(layer,before); else map.addLayer(layer);
+        } catch(err){
+            demographicsLayerReady = false;
+            console.error('[ATLAS IA] Demographics layer creation failed:', err);
+            return false;
+        }
+        demographicsLayerReady = !!map.getLayer(DEMOGRAPHICS_LAYER_ID);
+        return demographicsLayerReady;
+    }
+
+    function updateDemographicsRenderer(){
+        if(!ensureDemographicsLayer() || !map.getLayer(DEMOGRAPHICS_LAYER_ID)) return;
+        map.setPaintProperty(DEMOGRAPHICS_LAYER_ID,'fill-color',demographicsColourExpression(demographicsState.theme));
+        map.setPaintProperty(DEMOGRAPHICS_LAYER_ID,'fill-opacity',demographicsOpacityExpression());
+        map.setLayoutProperty(DEMOGRAPHICS_LAYER_ID,'visibility',demographicsState.visible ? 'visible' : 'none');
+        syncDemographicsOpacityUI();
+    }
+
+    function setDemographicsOpacity(value){
+        demographicsState.opacity = Math.round(Math.max(0,Math.min(100,Number(value) || 0)));
+        updateDemographicsRenderer();
+    }
+
+    function renderDemographicsLegend(){
+        const host = $('#demographicsLegendHost');
+        if(!host) return;
+        const living = demographicsState.theme === 'GFA per Capita';
+        const title = living ? 'Living Space' : 'Population Intensity';
+        const desc = living
+            ? 'Estimated residential floor area per resident within each hex.'
+            : 'Estimated number of residents associated with buildings within each hex.';
+        const gradient = living
+            ? 'linear-gradient(90deg,rgba(220,245,220,.35),rgb(135,196,116),rgb(16,68,0))'
+            : 'linear-gradient(90deg,rgba(245,240,220,.35),rgb(252,146,114),rgb(112,35,45))';
+        const infoKey = living ? 'demographics:GFA per Capita' : 'demographics:Population per Building';
+        host.innerHTML = `
+            <div class="uga-demographics-legend">
+                <div class="legend-title-row uga-demographics-legend-heading">
+                    <h3 class="uga-demographics-legend-title">${title}</h3>
+                    <button type="button" class="info-trigger uga-demographics-info-trigger" data-info-key="${infoKey}" aria-label="About ${title}" title="About ${title}">i</button>
+                </div>
+                <div class="uga-demographics-legend-copy">${desc}</div>
+                <div class="uga-demographics-gradient" style="background:${gradient}"></div>
+                <div class="uga-demographics-gradient-labels"><span>Lower</span><span>Higher</span></div>
+            </div>
+        `;
+    }
+
+    function syncDemographicsOpacityUI(){
+        const pct = `${demographicsState.opacity}%`;
+        $$('#demographicsSection input[data-uga-demo-opacity]').forEach(input => { input.value = String(demographicsState.opacity); });
+        $$('#demographicsSection [data-uga-demo-opacity-value]').forEach(el => { el.textContent = pct; });
+    }
+
+    function initialiseDemographicsOpacity(){
+        const expanded = $('#demographicsOpacityHost');
+        const collapsed = $('#demographicsSection .uga-native-peer-compact');
+        if(expanded && expanded.dataset.ugaOpacityReady !== 'true'){
+            expanded.dataset.ugaOpacityReady='true';
+            expanded.innerHTML = `
+                <div class="uga-domain-opacity-card">
+                    <div class="uga-domain-opacity-head"><span>DEMOGRAPHICS OPACITY</span><strong data-uga-demo-opacity-value>100%</strong></div>
+                    <input data-uga-demo-opacity type="range" min="0" max="100" step="1" value="100" aria-label="Demographics opacity">
+                </div>`;
+        }
+        $$('#demographicsSection input[data-uga-demo-opacity]').forEach(input => {
+            if(input.dataset.ugaBound === 'true') return;
+            input.dataset.ugaBound='true';
+            input.addEventListener('input',() => setDemographicsOpacity(input.value));
+        });
+        syncDemographicsOpacityUI();
+    }
+
+    function bindDemographicsMapClick(){
+        if(demographicsMapClickBound || typeof map === 'undefined' || !map) return;
+        demographicsMapClickBound = true;
+        map.on('click', (e) => {
+            if(!demographicsState.visible) return;
+            if(!map.getLayer(DEMOGRAPHICS_LAYER_ID)) return;
+            const feature = map.queryRenderedFeatures(e.point,{layers:[DEMOGRAPHICS_LAYER_ID]})[0] || null;
+            if(!feature) return;
+            if(typeof showPopup === 'function') showPopup(feature,e.point,null);
+            if(typeof marketRenderFeature === 'function') setTimeout(() => marketRenderFeature(feature),0);
+        });
+    }
+
+    function initialiseDemographicsRenderer(){
+        const boot = () => {
+            ensureDemographicsLayer();
+            initialiseDemographicsOpacity();
+            renderDemographicsLegend();
+            updateDemographicsRenderer();
+            bindDemographicsMapClick();
+        };
+        if(typeof map !== 'undefined' && map){
+            if(map.loaded()) boot(); else map.on('load',boot);
+        }
+    }
+
+    function marketOverlaySelect(){
+        const section = $('#marketSection');
+        if(!section) return null;
+        return $$('select',section).find(select => {
+            const text = Array.from(select.options).map(o => o.textContent || '').join(' ');
+            return /off/i.test(text) && /(market|transaction|exposure|pulse|momentum)/i.test(text);
+        }) || null;
+    }
+
+    function marketOpacitySliders(){
+        const section = $('#marketSection');
+        if(!section) return [];
+        return $$('input[type="range"]',section).filter(input => {
+            const context = input.closest('div,section,label')?.textContent || '';
+            return /opacity/i.test(`${input.id || ''} ${input.className || ''} ${context}`);
+        });
+    }
+
+    function normaliseMarketOpacityRange(){
+        marketOpacitySliders().forEach(input => {
+            const max = Number(input.max || 100);
+            // Current Market Context opacity uses percent units and was capped
+            // at 30. Lift that presentation cap without changing its renderer.
+            if(max > 1 && max < 100) input.max = '100';
+        });
+    }
+
+    function syncMarketVisibilityToggle(){
+        const toggle = $('#marketVisibilityToggle');
+        const select = marketOverlaySelect();
+        if(!toggle || !select) return;
+        const selectedText = select.options[select.selectedIndex]?.textContent || select.value || '';
+        const visible = !/^\s*off\s*$/i.test(selectedText);
+        toggle.checked = visible;
+        if(visible) marketLastVisibleSelection = select.value;
+    }
+
+    function setMarketVisibility(visible){
+        const select = marketOverlaySelect();
+        if(!select) return;
+        const options = Array.from(select.options);
+        const off = options.find(o => /^\s*off\s*$/i.test(o.textContent || o.value));
+        if(!visible){
+            const current = options[select.selectedIndex];
+            if(current && current !== off) marketLastVisibleSelection = current.value;
+            if(off) setSelectValue(select,off.value);
+        } else {
+            let value = marketLastVisibleSelection;
+            if(!value || !options.some(o => o.value === value && o !== off)){
+                value = (options.find(o => /Transaction Exposure/i.test(o.textContent || '')) ||
+                         options.find(o => /Market Exposure/i.test(o.textContent || '')) ||
+                         options.find(o => o !== off))?.value;
+            }
+            if(value != null) setSelectValue(select,value);
+        }
+        syncMarketVisibilityToggle();
+    }
+
+    function ensureMarketVisibilityControl(){
+        const section = $('#marketSection');
+        const body = $('.mode-body',section);
+        if(!section || !body || $('#marketVisibilityControl')) return;
+        const wrap = document.createElement('label');
+        wrap.id='marketVisibilityControl';
+        wrap.className='toggle uga-domain-master-toggle uga-market-master-toggle';
+        wrap.innerHTML='<input type="checkbox" id="marketVisibilityToggle"><span>Show Market</span>';
+        body.insertBefore(wrap,body.firstElementChild || null);
+        $('#marketVisibilityToggle')?.addEventListener('change',event => setMarketVisibility(!!event.target.checked));
+        const select = marketOverlaySelect();
+        select?.addEventListener('change',syncMarketVisibilityToggle);
+        syncMarketVisibilityToggle();
+    }
+
+    const MARKET_VIEW_LEGENDS = {
+        'Market Momentum': {
+            title:'Market Momentum',
+            description:'Summarises the direction of 12-month regional private-domestic price and rent movement. The value retains the geography of the official source rather than inventing a 100 m market price.',
+            gradient:'linear-gradient(90deg,#d9dde0,#d4cec1,#d9b779,#d89145,#c76d2d,#8a421f)',
+            low:'Weaker or downward regional movement.', mid:'Broadly stable / mixed regional movement.', high:'Stronger upward regional movement.',
+            note:'Regional market context. It is not a property valuation or forecast.'
+        },
+        'Market Exposure': {
+            title:'Market Exposure',
+            description:'Shows where wider Market Momentum overlaps with local Atlas opportunity conditions. Local differentiation comes from Development Pressure and Capacity Opportunity.',
+            gradient:'linear-gradient(90deg,#edf8f6,#ccece6,#7fcdbb,#41b6c4,#25788e,#084081)',
+            low:'Limited market movement and/or local opportunity.', mid:'Meaningful overlap between market movement and local opportunity.', high:'Stronger market movement coinciding with stronger local opportunity.',
+            note:'A combined market-and-urban indicator; not a valuation, investment recommendation or forecast.'
+        },
+        'Transaction Pulse': {
+            title:'Transaction Pulse',
+            description:'Shows whether recent registered transaction activity is stronger or weaker relative to its recent norm and the same period a year earlier. It retains the geography published by the source.',
+            gradient:'linear-gradient(90deg,#e2e4e6,#ebd1d0,#e9aaa4,#df7c78,#c94f5c,#8b2948)',
+            low:'Quieter recent registered transaction activity.', mid:'Activity broadly around its recent reference level.', high:'Stronger recent registered transaction activity.',
+            note:'This is an activity signal at source geography, not an invented transaction count for each 100 m hex.'
+        },
+        'Transaction Exposure': {
+            title:'Transaction Exposure',
+            description:'Shows where Transaction Pulse overlaps with local Atlas opportunity conditions. The broad transaction signal is interpreted against local Development Pressure and Capacity Opportunity.',
+            gradient:'linear-gradient(90deg,#e3e4e6,#ded5e8,#c9b3df,#a884cf,#7a51b5,#4d2688)',
+            low:'Limited transaction activity and/or local opportunity.', mid:'Meaningful overlap between transaction activity and local opportunity.', high:'Stronger transaction activity coinciding with stronger local opportunity.',
+            note:'Local differentiation comes from Atlas conditions; it does not imply 100 m transaction observations.'
+        }
+    };
+
+    function selectedMarketViewName(){
+        const select = marketOverlaySelect();
+        const option = select?.options?.[select.selectedIndex];
+        return String(option?.textContent || option?.value || '').trim();
+    }
+
+    function marketViewConfig(name){
+        for(const [key,cfg] of Object.entries(MARKET_VIEW_LEGENDS)){
+            if(String(name).toLowerCase().includes(key.toLowerCase())) return [key,cfg];
+        }
+        return [null,null];
+    }
+
+    function marketLeafText(section, pattern){
+        return $$('*', section).find(el => el.children.length === 0 && pattern.test((el.textContent || '').trim())) || null;
+    }
+
+    function normaliseMarketViewSelector(){
+        const section = $('#marketSection');
+        const select = marketOverlaySelect();
+        if(!section || !select) return false;
+        const heading = marketLeafText(section,/^Map context overlay$/i);
+        if(heading){ heading.textContent = 'CHOOSE A MARKET VIEW:'; heading.classList.add('section-label','uga-market-view-label'); }
+        const helper = marketLeafText(section,/^Optional secondary market layer$/i);
+        if(helper) helper.textContent = 'Market layer shown over the map';
+        select.classList.add('uga-domain-select');
+        if(select.dataset.ugaV17LegendBound !== 'true'){
+            select.dataset.ugaV17LegendBound = 'true';
+            select.addEventListener('change', renderMarketViewLegend);
+        }
+        return true;
+    }
+
+    function marketControlCard(select){
+        if(!select) return null;
+        let node = select.parentElement;
+        while(node && node.id !== 'marketSection'){
+            if(node.querySelector('input[type="range"]') && node.contains(select)) return node;
+            node = node.parentElement;
+        }
+        return select.parentElement;
+    }
+
+    function ensureMarketViewLegendHost(){
+        const section = $('#marketSection');
+        const select = marketOverlaySelect();
+        if(!section || !select) return null;
+        let host = $('#ugaMarketViewLegend',section);
+        if(host) return host;
+        host = document.createElement('div');
+        host.id = 'ugaMarketViewLegend';
+        host.className = 'uga-market-layer-legend';
+        const card = marketControlCard(select);
+        if(card) card.appendChild(host); else $('.mode-body',section)?.appendChild(host);
+        return host;
+    }
+
+    function renderMarketViewLegend(){
+        normaliseMarketViewSelector();
+        const host = ensureMarketViewLegendHost();
+        if(!host) return;
+        const name = selectedMarketViewName();
+        if(!name || /^off$/i.test(name)){ host.hidden=true; host.innerHTML=''; host.dataset.ugaLegendKey='Off'; return; }
+        const [key,cfg] = marketViewConfig(name);
+        if(!key || !cfg){ host.hidden=true; host.innerHTML=''; host.dataset.ugaLegendKey=name; return; }
+        host.hidden=false;
+        host.dataset.ugaLegendKey=key;
+        host.innerHTML = `
+            <div class="legend-title-row uga-market-layer-heading">
+                <h3 class="uga-market-layer-title">${cfg.title}</h3>
+                <button type="button" class="info-trigger uga-market-info-trigger" data-info-key="market:${key}" aria-label="About ${cfg.title}" title="About ${cfg.title}">i</button>
+            </div>
+            <div class="uga-market-layer-copy">${cfg.description}</div>
+            <div class="uga-market-layer-gradient" style="background:${cfg.gradient}"></div>
+            <div class="uga-market-layer-gradient-labels"><span>Lower</span><span>Higher</span></div>
+            <div class="uga-market-layer-interpretation">
+                <div><strong>Low</strong><span>${cfg.low}</span></div>
+                <div><strong>Medium</strong><span>${cfg.mid}</span></div>
+                <div><strong>High</strong><span>${cfg.high}</span></div>
+            </div>
+            <div class="uga-market-layer-note">${cfg.note}</div>`;
+    }
+
+    function initialiseMarketViewPresentation(){
+        if(!normaliseMarketViewSelector()) return false;
+        renderMarketViewLegend();
+        return true;
+    }
+
+    function findOpacitySlider(section){
+        if(!section) return null;
+        const ranges = Array.from(section.querySelectorAll('input[type="range"]'));
+        return ranges.find(input => {
+            const own = `${input.id || ''} ${input.className || ''}`;
+            const context = input.closest('div,section,label')?.textContent || '';
+            return /opacity/i.test(`${own} ${context}`);
+        }) || null;
+    }
+
+    function formatOpacityValue(input){
+        if(!input) return '100%';
+        const raw = Number(input.value);
+        const max = Number(input.max || 100);
+        const percent = max <= 1 ? raw * 100 : (max ? (raw / max) * 100 : raw);
+        return `${Math.round(Math.max(0,Math.min(100,percent)))}%`;
+    }
+
+    function setProxyToNative(proxy,native){
+        if(!proxy || !native) return;
+        const nmin = Number(native.min || 0);
+        const nmax = Number(native.max || 100);
+        const p = Number(proxy.value) / 100;
+        native.value = String(nmin + (nmax - nmin) * p);
+        native.dispatchEvent(new Event('input',{bubbles:true}));
+        native.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+
+    function createOpacityProxy(host,{sectionId,label,nativeSectionId,disabled=false}){
+        if(!host || host.dataset.ugaOpacityReady === 'true') return;
+        const native = disabled ? null : findOpacitySlider(document.getElementById(nativeSectionId));
+        if(!native && !disabled){
+            // Current production builds provide an Analysis opacity slider. If
+            // an older test base does not, leave the host empty rather than
+            // introducing a second opacity engine.
+            return;
+        }
+        host.dataset.ugaOpacityReady = 'true';
+        const nativeValue = native ? Math.round((Number(native.value)-Number(native.min||0)) / Math.max(1e-9,(Number(native.max||100)-Number(native.min||0))) * 100) : 100;
+        host.innerHTML = `
+            <div class="uga-domain-opacity-card${disabled ? ' uga-opacity-disabled' : ''}">
+                <div class="uga-domain-opacity-head"><span>${label.toUpperCase()} OPACITY</span><strong>${nativeValue}%</strong></div>
+                <input type="range" min="0" max="100" step="1" value="${nativeValue}" ${disabled ? 'disabled' : ''} aria-label="${label} opacity">
+            </div>
+        `;
+        const proxy = host.querySelector('input[type="range"]');
+        const value = host.querySelector('strong');
+        if(proxy && native){
+            const syncFromNative = () => {
+                const pct = formatOpacityValue(native);
+                proxy.value = pct.replace('%','');
+                if(value) value.textContent = pct;
+                const collapsed = document.querySelector(`#${sectionId} .uga-domain-collapsed-opacity input[type="range"]`);
+                const collapsedValue = document.querySelector(`#${sectionId} .uga-domain-collapsed-opacity strong`);
+                if(collapsed){ collapsed.value = proxy.value; }
+                if(collapsedValue){ collapsedValue.textContent = pct; }
+            };
+            proxy.addEventListener('input',() => {
+                setProxyToNative(proxy,native);
+                if(value) value.textContent = `${proxy.value}%`;
+            });
+            native.addEventListener('input',syncFromNative);
+            native.addEventListener('change',syncFromNative);
+            syncFromNative();
+        }
+    }
+
+    function createCollapsedOpacity(sectionId,label,nativeSectionId){
+        const section = document.getElementById(sectionId);
+        const host = section?.querySelector('.uga-domain-collapsed-opacity');
+        const native = findOpacitySlider(document.getElementById(nativeSectionId));
+        if(!section || !host || !native) return;
+        const pct = formatOpacityValue(native);
+        host.innerHTML = `
+            <div class="uga-domain-collapsed-copy">
+                <span>${label.toUpperCase()}</span>
+                <strong>${label} opacity · <b>${pct}</b></strong>
+            </div>
+            <input type="range" min="0" max="100" step="1" value="${pct.replace('%','')}" aria-label="${label} opacity">
+        `;
+        const proxy = host.querySelector('input[type="range"]');
+        const value = host.querySelector('b');
+        const expanded = document.querySelector(`#${sectionId} .uga-domain-opacity-host input[type="range"]`);
+        const syncFromNative = () => {
+            const p = formatOpacityValue(native);
+            if(proxy) proxy.value = p.replace('%','');
+            if(value) value.textContent = p;
+            if(expanded) expanded.value = p.replace('%','');
+            const expandedValue = document.querySelector(`#${sectionId} .uga-domain-opacity-host strong`);
+            if(expandedValue) expandedValue.textContent = p;
+        };
+        proxy?.addEventListener('input',() => {
+            setProxyToNative(proxy,native);
+            if(value) value.textContent = `${proxy.value}%`;
+        });
+        native.addEventListener('input',syncFromNative);
+        native.addEventListener('change',syncFromNative);
+        syncFromNative();
+    }
+
+    function initialiseDomainOpacity(){
+        initialiseDemographicsOpacity();
+        // Climate deliberately gains the same independent opacity structure
+        // only when its first public map layer exists.
+    }
+
+    function normaliseDomainIconScale(){
+        const reference = [
+            document.querySelector('#fabricSection img[src*="Fabric_Icon"]'),
+            document.querySelector('#analysisSection img[src*="Analysis_Icon"]'),
+            document.querySelector('#marketSection img[src*="Market_Icon"]')
+        ].find(Boolean);
+        let size = 40;
+        if(reference){
+            const r = reference.getBoundingClientRect();
+            size = Math.round(Math.max(r.width,r.height)) || size;
+        }
+        document.documentElement.style.setProperty('--uga-domain-reference-icon-size', `${size}px`);
+    }
+
+    function initialiseFiveDomainRail(){
+        const scroll = $('#panelScroll');
+        if(!scroll) return;
+        scroll.classList.add('uga-five-domain-rail');
+    }
+
+    function createMobileTab(key,label,iconSrc){
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'mobile-sheet-tab uga-added-mobile-tab';
+        b.dataset.mobileSheetTab = key;
+        b.setAttribute('role','tab');
+        b.setAttribute('aria-selected','false');
+        b.innerHTML = `<img class="uga-mobile-domain-icon" src="${iconSrc}" alt="" aria-hidden="true"><span>${label}</span>`;
+        return b;
+    }
+
+    function clearAddedMobilePanels(except=null){
+        ['demographicsSection','climateSection'].forEach(id => {
+            const section = document.getElementById(id);
+            if(!section || id === except) return;
+            section.classList.remove('mobile-sheet-active');
+            section.classList.add('collapsed');
+            section.classList.remove('expanded');
+            section.setAttribute('aria-hidden','true');
+        });
+    }
+
+    function activateAddedMobileSection(key){
+        const panel = $('#panel');
+        const scroll = $('#panelScroll');
+        const basemap = $('#basemapControl');
+        const target = key === 'demographics' ? $('#demographicsSection') : $('#climateSection');
+        if(!panel || !scroll || !target) return;
+        openPanelShell();
+        panel.dataset.mobileSheetTab = key;
+        panel.classList.remove('mobile-sheet-map-active');
+        basemap?.classList.remove('mobile-sheet-active');
+        scroll.classList.add('mobile-sheet-active');
+        $$('.mobile-sheet-tab').forEach(tab => {
+            const active = tab.dataset.mobileSheetTab === key;
+            tab.classList.toggle('active', active);
+            tab.setAttribute('aria-selected', String(active));
+        });
+        $$('#panelScroll > .mode-panel').forEach(section => {
+            const active = section === target;
+            section.classList.toggle('mobile-sheet-active', active);
+            section.classList.toggle('expanded', active);
+            section.classList.toggle('collapsed', !active);
+            section.setAttribute('aria-hidden', String(!active));
+        });
+        target.style.display = '';
+        scroll.scrollTop = 0;
+    }
+
+    function extendMobileNavigation(){
+        const tabs = $('.mobile-sheet-tabs');
+        if(!tabs || tabs.dataset.ugaIaExtended === 'true') return false;
+        tabs.dataset.ugaIaExtended = 'true';
+        const demo = createMobileTab('demographics','DEMOGRAPHICS','assets/Demographics_Icon.png');
+        const climate = createMobileTab('climate','CLIMATE','assets/Climate_Icon.png');
+        tabs.append(demo, climate);
+
+        // Existing V2.6 tabs keep their own handlers. Capture clears the two
+        // added sections before the original handler selects Map/Fabric/etc.
+        tabs.addEventListener('click', (event) => {
+            const btn = event.target.closest('.mobile-sheet-tab');
+            if(!btn) return;
+            const key = btn.dataset.mobileSheetTab;
+            if(key === 'demographics'){
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                activateAddedMobileSection('demographics');
+                demographicsState.theme = $('#demographicsTheme')?.value || 'Population per Building';
+                demographicsState.visible = !!$('#demographicsToggle')?.checked;
+                updateDemographicsRenderer();
+                return;
+            }
+            if(key === 'climate'){
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                activateAddedMobileSection('climate');
+                return;
+            }
+            clearAddedMobilePanels();
+        }, true);
+        return true;
+    }
+
+    function mobileSelect(key){
+        const tab = $(`.mobile-sheet-tab[data-mobile-sheet-tab="${key}"]`);
+        if(tab){ tab.click(); return true; }
+        return false;
+    }
+
+    function chooseMarketDefault(){
+        const section = $('#marketSection');
+        if(!section) return;
+        const selects = $$('select', section);
+        const patterns = [/Transaction Exposure/i,/Market Exposure/i];
+        for(const pattern of patterns){
+            for(const select of selects){
+                const value = optionValueMatching(select, pattern);
+                if(value != null){ setSelectValue(select, value); return; }
+            }
+        }
+        // Some market controls use buttons/radios rather than a select.
+        for(const pattern of patterns){
+            const candidate = $$('button,label', section).find(el => pattern.test(el.textContent || ''));
+            if(candidate){ candidate.click(); return; }
+        }
+    }
+
+    function collapseOtherDesktopSections(keep){
+        // Historical function name retained only for welcome compatibility.
+        // V1.6 desktop does NOT collapse peers: it simply opens the requested panel.
+        if(MOBILE_QUERY.matches || !keep) return;
+        if(keep.classList.contains('collapsed')){
+            if(keep.dataset.ugaDomainPanel === 'true'){
+                setSectionExpanded(keep,true);
+            }else{
+                nativePanelToggle(keep)?.click();
+            }
+        }
+        revealRailPanel(keep);
+    }
+
+    function activateStart(key){
+        openPanelShell();
+        if(key === 'fabric'){
+            setChecked(analysisToggle(), false);
+            setChecked($('#reclaimedToggle'), true);
+            if(MOBILE_QUERY.matches) mobileSelect('fabric');
+            else collapseOtherDesktopSections($('#fabricSection'));
+        } else if(key === 'analysis'){
+            const select = themeSelect();
+            const ugs = optionValueMatching(select, /Urban Genetic Signature|UGS/i) || optionValueMatching(select, /Development Pressure/i);
+            activateTheme(ugs,'analysis');
+            if(MOBILE_QUERY.matches) mobileSelect('analysis');
+            else collapseOtherDesktopSections($('#analysisSection'));
+        } else if(key === 'market'){
+            setChecked(analysisToggle(), false);
+            chooseMarketDefault();
+            if(MOBILE_QUERY.matches) mobileSelect('market');
+            else collapseOtherDesktopSections($('#marketSection'));
+        } else if(key === 'demographics'){
+            const demoSelect = $('#demographicsTheme');
+            if(demoSelect) demoSelect.value = 'Population per Building';
+            demographicsState.theme = 'Population per Building';
+            demographicsState.visible = true;
+            if($('#demographicsToggle')) $('#demographicsToggle').checked = true;
+            setChecked(analysisToggle(), false);
+            updateDemographicsRenderer();
+            renderDemographicsLegend();
+            if(MOBILE_QUERY.matches) mobileSelect('demographics');
+            else collapseOtherDesktopSections($('#demographicsSection'));
+        } else if(key === 'map'){
+            setChecked(analysisToggle(), false);
+            if(MOBILE_QUERY.matches) mobileSelect('map');
+            else $$('#panelScroll > .mode-panel').forEach(section => {
+                if(section.classList.contains('expanded')){
+                    if(section.dataset.ugaDomainPanel === 'true') setSectionExpanded(section,false);
+                    else nativePanelToggle(section)?.click();
+                }
+            });
+        }
+    }
+
+    function rebuildWelcome(){
+        const content = $('#welcomePanel .welcome-content');
+        const footer = $('#welcomePanel .welcome-footer');
+        const subtitle = $('#welcomePanel .welcome-subtitle');
+        const closeButton = $('#welcomeCloseButton');
+        if(!content || content.dataset.ugaIaWelcome === 'true') return;
+        content.dataset.ugaIaWelcome = 'true';
+        if(subtitle) subtitle.textContent = 'Read Hong Kong through data';
+        content.innerHTML = `
+            <p class="uga-welcome-lead">Explore how the city is built, who lives in it, how its markets are moving, and the patterns that emerge when these things are read together.</p>
+            <p class="uga-welcome-prompt"><strong>Choose what interests you about the city and start there.</strong><br><span>You can explore everything else at any time.</span></p>
+            <div class="uga-welcome-choices" role="group" aria-label="Choose where to start">
+                <button type="button" class="uga-welcome-choice" data-uga-start="fabric"><span class="uga-choice-title"><span class="uga-choice-heading"><img class="uga-choice-icon" src="assets/Fabric_Icon.png" alt="">Fabric</span></span><span class="uga-choice-copy">How the city is physically built and connected.</span></button>
+                <button type="button" class="uga-welcome-choice" data-uga-start="analysis"><span class="uga-choice-title"><span class="uga-choice-heading"><img class="uga-choice-icon" src="assets/Analysis_Icon.png" alt="">Urban Analysis</span></span><span class="uga-choice-copy">Patterns that emerge when different parts of the city are read together.</span></button>
+                <button type="button" class="uga-welcome-choice" data-uga-start="market"><span class="uga-choice-title"><span class="uga-choice-heading"><img class="uga-choice-icon" src="assets/Market_Icon.png" alt="">Market</span></span><span class="uga-choice-copy">How property and transaction activity vary across the city and relate to place.</span></button>
+                <button type="button" class="uga-welcome-choice" data-uga-start="demographics"><span class="uga-choice-title"><span class="uga-choice-heading"><img class="uga-choice-icon" src="assets/Demographics_Icon.png" alt="">Demographics</span></span><span class="uga-choice-copy">Where people live and how population and living conditions vary.</span></button>
+                <button type="button" class="uga-welcome-choice uga-welcome-choice-disabled" disabled aria-disabled="true"><span class="uga-choice-title"><span class="uga-choice-heading"><img class="uga-choice-icon" src="assets/Climate_Icon.png" alt="">Climate</span><em>Coming soon</em></span><span class="uga-choice-copy">How heat, terrain and environmental conditions affect the city.</span></button>
+            </div>
+            <p class="uga-welcome-caveat">The Atlas combines sources with different dates, scales and levels of coverage. Use it to explore patterns and relationships rather than as a precise statement about an individual property.</p>
+        `;
+        if(closeButton) closeButton.textContent = 'Explore map';
+        footer?.classList.add('uga-welcome-footer');
+        $$('.uga-welcome-choice[data-uga-start]', content).forEach(button => {
+            button.addEventListener('click', () => {
+                const key = button.dataset.ugaStart;
+                // Let the existing close handler persist "Do not show again".
+                $('#welcomeCloseButton')?.click();
+                requestAnimationFrame(() => activateStart(key));
+            });
+        });
+    }
+
+    function returningVisitorDefault(){
+        if(localStorage.getItem(WELCOME_KEY) !== 'true') return;
+        // Returning visitors deliberately start from Map rather than restoring
+        // a potentially stale prior analytical mode.
+        setTimeout(() => activateStart('map'), 900);
+    }
+
+
+    function installRailFocus(){
+        window.UGAFocusRailPanel = section => {
+            if(MOBILE_QUERY.matches || !section) return;
+            const rail = $('#panelScroll');
+            if(!rail) return;
+            requestAnimationFrame(() => {
+                const rr = rail.getBoundingClientRect();
+                const pr = section.getBoundingClientRect();
+                const margin = 10;
+                let delta = 0;
+                if(pr.height >= rr.height - margin * 2){
+                    delta = pr.top - (rr.top + margin);
+                }else if(pr.top < rr.top + margin){
+                    delta = pr.top - (rr.top + margin);
+                }else if(pr.bottom > rr.bottom - margin){
+                    delta = pr.bottom - (rr.bottom - margin);
+                }
+                if(Math.abs(delta) > 1){
+                    const max = Math.max(0, rail.scrollHeight - rail.clientHeight);
+                    rail.scrollTop = Math.max(0, Math.min(max, rail.scrollTop + delta));
+                }
+            });
+        };
+    }
+
+    function exposeDebugState(){
+        window.UGAInformationArchitectureState = () => ({
+            version:VERSION,
+            owner,
+            mobile:MOBILE_QUERY.matches,
+            mobileTab:$('#panel')?.dataset?.mobileSheetTab || null,
+            theme:themeSelect()?.value || null,
+            fabricMeasure:fabricMeasureState.theme || null,
+            fabricMeasureLayerReady:fabricMeasureLayerReady,
+            fabricOpacity:fabricOpacityPercent(),
+            demographics:!!$('#demographicsSection'),
+            demographicsVisible:demographicsState.visible,
+            demographicsOpacity:demographicsState.opacity,
+            demographicsTheme:demographicsState.theme,
+            climate:!!$('#climateSection'),
+            openPanels:domainPanels().filter(p => p.classList.contains('expanded') && !p.classList.contains('collapsed')).map(p => p.id)
+        });
+        window.UGAStartAt = activateStart;
+        window.UGAClearWelcomePreference = () => { localStorage.removeItem(WELCOME_KEY); return true; };
+        window.UGADemographicsState = () => ({...demographicsState,layerReady:demographicsLayerReady});
+        window.UGARailV17 = () => {
+            const rail = $('#panelScroll');
+            const panel = $('#panel');
+            return {
+                version:VERSION,
+                mobile:MOBILE_QUERY.matches,
+                railHeight:rail?.clientHeight || 0,
+                railScrollHeight:rail?.scrollHeight || 0,
+                railScrollTop:rail?.scrollTop || 0,
+                shellHeight:panel?.clientHeight || 0,
+                panels:domainPanels().map(section => ({
+                    id:section.id,
+                    expanded:section.classList.contains('expanded'),
+                    collapsed:section.classList.contains('collapsed'),
+                    height:Math.round(section.getBoundingClientRect().height),
+                    bodyOverflow:section.querySelector('.mode-body') ? getComputedStyle(section.querySelector('.mode-body')).overflowY : null,
+                    maxHeight:getComputedStyle(section).maxHeight
+                }))
+            };
+        };
+    }
+
+    function init(){
+        const required = ['#welcomeOverlay','#panel','#panelScroll','#analysisSection','#fabricSection','#theme'];
+        const missing = required.filter(sel => !$(sel));
+        if(missing.length){
+            console.warn('[ATLAS IA] Required UI missing:', missing.join(', '));
+            return;
+        }
+        installRailFocus();
+        prepareSharedAnalysisUI();
+        organiseAnalysisSelector();
+        hideMarketFromAnalysis();
+        createFabricMeasures();
+        initialiseFabricMeasureRenderer();
+        createDemographicsPanel();
+        createClimatePanel();
+        improveMarketSection();
+        normaliseTopLevelControls();
+        initialiseFiveDomainRail();
+        initialiseDemographicsRenderer();
+        setTimeout(() => { initialiseDomainOpacity(); normaliseDomainIconScale(); ensureMarketVisibilityControl(); normaliseMarketOpacityRange(); syncMarketVisibilityToggle(); initialiseMarketViewPresentation(); }, 0);
+        watchMarketControls();
+        rebuildWelcome();
+        exposeDebugState();
+
+        let attempts = 0;
+        const mobileTimer = setInterval(() => {
+            attempts += 1;
+            if(extendMobileNavigation() || attempts > 40) clearInterval(mobileTimer);
+        }, 100);
+
+        returningVisitorDefault();
+        console.info('[ATLAS IA] Information Architecture V1.7 production layer initialised.');
+    }
+
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once:true });
+    else init();
+})();
+// === IA V1.7 PRODUCTION RUNTIME END ===

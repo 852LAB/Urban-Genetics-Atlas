@@ -459,3 +459,54 @@ Mobile interface refinement:
 - Refined panel shadow behaviour so shadows belong to the individual interface panels rather than their structural container.
 
 No changes to Atlas data, analytical models, Market calculations or PMTiles in this release.
+
+# Urban Genetics Atlas — V1.6-20260916-122651
+
+**Date:** 2026-09-16 12:26:51 CST
+**Live:** https://852lab.github.io/Urban-Genetics-Atlas/
+
+## Release changes
+
+- Application files released from Development: `index.html`, `atlas.js`, `styles.css`, `site/market-data.js`, `site/market-data.css`, `site/atlas-stats.json`.
+- PMTiles: `852LAB_V1.6.pmtiles` → `atlas/852LAB_V1.6.pmtiles`
+- GeoJSON: `MTR_Lines_TEST.geojson` → `mtr/MTR_Lines_TEST.geojson`
+- GeoJSON: `Reclaimed_Land_V1.1.geojson` → `reclaimed/Reclaimed_Land_V1.1.geojson`
+- GeoJSON: `Buildings_Age_or_Heritage_Grade.geojson` → `buildings/Buildings_Age_or_Heritage_Grade.geojson`
+- Terrain: `51941` objects — **unchanged**
+
+## Public AI context
+
+- `llms.txt` — AI entry point.
+- `llms-full.txt` — full plain-text AI briefing.
+- `atlas-context.md` / `atlas-context.txt` — current project context.
+
+## Automated checks
+
+- Runtime dependencies discovered from fresh Development `atlas.js`.
+- All discovered local runtime resources exist.
+- R2 destination collisions checked.
+- External basemap sources remain external and were not copied to R2.
+- Compact local archive prepared; fixed terrain is not duplicated per release.
+- Public AI context regenerated.
+- R2/CORS/range verification performed before Git push.
+- GitHub Pages and public AI files verified after push.
+
+## Maintainer release notes
+
+Information architecture + interface release:
+
+- Reorganised the Atlas around five public domains: Fabric, Urban Analysis, Market, Demographics and Climate.
+- Added a first-visit starting-point chooser so visitors can begin from the part of the city that interests them, while retaining the existing "Do not show again" preference.
+- Reframed Urban Analysis around higher-order cross-domain interpretation: Urban Genetic Signature, Development Pressure, Renewal Potential and Genesis Potential.
+- Re-homed GFA Saturation, Latent Urban Capacity and MTR Built Accessibility under Fabric as independent Built-City Measures.
+- Added an independent Demographics domain with Population Intensity and Living Space, its own visibility and opacity controls, and clear status language while the demographic foundation is being rebuilt.
+- Added the Climate domain to the interface as a structured "Coming soon" panel ready for the developing heat / flood / environmental module.
+- Kept Fabric, Urban Analysis, Market and Demographics map renderers independent so layers can be compared together without changing one another's selections or opacity.
+- Reworked the desktop legend as one scrollable five-panel rail. Panels may all remain open, expand naturally to their full content height, and only minimise from their own category icon.
+- Preserved the compact mobile shared-sheet interface with Map / Fabric / Analysis / Market / Demographics / Climate navigation.
+- Added dedicated Demographics and Climate icons and aligned panel composition, type hierarchy, spacing and selected-view information across domains.
+- Expanded Market into a self-contained analytical section with visibility control, 0–100% context opacity, selected-view descriptions, colour ramps, interpretation and native methodology information for Market Momentum, Market Exposure, Transaction Pulse and Transaction Exposure.
+- Standardised information controls so Fabric measures, Market views and Demographics views use the same native Atlas information popover pattern as Urban Analysis.
+- Removed legacy desktop max-two-panel and content-fit behaviour from the new five-panel rail while retaining the established mobile sheet behaviour.
+
+This release reorganises and improves access to existing Atlas data and analyses. It does not change the underlying PMTiles, Market calculations or analytical model mathematics. Population Intensity and Living Space remain the current Atlas estimates pending the Demographics v2 rebuild; Climate remains a public interface placeholder while the first module outputs are prepared.
