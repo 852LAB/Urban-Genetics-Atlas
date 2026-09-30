@@ -1,15 +1,16 @@
 {
-  "release_id": "V1.6-20260916-125932",
-  "version": "V1.6",
+  "release_id": "V2.0-20260930-155716",
+  "version": "V2.0",
   "site": "https://852lab.github.io/Urban-Genetics-Atlas/",
   "repo": "https://github.com/852LAB/Urban-Genetics-Atlas",
-  "generated": "2026-09-16 12:59:32 CST",
+  "generated": "2026-09-30 21:38:22 CST",
+  "architecture": {
+    "application": "GitHub Pages",
+    "runtime_data": "Cloudflare R2",
+    "v2_objects": 2542,
+    "v2_bytes": 1529383678
+  },
   "r2": [
-    {
-      "type": "pmtiles",
-      "local": "852LAB_V1.6.pmtiles",
-      "remote": "atlas/852LAB_V1.6.pmtiles"
-    },
     {
       "type": "geojson",
       "local": "MTR_Lines_TEST.geojson",
@@ -32,6 +33,33 @@
       "count": 51941,
       "status": "unchanged",
       "quick_fingerprint": "2df1e400573d798f16b112146d41c68a333375bcfcaf22e882b7cfa7f7f4b2e8"
+    },
+    {
+      "type": "pmtiles",
+      "local": "data/v2/v2-public-hex-map-v0.1.pmtiles",
+      "remote": "v2/v2-public-hex-map-v0.1.pmtiles",
+      "bytes": 32545152
+    },
+    {
+      "type": "dataset",
+      "local": "data/v2/hex-report/v0.1/",
+      "remote": "v2/hex-report/v0.1/",
+      "objects": 257,
+      "bytes": 714840698
+    },
+    {
+      "type": "dataset",
+      "local": "data/v2/entity-market-demographics/v0.1/",
+      "remote": "v2/entity-market-demographics/v0.1/",
+      "objects": 2198,
+      "bytes": 746791949
+    },
+    {
+      "type": "dataset",
+      "local": "data/v2/climate/v0.1/",
+      "remote": "v2/climate/v0.1/",
+      "objects": 86,
+      "bytes": 35205879
     }
   ]
 }

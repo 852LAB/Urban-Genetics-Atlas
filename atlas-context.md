@@ -24,11 +24,11 @@ https://852lab.github.io/Urban-Genetics-Atlas/
 
 ## Current snapshot
 
-- Page title: **Urban Genetics Atlas**
-- UI version label: **Beta**
-- Release ID: **V1.6-20260916-125932**
-- Generated: **2026-09-16 05:02 UTC**
-- PMTiles: **atlas/852LAB_V1.6.pmtiles**
+- Page title: **852LAB · Hong Kong Urban Atlas**
+- UI version label: **Hong Kong Atlas · V2**
+- Release ID: **V2.0-20260930-155716**
+- Generated: **2026-09-30 13:38 UTC**
+- PMTiles: **v2/v2-public-hex-map-v0.1.pmtiles**
 - Public GeoJSON resources: **3**
 - Terrain objects: **51941**
 - Terrain status: **unchanged**
@@ -60,24 +60,23 @@ Recorded evidence, derived analysis, strategic assumptions and predictions are n
 
 - `Urban Genetic Signature` — Urban Genetic Signature
 - `Development Pressure` — Development Pressure
-- `GFA - Saturation` — GFA Saturation
 - `MTR - Index (Built)` — MTR Built Accessibility
 - `Renewal Potential` — Renewal Potential
 - `Genesis Potential` — Genesis Potential
-- `GFA per Capita` — Living Space (m² per resident)
-- `Population per Building` — Population Intensity
-- `Latent Urban Capacity` — Latent Urban Capacity
-- `Market Exposure` — Market Exposure
-- `Transaction Exposure` — Transaction Exposure
-- `Transaction Pulse` — Transaction Pulse
+- `Capacity Opportunity` — Capacity Context
+- `Dominant Use` — Dominant Use
+- `Planning Zone` — Planning Zone
 - `All` — All Contexts
-- `Residential` — Residential
-- `Commercial / Mixed` — Commercial / Mixed
-- `Industrial` — Industrial
-- `Comprehensive Development` — Comprehensive Development
-- `Village / Other Development` — Village / Other Development
-- `Constrained / Non-urban` — Constrained / Non-urban
-- `Other / Unclassified` — Other / Unclassified
+- `AT_OR_ABOVE_PEER_UPPER_QUARTILE` — At or above peer upper quartile
+- `BETWEEN_PEER_MEDIAN_AND_UPPER_QUARTILE` — Between peer median and upper quartile
+- `BELOW_PEER_MEDIAN` — Below peer median
+- `EXPLICIT_ZERO_WITH_VALID_SITE_CONTEXT` — Explicit zero with valid site context
+- `EXISTING_FORM_ABOVE_CURRENT_PLANNING_ENVELOPE` — Existing form above current planning envelope
+- `SCREENING_OPPORTUNITY_RANGE` — Screening opportunity range
+- `NOT_ASSESSED_MATERIAL_LOT_BASIS_NOT_SUPPORTED` — Not assessed — material Lot basis unsupported
+- `NOT_ASSESSED_DOMINANT_ZONE_THRESHOLD_NOT_MET` — Not assessed — dominant-zone threshold not met
+- `NOT_ASSESSED_NO_CONTRACTED_PEER_COHORT` — Not assessed — no contracted peer cohort
+- `NOT_ASSESSED_NO_USABLE_ZONE_LABEL` — Not assessed — no usable zone label
 - `Off` — Off
 - `Market Momentum` — Market Momentum
 - `Market Exposure` — Market Exposure

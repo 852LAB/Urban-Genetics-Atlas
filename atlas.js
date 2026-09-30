@@ -106,18 +106,55 @@ const map = new maplibregl.Map({
 
 });
 
+// Stable runtime handle for independent V2 domain renderers. atlas.js retains
+// ownership of the map; extension modules may register sources/layers only.
+window.UGA_V2_MAP = map;
+
 // =====================================================
-// ATLAS VECTOR TILE SOURCE LAYER
+// V2 PUBLIC HEX RUNTIME CONTRACT
 // =====================================================
-//
-// v1.5 PMTiles is generated directly from the spatial master GeoJSON,
-// so Tippecanoe used the filename-derived layer name.
-// Keep this explicit so the existing Atlas layer logic
-// continues to use a single shared hex source.
-//
+
+const v2SiteConfig =
+    window.UGA_V2_SITE_CONFIG;
+
+if(
+    !v2SiteConfig ||
+    v2SiteConfig.contractStatus !==
+        'FROZEN_AUTHORITATIVE_PUBLIC_HEX_BINDING'
+){
+    throw new Error(
+        'The frozen V2 public Hex runtime configuration is required.'
+    );
+}
 
 const ATLAS_SOURCE_LAYER =
-    'atlas';
+    v2SiteConfig.map.sourceLayer;
+
+const ATLAS_PMTILES_URL =
+    `pmtiles://${v2SiteConfig.map.pmtilesUrl}`;
+
+const V2_LAYER_ID_BY_THEME = Object.freeze({
+    'Urban Genetic Signature':'urban_signature',
+    'Development Pressure':'development_pressure',
+    'MTR - Index (Built)':'mtr_built',
+    'Renewal Potential':'renewal_potential',
+    'Genesis Potential':'genesis_potential',
+    'Capacity Opportunity':'capacity_opportunity',
+    'Dominant Use':'dominant_use',
+    'Planning Zone':'planning_zone',
+    'Allocated Population Context':'population_context'
+});
+
+const V2_PUBLIC_ROLE_BY_THEME = Object.freeze({
+    'Urban Genetic Signature':'Lens · Descriptive',
+    'Development Pressure':'Lens · Diagnostic',
+    'Renewal Potential':'Lens · Strategic screening',
+    'Genesis Potential':'Lens · Strategic screening',
+    'Capacity Opportunity':'Lens · Screening context',
+    'MTR - Index (Built)':'Supporting indicator · Accessibility',
+    'Dominant Use':'Evidence · Built form',
+    'Planning Zone':'Evidence · Planning'
+});
 
 
 // === PANEL STACK V3.7 COMPACT ATTRIBUTION START ===
@@ -611,6 +648,39 @@ const atlasLoaderDots =
 const popup =
     document.getElementById('popup');
 
+const placeReportPanel =
+    document.getElementById('placeReportPanel');
+
+const placeReportTitle =
+    document.getElementById('placeReportTitle');
+
+const placeReportSubtitle =
+    document.getElementById('placeReportSubtitle');
+
+const placeReportBody =
+    document.getElementById('placeReportBody');
+
+const placeReportBack =
+    document.getElementById('placeReportBack');
+
+const placeReportClose =
+    document.getElementById('placeReportClose');
+
+const placeReportPrint =
+    document.getElementById('placeReportPrint');
+
+const v2AddressSearchForm =
+    document.getElementById('v2AddressSearchForm');
+
+const v2AddressSearchInput =
+    document.getElementById('v2AddressSearchInput');
+
+const v2AddressSearchStatus =
+    document.getElementById('v2AddressSearchStatus');
+
+const v2AddressSearchResults =
+    document.getElementById('v2AddressSearchResults');
+
 const status =
     document.getElementById('status');
 
@@ -701,13 +771,12 @@ const ATLAS_STATS_URL = './site/atlas-stats.json';
 const ANALYSIS_STATS_KEYS = {
     'Urban Genetic Signature':'ugs',
     'Development Pressure':'developmentPressure',
-    'GFA - Saturation':'gfaSaturation',
     'MTR - Index (Built)':'mtrBuilt',
     'Renewal Potential':'renewalPotential',
     'Genesis Potential':'genesisPotential',
-    'GFA per Capita':'livingSpace',
-    'Population per Building':'populationIntensity',
-    'Latent Urban Capacity':'latentCapacity',
+    'Capacity Opportunity':'capacityOpportunity',
+    'Dominant Use':'dominantUse',
+    'Planning Zone':'planningZone',
     'Market Exposure':'marketExposure'
 };
 
@@ -751,6 +820,10 @@ function infoSection(title, html){
             ${html}
         </section>
     `;
+}
+
+function infoRole(label, kind='evidence'){
+    return `<div class="atlas-info-role" data-info-role="${infoEsc(kind)}">${infoEsc(label)}</div>`;
 }
 
 function currentReleaseId(){
@@ -851,12 +924,17 @@ function analysisInfoPanel(theme){
         'Urban Genetic Signature':{
             title:'Urban Genetic Signature',
             html:
+                infoRole('Lens · Descriptive','lens')
+                +
                 infoSection(
-                    'WHAT IS A SIGNATURE?',
+                    'THE QUESTION',
                     `<p>
-                        Different parts of a city combine characteristics in
-                        different ways — how built-up they are, how tall, how
-                        connected, how old and how strongly the data shows change.
+                        <strong>What kind of urban place is this?</strong>
+                    </p>
+                    <p>
+                        The Signature connects evidence about intensity,
+                        accessibility, height and form, change and age to identify
+                        a recognisable urban profile.
                     </p>
                     <p>
                         <strong>A Signature is a recognisable combination of
@@ -869,7 +947,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'THE FIVE-PART PROFILE',
+                    'WHAT IT CONNECTS',
                     `<div class="atlas-info-profile">
                         <div><strong>Intensity</strong> — how built-up the place is relative to other urban cells.</div>
                         <div><strong>Accessibility</strong> — how strongly it connects to pedestrian, road and built MTR networks.</div>
@@ -884,7 +962,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'HOW A SIGNATURE IS ASSIGNED',
+                    'HOW IT IS DERIVED',
                     `<p>
                         The classification is rule-based. A Signature is
                         assigned when a particular combination crosses its
@@ -895,7 +973,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'WHAT TO NOTICE',
+                    'WHAT IT SUGGESTS',
                     `<p>
                         Neighbouring places can share one strong characteristic
                         but receive different Signatures because the rest of
@@ -904,7 +982,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'FROM THE ATLAS',
+                    'EVIDENCE & COVERAGE',
                     `<p>
                         <strong>${infoNumber(ugs.meaningfulUrbanCount)}</strong>
                         cells have meaningful urban context.
@@ -931,7 +1009,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'HOW TO READ IT',
+                    'LIMITS',
                     `<p>
                         A Signature describes a detected urban condition. It is
                         not a judgement of quality and does not predict
@@ -943,12 +1021,13 @@ function analysisInfoPanel(theme){
         'Development Pressure':{
             title:'Development Pressure',
             html:
+                infoRole('Lens · Diagnostic','lens')
+                +
                 infoSection(
-                    'WHAT IS THIS?',
+                    'THE QUESTION',
                     `<p>
-                        Development Pressure is a diagnostic model asking where
-                        structural conditions and recorded development activity
-                        combine into a stronger pressure signal.
+                        <strong>Where do structural conditions and recorded
+                        development activity combine most strongly?</strong>
                     </p>
                     <p>
                         It brings together building age, remaining development
@@ -957,7 +1036,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'WHAT TO NOTICE',
+                    'WHAT IT SUGGESTS',
                     `<p>
                         No single factor creates the result. Older fabric can
                         remain relatively quiet, while places where several
@@ -966,7 +1045,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'FROM THE ATLAS',
+                    'EVIDENCE & COVERAGE',
                     `<p>
                         ${meaningfulCoverage('developmentPressure')} have enough
                         evidence to receive a Development Pressure score.
@@ -974,7 +1053,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'HOW TO READ IT',
+                    'LIMITS',
                     `<p>
                         Higher values mean the selected conditions combine more
                         strongly. They do not mean redevelopment is planned,
@@ -983,10 +1062,10 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'HOW IS IT CALCULATED?',
+                    'METHOD',
                     `<ul class="atlas-info-list">
                         <li><strong>35% — Age Stress</strong></li>
-                        <li><strong>30% — Capacity Opportunity</strong></li>
+                        <li><strong>30% — Capacity Context input</strong></li>
                         <li><strong>20% — Form Susceptibility</strong></li>
                         <li><strong>15% — Approval Activity</strong></li>
                     </ul>
@@ -1044,8 +1123,10 @@ function analysisInfoPanel(theme){
         'MTR - Index (Built)':{
             title:'MTR Built Accessibility',
             html:
+                infoRole('Supporting indicator · Accessibility','indicator')
+                +
                 infoSection(
-                    'WHAT IS THIS?',
+                    'WHAT THIS SHOWS',
                     `<p>
                         This index measures relative accessibility to the built
                         MTR network using proximity and network connectivity.
@@ -1053,7 +1134,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'WHAT TO NOTICE',
+                    'HOW IT SUPPORTS LENSES',
                     `<p>
                         Stronger values cluster around places with better access
                         to the existing rail network. Planned additions are kept
@@ -1062,12 +1143,12 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'FROM THE ATLAS',
+                    'SOURCE & COVERAGE',
                     `<p>${fullCoverage('mtrBuilt')} carry a valid index value, including genuine zeros.</p>`
                 )
                 +
                 infoSection(
-                    'HOW TO READ IT',
+                    'HOW TO READ IT & LIMITS',
                     `<p>
                         It is a relative accessibility measure — not a measure
                         of journey time, passenger volume or service frequency.
@@ -1080,8 +1161,10 @@ function analysisInfoPanel(theme){
         'Renewal Potential':{
             title:'Renewal Potential',
             html:
+                infoRole('Lens · Strategic screening','lens')
+                +
                 infoSection(
-                    'WHAT IS THIS?',
+                    'THE QUESTION',
                     `<p>
                         Renewal Potential is a strategic lens for established
                         urban fabric. It asks where age, existing intensity,
@@ -1091,7 +1174,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'WHAT TO NOTICE',
+                    'WHAT IT SUGGESTS',
                     `<p>
                         Renewal tends to favour established, relatively built-out
                         and connected fabric. Compare it with Genesis, which asks
@@ -1100,7 +1183,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'FROM THE ATLAS',
+                    'EVIDENCE & COVERAGE',
                     `<p>
                         ${meaningfulCoverage('renewalPotential')} receive a
                         Renewal score. Component coverage still varies, so score
@@ -1109,7 +1192,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'HOW TO READ IT',
+                    'LIMITS',
                     `<p>
                         A higher value means a stronger combination of the
                         selected renewal conditions. It does not mean
@@ -1118,7 +1201,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'HOW IS IT CALCULATED?',
+                    'METHOD',
                     `<ul class="atlas-info-list">
                         <li><strong>30% — Age Stress</strong></li>
                         <li><strong>25% — Existing Intensity</strong></li>
@@ -1137,8 +1220,10 @@ function analysisInfoPanel(theme){
         'Genesis Potential':{
             title:'Genesis Potential',
             html:
+                infoRole('Lens · Strategic screening','lens')
+                +
                 infoSection(
-                    'WHAT IS THIS?',
+                    'THE QUESTION',
                     `<p>
                         Genesis Potential is a strategic lens for under-used or
                         more mutable urban conditions. It asks where remaining
@@ -1148,7 +1233,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'WHAT TO NOTICE',
+                    'WHAT IT SUGGESTS',
                     `<p>
                         Genesis is designed to highlight a different condition
                         from Renewal: room to grow, comparatively less existing
@@ -1157,7 +1242,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'FROM THE ATLAS',
+                    'EVIDENCE & COVERAGE',
                     `<p>
                         ${meaningfulCoverage('genesisPotential')} receive a
                         Genesis score. Component coverage still varies, so the
@@ -1166,7 +1251,7 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'HOW TO READ IT',
+                    'LIMITS',
                     `<p>
                         A higher value means a stronger combination of the
                         selected Genesis conditions. It does not identify a
@@ -1175,9 +1260,9 @@ function analysisInfoPanel(theme){
                 )
                 +
                 infoSection(
-                    'HOW IS IT CALCULATED?',
+                    'METHOD',
                     `<ul class="atlas-info-list">
-                        <li><strong>35% — Capacity Opportunity</strong></li>
+                        <li><strong>35% — Capacity Context input</strong></li>
                         <li><strong>25% — Low Existing Intensity</strong></li>
                         <li><strong>20% — Policy Flexibility</strong></li>
                         <li><strong>20% — Planned Accessibility Additionality</strong></li>
@@ -1188,6 +1273,148 @@ function analysisInfoPanel(theme){
                         built network. Policy Flexibility is an explicit analytical
                         assumption. Missing inputs are omitted and available
                         weights are rebalanced.
+                    </p>`
+                )
+        },
+
+        'Capacity Opportunity':{
+            title:'Capacity Context',
+            html:
+                infoRole('Lens · Screening context','lens')
+                +
+                infoSection(
+                    'THE QUESTION',
+                    `<p>
+                        <strong>How does observed urban form compare with the
+                        supported planning-envelope context?</strong>
+                    </p>
+                    <p>
+                        Capacity Context connects recorded built form, materially
+                        intersecting Lot evidence, dominant planning context and
+                        an accepted peer comparison where those inputs are supported.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'WHAT IT SUGGESTS',
+                    `<p>
+                        A stronger result means the model finds more proportional
+                        and absolute headroom relative to the supported comparison.
+                        It is useful for screening where further investigation may
+                        be warranted.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'EVIDENCE & COVERAGE',
+                    `<p>
+                        ${meaningfulCoverage('capacityOpportunity')} currently have
+                        the contracted Lot, zone and peer-cohort basis required for
+                        assessment. Unassessed places remain distinct from a genuine
+                        low or zero result.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'METHOD',
+                    `<p>
+                        The screening measure combines the proportion of supported
+                        capacity remaining with the absolute amount of remaining GFA.
+                        The planning-context filter can be used to inspect how each
+                        result sits within its accepted peer comparison.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'LIMITS',
+                    `<p>
+                        This is not a parcel entitlement, statutory GFA statement,
+                        valuation, feasibility assessment, legal-compliance conclusion
+                        or prediction that development will occur.
+                    </p>`
+                )
+        },
+
+        'Dominant Use':{
+            title:'Dominant Use',
+            html:
+                infoRole('Evidence · Built form','evidence')
+                +
+                infoSection(
+                    'WHAT THIS SHOWS',
+                    `<p>
+                        The baseline use class most strongly supported by the
+                        building and use evidence connected to each public Hex.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'SOURCE & GEOGRAPHY',
+                    `<p>
+                        Building-level evidence is reconciled and summarised to the
+                        100 m public Hex. ${fullCoverage('dominantUse')} currently
+                        carry a supported or explicitly unresolved class.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW IT SUPPORTS UNDERSTANDING',
+                    `<p>
+                        Dominant Use helps explain differences in urban form and
+                        activity. It can be inspected alongside a Lens, but it is
+                        source evidence rather than a Lens in its own right.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'LIMITS',
+                    `<p>
+                        A Hex summary can contain several uses. The dominant class
+                        is not a tenancy schedule, real-time occupancy record,
+                        planning-zone label or statement about every Building.
+                    </p>`
+                )
+        },
+
+        'Planning Zone':{
+            title:'Planning Zone',
+            html:
+                infoRole('Evidence · Planning','evidence')
+                +
+                infoSection(
+                    'WHAT THIS SHOWS',
+                    `<p>
+                        The statutory planning-zone label with the strongest
+                        supported intersection across each public Hex.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'SOURCE & GEOGRAPHY',
+                    `<p>
+                        Authoritative planning polygons are intersected with the
+                        100 m grid and retained with their dominant-share evidence.
+                        ${fullCoverage('planningZone')} currently have a usable
+                        dominant planning-zone label.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW IT SUPPORTS LENSES',
+                    `<p>
+                        Planning evidence helps frame Capacity Context and other
+                        strategic questions. The label remains inspectable so users
+                        can distinguish source context from the interpretation built
+                        from it.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'LIMITS',
+                    `<p>
+                        A dominant Hex label is not a parcel-level planning search,
+                        development entitlement, lease condition or legal-compliance
+                        conclusion. Mixed-zone Hexes require closer inspection.
                     </p>`
                 )
         },
@@ -1306,7 +1533,7 @@ function analysisInfoPanel(theme){
                     `<p>
                         Transaction Exposure is a local analytical layer. It asks
                         where stronger observed Transaction Pulse overlaps with
-                        stronger local Development Pressure and Capacity Opportunity.
+                        stronger local Development Pressure and Capacity Context.
                     </p>`
                 )
                 +
@@ -1324,7 +1551,7 @@ function analysisInfoPanel(theme){
                 +
                 infoSection(
                     'HOW IS IT CALCULATED?',
-                    `<p><strong>Local Opportunity</strong> = equal-weight Development Pressure + Capacity Opportunity.</p>
+                    `<p><strong>Local Opportunity</strong> = equal-weight Development Pressure + the underlying Capacity Context measure.</p>
                      <p><strong>Transaction Exposure</strong> = Transaction Pulse × Local Opportunity.</p>`
                 )
                 +
@@ -1399,7 +1626,7 @@ function analysisInfoPanel(theme){
                     `<p>
                         Market Exposure is a combined market-and-urban indicator.
                         It asks where wider market movement overlaps with local
-                        Development Pressure and Capacity Opportunity.
+                        Development Pressure and Capacity Context.
                     </p>`
                 )
                 +
@@ -1425,10 +1652,10 @@ function analysisInfoPanel(theme){
                     </p>
                     <p>
                         <strong>Local Opportunity</strong> combines Development Pressure
-                        with Capacity Opportunity.
+                        with the underlying Capacity Context measure.
                     </p>
                     <p>
-                        <strong>Capacity Opportunity</strong> combines the share of
+                        <strong>The Capacity Context input</strong> combines the share of
                         development capacity remaining with the absolute amount
                         of remaining GFA.
                     </p>
@@ -1455,8 +1682,61 @@ function analysisInfoPanel(theme){
     };
 
     return panels[theme] || {
-        title:theme,
-        html:`<p>No additional information is available for this view.</p>`
+        title:theme || 'Map view',
+        html:
+            infoRole('Map view · Check the selected legend','mixed')
+            + infoSection('WHAT THIS VIEW DOES',`<p>This view connects a mapped condition to the current area. Its legend states whether the output is source evidence, a supporting indicator or a derived Lens.</p>`)
+            + infoSection('HOW TO READ IT',`<p>Compare patterns first, then select a place to inspect the underlying record and its source geography. Missing evidence remains distinct from a genuine low or zero value.</p>`)
+            + infoSection('INTERPRETATION BOUNDARY',`<p>Mapped colour supports exploration. It is not by itself a property-level determination, causal explanation, prediction or recommendation.</p>`)
+    };
+}
+
+// V2.6.2 native Census layer language and interpretation boundaries.
+const CENSUS_THEME_INFO = Object.freeze({
+    'demographics:census_under15_pct':Object.freeze({
+        title:'Population aged under 15',
+        meaning:'The share of people aged under 15 within the connected 2021 Census Building Group.',
+        unit:'Percentage of the Building Group population.',
+        reading:'Higher colour intensity means a larger younger-population share. It is a composition measure, not a child headcount for the current area.'
+    }),
+    'demographics:census_age65plus_pct':Object.freeze({
+        title:'Population aged 65+',
+        meaning:'The share of people aged 65 or above within the connected 2021 Census Building Group.',
+        unit:'Percentage of the Building Group population.',
+        reading:'Higher colour intensity means a larger older-population share. It does not by itself describe care needs, health or household structure.'
+    }),
+    'demographics:census_median_household_income_hkd':Object.freeze({
+        title:'Median monthly household income',
+        meaning:'The median monthly household income reported for the connected 2021 Census Building Group.',
+        unit:'Hong Kong dollars per month.',
+        reading:'Half of the reported households fall above the median and half below. It is source-area context, not an income estimate for an individual Building, Lot or household.'
+    }),
+    'demographics:census_average_household_size':Object.freeze({
+        title:'Average household size',
+        meaning:'The average number of people per household within the connected 2021 Census Building Group.',
+        unit:'People per household.',
+        reading:'Use it to compare broad household composition between source areas. It is not an occupancy count for a particular dwelling or Building.'
+    }),
+    'demographics:census_median_household_floor_area_m2':Object.freeze({
+        title:'Median household floor area',
+        meaning:'The median household floor-area statistic reported for the connected 2021 Census Building Group.',
+        unit:'Square metres.',
+        reading:'It describes the middle of the source-area household distribution. It is not the measured, saleable or statutory floor area of a selected property.'
+    })
+});
+
+function censusThemeInfoPanel(key){
+    const theme=CENSUS_THEME_INFO[key];
+    if(!theme) return null;
+    return {
+        title:theme.title,
+        html:
+            infoRole('Evidence · 2021 Census','evidence')
+            + infoSection('WHAT THIS SHOWS',`<p>${theme.meaning}</p><p><strong>Unit:</strong> ${theme.unit}</p>`)
+            + infoSection('SOURCE & GEOGRAPHY',`<p>Each crisp centre is a representative anchor for one authoritative 2021 Census Building Group. The surrounding feathered colour improves visual continuity only: it does not distribute or recalculate the statistic across 100 m Hexes.</p>`)
+            + infoSection('HOW IT SUPPORTS LENSES',`<p>This evidence can contribute to demographic, accessibility, service and future sector Lenses when combined with other sources. It remains visible here for inspection and is not presented as a Lens by itself.</p>`)
+            + infoSection('IN A PLACE REPORT',`<p>A selected public Hex shows the statistic from its connected Census source geography. The report names that geography and keeps it separate from Hex-modelled population.</p>`)
+            + infoSection('HOW TO READ IT & LIMITS',`<p>${theme.reading}</p><p>Missing evidence remains distinct from a genuine low or zero value.</p>`)
     };
 }
 
@@ -1467,38 +1747,35 @@ function getInfoPanel(key){
         const ugs = atlasStats?.ugs || {};
 
         return {
-            title:'About the Atlas',
+            title:'About 852LAB',
             html:
                 infoSection(
-                    'WHAT IS THE ATLAS?',
+                    'WHAT IS 852LAB?',
                     `<p>
-                        The Urban Genetics Atlas is a map-first way to explore
-                        how Hong Kong is built, connected and changing. It brings
-                        different spatial datasets into a common 100 m reference
-                        so patterns can be compared across the city.
+                        <strong>852LAB is an urban learning and decision platform,</strong>
+                        powered by Urban Genetics. It connects evidence about how
+                        Hong Kong is built, inhabited, connected and changing so
+                        users can investigate places and relationships across the city.
                     </p>
                     <p>
-                        Some layers show recorded physical conditions. Some
-                        analyses derive patterns from those data. Renewal and
-                        Genesis apply explicit assumptions to strategic questions,
-                        while market data retains the geography of its official
-                        source.
+                        Urban Genetics is the underlying framework for acquiring,
+                        validating, connecting, analysing and preserving that evidence
+                        across Buildings, Lots, Hexes, planning, Census and market
+                        geographies.
                     </p>`
                 )
                 +
                 infoSection(
-                    'HOW TO READ THE DIFFERENT OUTPUTS',
+                    'EVIDENCE & LENSES',
                     `<div class="atlas-info-profile">
-                        <div><strong>Urban Fabric</strong> shows physical, infrastructural and historical evidence.</div>
-                        <div><strong>Urban Analysis</strong> reveals derived patterns and relationships.</div>
-                        <div><strong>Urban Genetic Signature</strong> classifies recognisable combinations of urban characteristics.</div>
-                        <div><strong>Renewal and Genesis</strong> are strategic lenses built from explicit assumptions.</div>
-                        <div><strong>Market Data</strong> describes the wider property-market context and can be compared with local Atlas conditions.</div>
+                        <div><strong>Evidence</strong> records or models what the city tells us directly. Its source, date and spatial geography matter.</div>
+                        <div><strong>Supporting indicators</strong> are calculated measures that help an analysis but do not answer a question by themselves.</div>
+                        <div><strong>Lenses</strong> connect several pieces of evidence to answer a question or reveal a condition no single source states directly.</div>
                     </div>`
                 )
                 +
                 infoSection(
-                    'DATA & COVERAGE',
+                    'COVERAGE & TRANSPARENCY',
                     `<p>
                         The working Atlas currently contains
                         <strong>${infoNumber(total)}</strong> 100 m cells.
@@ -1516,12 +1793,29 @@ function getInfoPanel(key){
                 )
                 +
                 infoSection(
+                    'THE SPATIAL ENGINE',
+                    `<p>
+                        The city is not made of hexagons. Urban Genetics uses a
+                        consistent 100 m analytical grid underneath the interface
+                        to relate otherwise incompatible urban systems. 852LAB
+                        normally shows places, patterns and gradients without
+                        foregrounding those cell boundaries.
+                    </p>
+                    <p>
+                        Each original cell geometry and value remains available for
+                        selection, technical inspection, provenance and reproducibility.
+                        The softer public map treatment does not interpolate or alter data.
+                    </p>`
+                )
+                +
+                infoSection(
                     'HOW TO USE IT',
                     `<p>
-                        Compare places, switch between views and look for where
-                        patterns agree or diverge. The Atlas is designed to help
-                        frame questions and test ideas, not to make a precise
-                        property-level determination.
+                        Find a place, explore a Lens, then inspect the evidence
+                        supporting it. Compare places and look for where patterns
+                        agree or diverge. 852LAB helps frame questions and identify
+                        matters for further investigation; it does not make a precise
+                        property-level determination or prescribe a decision.
                     </p>`
                 )
         };
@@ -1532,30 +1826,31 @@ function getInfoPanel(key){
         const ugs = atlasStats?.ugs || {};
 
         return {
-            title:'Urban Analysis',
+            title:'Lenses',
             html:
+                infoRole('Derived interpretation','lens')
+                +
                 infoSection(
-                    'WHAT IS THIS?',
+                    'WHAT IS A LENS?',
                     `<p>
-                        Urban Analysis brings selected datasets together to make
-                        relationships easier to see. Some views describe existing
-                        conditions; Development Pressure is diagnostic; Renewal
-                        and Genesis apply explicit strategic assumptions.
+                        A Lens connects several pieces of evidence to answer a
+                        specific urban question or reveal a condition that is not
+                        explicit in any single source dataset.
                     </p>`
                 )
                 +
                 infoSection(
-                    'WHAT TO NOTICE',
+                    'THE QUESTIONS IN V2',
                     `<p>
-                        The same place can look very different from one analysis
-                        to another. That difference is useful: each view asks a
-                        different question rather than trying to produce one
-                        universal score for the city.
+                        Urban Genetic Signature asks what kind of place this is.
+                        Development Pressure asks where structural conditions and
+                        recorded activity combine. Renewal, Genesis and Capacity
+                        Context test different strategic conditions.
                     </p>`
                 )
                 +
                 infoSection(
-                    'FROM THE ATLAS',
+                    'EVIDENCE & COVERAGE',
                     `<p>
                         <strong>${infoNumber(total)}</strong> 100 m cells form
                         the working spatial set. Within it,
@@ -1566,7 +1861,7 @@ function getInfoPanel(key){
                 )
                 +
                 infoSection(
-                    'HOW TO READ IT',
+                    'HOW TO READ LENSES',
                     `<p>
                         Stronger colour means stronger expression of the selected
                         measure. It does not mean better, worse or more certain.
@@ -1583,8 +1878,10 @@ function getInfoPanel(key){
         return {
             title:'Urban Fabric',
             html:
+                infoRole('Evidence · Built city','evidence')
+                +
                 infoSection(
-                    'WHAT IS THIS?',
+                    'WHAT THIS SHOWS',
                     `<p>
                         Urban Fabric shows the physical and historical evidence
                         that helps explain how the city took shape — terrain,
@@ -1603,7 +1900,7 @@ function getInfoPanel(key){
                 )
                 +
                 infoSection(
-                    'FROM THE ATLAS',
+                    'SOURCE & COVERAGE',
                     `<p>
                         Mean building-height data is available for
                         <strong>${infoNumber(height.heightCoverageCount)}</strong>
@@ -1614,11 +1911,11 @@ function getInfoPanel(key){
                 )
                 +
                 infoSection(
-                    'HOW TO READ IT',
+                    'HOW IT SUPPORTS LENSES',
                     `<p>
                         Fabric layers are evidence, not conclusions. Use them on
-                        their own, or reduce their opacity and compare them with
-                        the analytical layers above.
+                        their own, or compare them with a Lens to inspect what may
+                        be contributing to a derived interpretation.
                     </p>`
                 )
         };
@@ -1626,12 +1923,14 @@ function getInfoPanel(key){
 
     if(key === 'market'){
         return {
-            title:'Market Data',
+            title:'Market',
             html:
+                infoRole('Evidence + Lenses','mixed')
+                +
                 infoSection(
-                    'WHAT IS THIS?',
+                    'MARKET EVIDENCE',
                     `<p>
-                        Market Data adds official property-market context to the
+                        Market evidence adds official property-market context to the
                         map. Price and rent observations are reported at regional
                         geography, while some stock and vacancy measures are
                         reported by district.
@@ -1643,34 +1942,27 @@ function getInfoPanel(key){
                 )
                 +
                 infoSection(
+                    'MARKET LENSES',
+                    `<p>
+                        Market Momentum and Transaction Pulse summarise change in
+                        their source geographies. Market Exposure and Transaction
+                        Exposure ask where those wider signals overlap with local
+                        Development Pressure and Capacity Context.
+                    </p>`
+                )
+                +
+                infoSection(
                     'WHAT TO NOTICE',
                     `<p>
-                        Compare Hong Kong Island, Kowloon and the New Territories
-                        in the 12-month snapshot, then select a hex to see how the
-                        same regional market backdrop meets different local urban
-                        conditions.
+                        Compare the regional evidence first, then see how the same
+                        market backdrop meets different local urban conditions.
+                        Local differentiation comes from Urban Genetics evidence,
+                        not invented 100 m transaction or price observations.
                     </p>`
                 )
                 +
                 infoSection(
-                    'MARKET MOMENTUM',
-                    `<p>
-                        Market Momentum summarises the direction of 12-month
-                        regional private-domestic price and rent movement.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'MARKET EXPOSURE',
-                    `<p>
-                        Market Exposure combines that wider momentum with a local
-                        opportunity measure based on Development Pressure and
-                        Capacity Opportunity.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'HOW TO READ IT',
+                    'LIMITS',
                     `<p>
                         Market observations retain the geography of their
                         official source. Market Exposure is not a property
@@ -1684,32 +1976,55 @@ function getInfoPanel(key){
         return {
             title:'Demographics',
             html:
+                infoRole('Evidence · Population and Census','evidence')
+                +
                 infoSection(
-                    'WHAT IS THIS?',
+                    'WHAT THIS SHOWS',
                     `<p>
-                        Demographics brings population and living-condition data
-                        into the same spatial framework as the rest of the Atlas.
-                        The current public views are Population Intensity and
-                        Living Space.
+                        Demographics connects model-allocated population with
+                        source-geography Census context and qualified
+                        public-living evidence. The map includes the allocated
+                        population model plus five 2021 Census Building Group views.
                     </p>`
                 )
                 +
                 infoSection(
-                    'CURRENT STATUS',
+                    'SOURCE & GEOGRAPHY',
                     `<p>
-                        These two layers are existing Atlas estimates. Their data
-                        foundations are being rebuilt using finer Census geography,
-                        so they should currently be read as comparative spatial
-                        estimates rather than exact 100 m population counts.
+                        Population is allocated from official Census controls using
+                        the V2 building foundation. It is contextual model evidence,
+                        not an exact Hex or Building headcount. The five Census views
+                        preserve 1,561 Building Group records and display them from
+                        representative anchors with a softened visual surface.
                     </p>`
                 )
                 +
                 infoSection(
-                    'HOW TO READ IT',
+                    'HOW IT SUPPORTS LENSES',
                     `<p>
-                        Demographics is an independent map domain. It can be shown
-                        on its own or compared directly with Fabric, Market and
-                        Urban Analysis using its own visibility and opacity controls.
+                        Demographic evidence can help explain who may experience a
+                        place and can support future accessibility, service, retail
+                        and other sector Lenses. The source statistics remain visible
+                        and are not treated as interpretations by themselves.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ IT & LIMITS',
+                    `<p>
+                        Always read the selected legend. In Allocated Population,
+                        stronger colour means more model-allocated residents. In a
+                        Census view, colour compares the selected source-area
+                        statistic. Soft edges do not create independent Hex values.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'SELECTING A PLACE',
+                    `<p>
+                        Selecting a public Hex opens its connected Census context in
+                        the place report. Selecting a crisp Census centre opens the
+                        source Building Group record directly.
                     </p>`
                 )
         };
@@ -1719,57 +2034,106 @@ function getInfoPanel(key){
         return {
             title:'Climate',
             html:
+                infoRole('Derived observation · Physical context · Modelled screening','mixed')
+                +
                 infoSection(
-                    'WHAT IS THIS?',
+                    'THREE DIFFERENT READINGS',
                     `<p>
-                        Climate is the developing environmental domain of the Atlas.
-                        Initial work is focused on urban heat and flood / coastal
-                        exposure, with further climate relationships to follow.
+                        Climate connects three different kinds of evidence. <strong>Persistent
+                        Relative Surface Heat</strong> is a derived observational Lens;
+                        <strong>Terrain</strong> is physical context; and <strong>Coastal
+                        Screening</strong> is modelled scenario evidence. They are intentionally
+                        kept separate rather than collapsed into one Climate score.
                     </p>`
                 )
                 +
                 infoSection(
-                    'CURRENT STATUS',
+                    'MAP VIEW',
                     `<p>
-                        The public Climate panel is present as a structural placeholder
-                        while the first climate datasets and analyses are being prepared.
+                        The Heat view shows where land surfaces have repeatedly appeared
+                        warmer or cooler than Hong Kong's same-date territorial reference
+                        across the 2020–2026 summer observation record. Coastal Screening
+                        shows the share of supported land context indicated as affected under
+                        the selected water-level scenario.
+                    </p>`
+                )
+                +
+                infoSection(
+                    'HOW TO READ IT',
+                    `<p>
+                        The map uses the 100 m analytical Hex as its delivery geometry but
+                        does not draw routine cell boundaries. Coastal outputs are screening
+                        evidence, not observed flooding or a hydraulic flood prediction.
+                        Building and Lot reports show local area context rather than
+                        property-specific Climate measurements.
                     </p>`
                 )
         };
     }
 
-    if(key === 'demographics:Population per Building'){
-        return {title:'Population Intensity',html:
-            infoSection('WHAT IS THIS?',`<p>Population Intensity is the current Atlas estimate of the number of residents associated with residential fabric in each 100 m hex.</p>`)
-            + infoSection('HOW IS IT CALCULATED?',`<p>The current public layer predates the new Demographics rebuild and distributes population spatially using the residential building context available to the Atlas. It is being replaced with a finer Census-geography method.</p>`)
-            + infoSection('HOW TO READ IT',`<p>Use it for comparative spatial pattern rather than as an exact building- or hex-level headcount. Stronger colour means higher estimated population intensity.</p>`)};
+    if(key === 'demographics:population_allocated'){
+        return {title:'Allocated Population',html:
+            infoRole('Modelled evidence · Population','indicator')
+            + infoSection('WHAT THIS SHOWS',`<p>The 2021 population allocated to each public Hex through the accepted V2 building-based model.</p>`)
+            + infoSection('SOURCE & METHOD',`<p>Official Census controls are distributed through the V2 population-allocation method using the accepted Building foundation. The place report names the Census source geography and carries its age, household and income context where available.</p>`)
+            + infoSection('MAP GEOGRAPHY',`<p>This is the one demographic view explicitly allocated to the 100 m Hex grid. The five Census themes retain their Building Group source geography instead.</p>`)
+            + infoSection('HOW IT SUPPORTS LENSES',`<p>The model makes population spatially comparable with fabric, access, planning and market evidence. It is supporting evidence rather than a Lens by itself.</p>`)
+            + infoSection('HOW TO READ IT & LIMITS',`<p>Use the colour to compare the spatial pattern of model-allocated population. A zero means none was allocated by this method; it is not proof of no residents. The result is not an exact occupancy count, household register or Building-level Census observation.</p>`)};
     }
-    if(key === 'demographics:GFA per Capita'){
-        return {title:'Living Space',html:
-            infoSection('WHAT IS THIS?',`<p>Living Space compares estimated residential floor area with the population currently allocated to each hex.</p>`)
-            + infoSection('HOW IS IT CALCULATED?',`<p>The current measure is estimated residential floor area per resident. Because it depends on the existing population allocation, it will be recalculated as part of the new Demographics foundation.</p>`)
-            + infoSection('HOW TO READ IT',`<p>It is a spatial comparison, not a direct measurement of dwelling size, net saleable area, crowding or housing quality.</p>`)};
-    }
+    const censusPanel=censusThemeInfoPanel(key);
+    if(censusPanel) return censusPanel;
     if(key === 'fabric:GFA - Saturation'){
-        return {title:'GFA Saturation',html:infoSection('WHAT IS THIS?',`<p>GFA Saturation estimates how much of a hex's modelled development capacity has already been realised.</p>`)+infoSection('HOW TO READ IT',`<p>Higher values mean more of the modelled capacity is already expressed. It is not a direct statement of development feasibility, ownership or permission to build.</p>`)};
+        return {title:'GFA Saturation',html:
+            infoRole('Supporting indicator · Capacity','indicator')
+            + infoSection('THE QUESTION IT SUPPORTS',`<p><strong>How much of the modelled development envelope appears to be already expressed?</strong></p>`)
+            + infoSection('WHAT THIS SHOWS',`<p>GFA Saturation compares the current physical floor-area estimate with the supported planning-capacity estimate for the same analytical area.</p>`)
+            + infoSection('HOW TO READ IT & LIMITS',`<p>Higher values mean more of the modelled capacity is already expressed. It is not a direct statement of development feasibility, ownership, planning permission or permission to build.</p>`)};
     }
     if(key === 'fabric:Latent Urban Capacity'){
-        return {title:'Latent Urban Capacity',html:infoSection('WHAT IS THIS?',`<p>Latent Urban Capacity estimates the share of modelled development capacity that remains unrealised.</p>`)+infoSection('HOW TO READ IT',`<p>Higher values indicate a larger remaining share of modelled capacity. They do not necessarily mean vacant land or an immediately developable site.</p>`)};
+        return {title:'Latent Urban Capacity',html:
+            infoRole('Supporting indicator · Capacity','indicator')
+            + infoSection('THE QUESTION IT SUPPORTS',`<p><strong>How much of the modelled development envelope appears not yet to be expressed?</strong></p>`)
+            + infoSection('WHAT THIS SHOWS',`<p>Latent Urban Capacity estimates the remaining share of the supported planning-capacity context after the current physical floor-area estimate.</p>`)
+            + infoSection('HOW TO READ IT & LIMITS',`<p>Higher values indicate a larger remaining modelled share. They do not necessarily mean vacant land, commercial viability, ownership control, statutory entitlement or an immediately developable site.</p>`)};
     }
     if(key === 'fabric:MTR - Index (Built)'){
-        return {title:'MTR Built Accessibility',html:infoSection('WHAT IS THIS?',`<p>MTR Built Accessibility is a relative measure based on proximity and network connectivity to the existing MTR system.</p>`)+infoSection('HOW TO READ IT',`<p>It is not a direct measure of journey time, service frequency or passenger volume.</p>`)};
+        return {title:'MTR Built Accessibility',html:
+            infoRole('Supporting indicator · Accessibility','indicator')
+            + infoSection('THE QUESTION IT SUPPORTS',`<p><strong>How strongly is this place positioned relative to the existing MTR network?</strong></p>`)
+            + infoSection('WHAT THIS SHOWS',`<p>A relative accessibility index based on proximity and network connectivity to the built MTR system. Reports translate the raw value into a profile bar and lower, mid-range or higher context.</p>`)
+            + infoSection('HOW TO READ IT & LIMITS',`<p>It is not a direct measure of journey time, service frequency, capacity, reliability or passenger volume.</p>`)};
     }
     if(key === 'market:Market Momentum'){
-        return {title:'Market Momentum',html:infoSection('WHAT IS THIS?',`<p>Market Momentum summarises the direction of 12-month regional private-domestic price and rent movement.</p>`)+infoSection('HOW IS IT CALCULATED?',`<p>Regional price trend and rent trend are each converted to a bounded 0–1 score and combined equally: <strong>50% price + 50% rent</strong>.</p>`)+infoSection('HOW TO READ IT',`<p>The result retains the geography of the official RVD source. It is regional market context, not a 100 m property value, valuation or forecast.</p>`)};
+        return {title:'Market Momentum',html:
+            infoRole('Lens · Market direction','lens')
+            + infoSection('THE QUESTION',`<p><strong>How is the wider private-domestic market moving?</strong></p>`)
+            + infoSection('EVIDENCE IT USES',`<p>Official 12-month regional price and rent trends for private domestic property.</p>`)
+            + infoSection('METHOD',`<p>Regional price trend and rent trend are each converted to a bounded 0–1 score and combined equally: <strong>50% price + 50% rent</strong>.</p>`)
+            + infoSection('HOW TO READ IT & LIMITS',`<p>The result retains the geography of the official RVD source. It is regional market context, not a 100 m property value, valuation or forecast.</p>`)};
     }
     if(key === 'market:Market Exposure'){
-        return {title:'Market Exposure',html:infoSection('WHAT IS THIS?',`<p>Market Exposure asks where wider Market Momentum overlaps with local Atlas opportunity conditions.</p>`)+infoSection('HOW IS IT CALCULATED?',`<p><strong>Local Opportunity</strong> combines Development Pressure and Capacity Opportunity equally. <strong>Market Exposure = Market Momentum × Local Opportunity.</strong></p>`)+infoSection('HOW TO READ IT',`<p>The market signal remains regional; local differentiation comes from Atlas conditions. It is not a valuation, investment recommendation or forecast.</p>`)};
+        return {title:'Market Exposure',html:
+            infoRole('Lens · Market and place','lens')
+            + infoSection('THE QUESTION',`<p><strong>Where does wider market movement overlap with stronger local urban conditions?</strong></p>`)
+            + infoSection('EVIDENCE IT USES',`<p>Regional Market Momentum is connected to local Development Pressure and Capacity Context without inventing a 100 m market observation.</p>`)
+            + infoSection('METHOD',`<p><strong>Local Opportunity</strong> combines Development Pressure and the underlying Capacity Context measure equally. <strong>Market Exposure = Market Momentum × Local Opportunity.</strong></p>`)
+            + infoSection('HOW TO READ IT & LIMITS',`<p>The market signal remains regional; local differentiation comes from Urban Genetics conditions. It is not a valuation, investment recommendation or forecast.</p>`)};
     }
     if(key === 'market:Transaction Pulse'){
-        return {title:'Transaction Pulse',html:infoSection('WHAT IS THIS?',`<p>Transaction Pulse describes whether recent registered building-unit transaction activity is stronger or weaker than its recent reference level.</p>`)+infoSection('HOW IS IT CALCULATED?',`<p><strong>Activity level</strong> compares the latest 3-month average with the median monthly count over the latest 24 months. <strong>Trend</strong> compares the latest 3 months with the same 3 months one year earlier. The two scores are combined equally.</p>`)+infoSection('HOW TO READ IT',`<p>The result retains the geography published by the Land Registry source. Registration can lag the underlying transaction date.</p>`)};
+        return {title:'Transaction Pulse',html:
+            infoRole('Lens · Market activity','lens')
+            + infoSection('THE QUESTION',`<p><strong>Is recent registered transaction activity stronger or softer than its recent norm?</strong></p>`)
+            + infoSection('EVIDENCE IT USES',`<p>Land Registry sale-and-purchase agreement activity at the published source geography.</p>`)
+            + infoSection('METHOD',`<p><strong>Activity level</strong> compares the latest 3-month average with the median monthly count over the latest 24 months. <strong>Trend</strong> compares the latest 3 months with the same 3 months one year earlier. The two scores are combined equally.</p>`)
+            + infoSection('HOW TO READ IT & LIMITS',`<p>The result retains the geography published by the Land Registry source. Registration can lag the underlying transaction date and is not a 100 m transaction count.</p>`)};
     }
     if(key === 'market:Transaction Exposure'){
-        return {title:'Transaction Exposure',html:infoSection('WHAT IS THIS?',`<p>Transaction Exposure asks where Transaction Pulse overlaps with local urban opportunity.</p>`)+infoSection('HOW IS IT CALCULATED?',`<p><strong>Local Opportunity</strong> combines Development Pressure and Capacity Opportunity equally. <strong>Transaction Exposure = Transaction Pulse × Local Opportunity.</strong></p>`)+infoSection('HOW TO READ IT',`<p>The broad transaction signal is interpreted locally without inventing 100 m transaction counts.</p>`)};
+        return {title:'Transaction Exposure',html:
+            infoRole('Lens · Transactions and place','lens')
+            + infoSection('THE QUESTION',`<p><strong>Where does recent transaction activity overlap with stronger local urban conditions?</strong></p>`)
+            + infoSection('EVIDENCE IT USES',`<p>Transaction Pulse is connected to local Development Pressure and Capacity Context while retaining its original Land Registry geography.</p>`)
+            + infoSection('METHOD',`<p><strong>Local Opportunity</strong> combines Development Pressure and the underlying Capacity Context measure equally. <strong>Transaction Exposure = Transaction Pulse × Local Opportunity.</strong></p>`)
+            + infoSection('HOW TO READ IT & LIMITS',`<p>The broad transaction signal is interpreted locally without inventing 100 m transaction counts. It is not an investment signal or forecast.</p>`)};
     }
 
     if(key.startsWith('analysis:')){
@@ -1779,8 +2143,11 @@ function getInfoPanel(key){
     }
 
     return {
-        title:'Atlas information',
-        html:`<p>No additional information is available.</p>`
+        title:'About this view',
+        html:
+            infoRole('852LAB map information','mixed')
+            + infoSection('HOW TO USE THIS VIEW',`<p>Read the selected legend, compare the mapped pattern, then select a place to inspect its connected evidence and derived interpretations.</p>`)
+            + infoSection('EVIDENCE BOUNDARY',`<p>Source geography, coverage and missing values matter. A mapped pattern is not automatically a precise property-level observation, causal conclusion, prediction or recommendation.</p>`)
     };
 }
 
@@ -2427,8 +2794,8 @@ analysisSectionToggle.addEventListener(
         analysisSectionToggle.setAttribute(
             'aria-label',
             willCollapse
-                ? 'Expand Urban Analysis'
-                : 'Collapse Urban Analysis'
+                ? 'Expand Lenses'
+                : 'Collapse Lenses'
         );
 
 
@@ -3116,7 +3483,7 @@ const activeUgsSignatureCodes =
     new Set(
         Object.keys(
             UGS_SIGNATURES
-        )
+        ).filter(code => code !== 'U')
     );
 
 // -----------------------------------------------------
@@ -3132,7 +3499,7 @@ const LEGENDS = {
         title: 'Development Pressure',
 
         description:
-            'Shows where the conditions associated with development pressure combine more or less strongly.',
+            'Where do structural conditions and recorded development activity combine into a stronger pressure signal?',
 
         gradient:
             'linear-gradient(90deg,#E0E1DE,#C6C6C0,#F1E299,#E8B748,#DE8030,#C23F2F,#701F21)',
@@ -3200,7 +3567,7 @@ const LEGENDS = {
         title: 'MTR Built Accessibility',
 
         description:
-            'Shows relative accessibility to the existing MTR network.',
+            'A supporting indicator showing relative proximity and connectivity to the existing MTR network.',
 
         gradient:
             'linear-gradient(90deg,#E0E1DE,#D2D6D4,#C9E3E1,#73C7C7,#249B9B,#006D70,#004C4C)',
@@ -3229,7 +3596,7 @@ const LEGENDS = {
         title: 'Renewal Potential',
 
         description:
-            'A strategic model showing where selected renewal conditions combine more strongly.',
+            'Where do established, connected and built-out conditions combine to make renewal worth investigating?',
 
         gradient:
             'linear-gradient(90deg,#E0E1DE,#C9C6BB,#E2D396,#CDA44B,#BE6E40,#9D3F3C,#5C252F)',
@@ -3258,7 +3625,7 @@ const LEGENDS = {
         title: 'Genesis Potential',
 
         description:
-            'A strategic model showing where capacity and catalytic conditions combine more strongly.',
+            'Where do remaining capacity, lower intensity and enabling conditions combine to suggest emerging growth conditions?',
 
         gradient:
             'linear-gradient(90deg,#E0E1DE,#C9CEC8,#B4DAB8,#60B280,#26937B,#087071,#00484C)',
@@ -3373,7 +3740,7 @@ const LEGENDS = {
         title: 'Transaction Exposure',
 
         description:
-            'Shows where stronger transaction activity overlaps with stronger local Development Pressure and Capacity Opportunity.',
+            'Shows where stronger transaction activity overlaps with stronger local Development Pressure and Capacity Context.',
 
         gradient:
             'linear-gradient(90deg,#E0E1DE,#D8D3DE,#CEC6E4,#AA9AD0,#806BB6,#5B478F,#382D63)',
@@ -3429,7 +3796,7 @@ const LEGENDS = {
         title: 'Market Exposure',
 
         description:
-            'Shows where regional market momentum overlaps with local Development Pressure and Capacity Opportunity.',
+            'Shows where regional market momentum overlaps with local Development Pressure and Capacity Context.',
 
         gradient:
             'linear-gradient(90deg,#E0E1DE,#CBD2D3,#B7E0E3,#62C0CF,#348DC4,#3156A4,#172B62)',
@@ -3462,7 +3829,7 @@ const LEGENDS = {
     title:'Urban Genetic Signature',
 
     description:
-        'A Signature brings several characteristics together to describe what kind of urban place this is. It is a classification, not an overall score or redevelopment forecast.',
+        'What kind of urban place is this? The Signature connects five characteristics into a descriptive classification, not an overall score or redevelopment forecast.',
 
     categorical:true,
 
@@ -3470,6 +3837,68 @@ const LEGENDS = {
 },
 
 };
+
+Object.assign(LEGENDS,{
+    'Capacity Opportunity':{
+        title:'Capacity Context',
+        description:'How does observed form compare with the supported planning-envelope context? This screening Lens is shown only where the contracted evidence basis is supported.',
+        gradient:'linear-gradient(90deg,#E0E1DE,#D6D4DA,#D6CCE8,#7655B6,#2D174F)',
+        interpretation:`
+            <div class='legend-item'><strong>Lower</strong> — Less modelled opportunity within the supported screening context.</div>
+            <div class='legend-item'><strong>Higher</strong> — More modelled opportunity within the supported screening context.</div>
+            <div class='legend-item'><strong>Unassessed</strong> — The contracted Lot, zone or peer-cohort evidence basis is not sufficient.</div>
+            <div class='legend-item'>This is not entitlement, permission, feasibility or a legal-compliance conclusion.</div>
+        `
+    },
+    'Dominant Use':{
+        title:'Dominant Use',
+        description:'Evidence showing the baseline use class most strongly represented within each local analytical area.',
+        categorical:true,
+        items:[
+            {label:'Residential',colour:'#d65f5f'},
+            {label:'Residential / composite',colour:'#e9a27d'},
+            {label:'Office / commercial',colour:'#7f80c9'},
+            {label:'Industrial',colour:'#8c78a8'},
+            {label:'Mixed / unresolved',colour:'#d6b65c'},
+            {label:'Non-domestic',colour:'#5f9ea0'},
+            {label:'Other',colour:'#8ca38c'},
+            {label:'Unresolved',colour:'#aaaaaa'}
+        ],
+        interpretation:`
+            <div class='legend-item'>Colours group related evidence classes; the precise class remains available in the area report.</div>
+        `
+    },
+    'Planning Zone':{
+        title:'Planning Zone',
+        description:'Planning evidence showing the dominant statutory-zone label intersecting each local analytical area.',
+        categorical:true,
+        items:[
+            {label:'Residential R(A–E)',colour:'#d76b63'},
+            {label:'Commercial / C-R',colour:'#7f80c9'},
+            {label:'Industrial',colour:'#8c78a8'},
+            {label:'G/IC',colour:'#5f9ea0'},
+            {label:'Village Type Development',colour:'#d6b65c'},
+            {label:'Other Specified Uses',colour:'#8ca38c'},
+            {label:'Open Space / Recreation',colour:'#72a777'},
+            {label:'Green Belt / Agriculture',colour:'#6fa56a'},
+            {label:'Conservation / protection',colour:'#7396a8'},
+            {label:'Other / uncommon',colour:'#b2a5a0'}
+        ],
+        interpretation:`
+            <div class='legend-item'><strong>Context only</strong> — a dominant-zone label is not a parcel entitlement or legal-compliance statement.</div>
+            <div class='legend-item'>Related zone classes use colour families; the precise dominant label remains available in the popup and report.</div>
+        `
+    }
+});
+
+for(const retiredTheme of [
+    'GFA - Saturation',
+    'GFA per Capita',
+    'Population per Building',
+    'Latent Urban Capacity'
+]){
+    delete LEGENDS[retiredTheme];
+}
 
 // -----------------------------------------------------
 // Analysis Legend Update
@@ -3494,6 +3923,29 @@ function updateLegend(){
 
     legendDescription.textContent =
         cfg.description;
+
+    let roleBadge =
+        analysisLegend.querySelector(
+            '.uga-output-role'
+        );
+
+    if(!roleBadge){
+        roleBadge = document.createElement('div');
+        roleBadge.className = 'uga-output-role';
+        legendDescription.before(roleBadge);
+    }
+
+    const publicRole =
+        V2_PUBLIC_ROLE_BY_THEME[theme] ||
+        'Connected Atlas view';
+
+    roleBadge.textContent = publicRole;
+    roleBadge.dataset.outputRole =
+        publicRole.startsWith('Lens')
+            ? 'lens'
+            : publicRole.startsWith('Evidence')
+                ? 'evidence'
+                : 'indicator';
 
     updateLegendInfoButton();
 
@@ -3676,13 +4128,11 @@ function updateLegend(){
     }
 
 
-    if(
-    theme !==
-    'Urban Genetic Signature'
-    ){
-
-        legendInterpretation.innerHTML =
-            cfg.interpretation;
+    if(theme !== 'Urban Genetic Signature'){
+        const categoryItems=Array.isArray(cfg.items)
+            ? `<div class="legend-category-list">${cfg.items.map(item=>`<div class="legend-category-item"><span class="legend-category-swatch" style="background:${item.colour}"></span><span>${item.label}</span></div>`).join('')}</div>`
+            : '';
+        legendInterpretation.innerHTML = categoryItems + (cfg.interpretation || '');
 
     }
 
@@ -3698,6 +4148,126 @@ function colourExpression(){
     const theme =
         themeSelect.value;
 
+    // V2 public map bindings. Every visible selector option returns here,
+    // before the retained V1.6 reference branches below.
+    const observedRamp = (field, stops) => [
+        'case',
+        ['all',['has',field],['!=',['get',field],null]],
+        ['interpolate',['linear'],['to-number',['get',field]],...stops],
+        'rgba(0,0,0,0)'
+    ];
+
+    if(theme === 'Urban Genetic Signature'){
+        return [
+            'match',['get','signature_code'],
+            'TC',UGS_SIGNATURES.TC.colour,
+            'EC',UGS_SIGNATURES.EC.colour,
+            'AT',UGS_SIGNATURES.AT.colour,
+            'VM',UGS_SIGNATURES.VM.colour,
+            'LF',UGS_SIGNATURES.LF.colour,
+            'CF',UGS_SIGNATURES.CF.colour,
+            'SF',UGS_SIGNATURES.SF.colour,
+            'C',UGS_SIGNATURES.C.colour,
+            'U',UGS_SIGNATURES.U.colour,
+            'rgba(0,0,0,0)'
+        ];
+    }
+
+    if(theme === 'Development Pressure'){
+        return observedRamp('development_pressure_raw_01',[
+            0.00,'rgba(224,225,222,0.16)',
+            0.25,'rgba(198,198,192,0.30)',
+            0.50,'rgba(241,226,153,0.48)',
+            0.75,'rgba(194,63,47,0.82)',
+            1.00,'rgba(112,31,33,0.90)'
+        ]);
+    }
+
+    if(theme === 'MTR - Index (Built)'){
+        return observedRamp('mtr_index_built',[
+            0.00,'rgba(224,225,222,0.16)',
+            0.15,'rgba(201,211,210,0.30)',
+            0.85,'rgba(115,199,199,0.56)',
+            2.25,'rgba(0,109,112,0.76)',
+            6.20,'rgba(0,76,76,0.90)'
+        ]);
+    }
+
+    if(theme === 'Renewal Potential'){
+        return observedRamp('renewal_observed_base_01',[
+            0.00,'rgba(224,225,222,0.16)',
+            0.25,'rgba(215,213,207,0.23)',
+            0.45,'rgba(226,211,150,0.42)',
+            0.60,'rgba(205,164,75,0.58)',
+            0.70,'rgba(190,110,64,0.70)',
+            0.78,'rgba(166,73,58,0.80)',
+            0.86,'rgba(135,50,55,0.86)',
+            0.94,'rgba(105,40,51,0.89)',
+            1.00,'rgba(92,37,47,0.90)'
+        ]);
+    }
+
+    if(theme === 'Genesis Potential'){
+        return observedRamp('genesis_observed_base_01',[
+            0.00,'rgba(224,225,222,0.16)',
+            0.12,'rgba(218,221,216,0.21)',
+            0.24,'rgba(202,219,202,0.30)',
+            0.36,'rgba(180,218,184,0.43)',
+            0.48,'rgba(117,194,151,0.57)',
+            0.60,'rgba(55,159,129,0.70)',
+            0.72,'rgba(8,112,113,0.82)',
+            0.86,'rgba(0,85,89,0.87)',
+            1.00,'rgba(0,72,76,0.90)'
+        ]);
+    }
+
+    if(theme === 'Capacity Opportunity'){
+        return observedRamp('capacity_opportunity_mid_01',[
+            0.00,'rgba(224,225,222,0.16)',
+            0.25,'rgba(214,212,218,0.23)',
+            0.50,'rgba(214,204,232,0.44)',
+            0.75,'rgba(118,85,182,0.72)',
+            1.00,'rgba(45,23,79,0.90)'
+        ]);
+    }
+
+    if(theme === 'Dominant Use'){
+        return [
+            'match',['get','baseline_dominant_use'],
+            'OBSERVED_DOMESTIC','#d65f5f',
+            'SUPPORTED_RESIDENTIAL_POSITIVE','#e38173',
+            'SUPPORTED_RESIDENTIAL_OR_COMPOSITE','#e9a27d',
+            'HD_SEMANTIC_RESIDENTIAL_OR_COMPOSITE','#efbd8c',
+            'SEMANTIC_RESIDENTIAL_OR_COMPOSITE','#f2c99b',
+            'SUPPORTED_OFFICE_COMMERCIAL','#7f80c9',
+            'SEMANTIC_OFFICE_COMMERCIAL','#999adc',
+            'SUPPORTED_INDUSTRIAL','#8c78a8',
+            'SEMANTIC_INDUSTRIAL','#aa96bf',
+            'SUPPORTED_MIXED_OR_CONFLICT','#d6b65c',
+            'OBSERVED_NONDOMESTIC','#5f9ea0',
+            'SUPPORTED_OTHER','#8ca38c',
+            'SEMANTIC_OTHER','#aab7a6',
+            'UNRESOLVED','rgba(170,170,170,0.40)',
+            'rgba(0,0,0,0)'
+        ];
+    }
+
+    if(theme === 'Planning Zone'){
+        return [
+            'match',['get','planning_dominant_zone_label'],
+            'R(A)','#d76b63','R(B)','#dc8275','R(C)','#e19a88','R(D)','#e6b09b','R(E)','#ebc4ae',
+            'C','#7f80c9','C/R','#999adc','I','#8c78a8','G/IC','#5f9ea0',
+            'V','#d6b65c','OU','#8ca38c','O','#72a777','REC','#89b88b',
+            'GB','#6fa56a','AGR','#adc477','CA','#7396a8','CP','#7f9eae',
+            'SSSI','#4e8872','CDA','#b08f62','MRDJ','#b2a5a0',
+            'rgba(170,170,170,0.45)'
+        ];
+    }
+
+    if(Object.prototype.hasOwnProperty.call(V2_LAYER_ID_BY_THEME,theme)){
+        return 'rgba(0,0,0,0)';
+    }
+
 // -------------------------------------------------
 // Urban Genetic Signature
 // -------------------------------------------------
@@ -3710,7 +4280,7 @@ function colourExpression(){
 
             [
                 'get',
-                'UGS_v02_Code'
+                'signature_code'
             ],
 
             'TC',
@@ -3752,7 +4322,7 @@ function colourExpression(){
 
     if(theme === 'Development Pressure'){
 
-        const field = 'Development Pressure v2';
+        const field = 'development_pressure_raw_01';
 
         return [
             'case',
@@ -4052,24 +4622,24 @@ function colourExpression(){
         }
 
         const pulseExpression = [
-            'match', ['get','HAD_EN'], ...matchParts, -1
+            'match', ['get','had_name_en'], ...matchParts, -1
         ];
 
         const pressureComponent = [
-            'max',0,['min',1,['to-number',['get','Development Pressure v2'],0]]
+            'max',0,['min',1,['to-number',['get','development_pressure_raw_01'],0]]
         ];
         const capacityComponent = [
-            'max',0,['min',1,['to-number',['get','Analysis_v2_Capacity_Opportunity'],0]]
+            'max',0,['min',1,['to-number',['get','capacity_opportunity_mid_01'],0]]
         ];
         const localOpportunity = ['/', ['+',pressureComponent,capacityComponent], 2];
         const txExposure = ['*',pulseExpression,localOpportunity];
 
         const assessable = [
             'all',
-            ['has','Development Pressure v2'],
-            ['has','Analysis_v2_Capacity_Opportunity'],
-            ['!=',['get','Development Pressure v2'],null],
-            ['!=',['get','Analysis_v2_Capacity_Opportunity'],null],
+            ['has','development_pressure_raw_01'],
+            ['has','capacity_opportunity_mid_01'],
+            ['!=',['get','development_pressure_raw_01'],null],
+            ['!=',['get','capacity_opportunity_mid_01'],null],
             ['>=',pulseExpression,0]
         ];
 
@@ -4131,7 +4701,7 @@ function colourExpression(){
 
         const pulseExpression = [
             'match',
-            ['get','HAD_EN'],
+            ['get','had_name_en'],
             ...matchParts,
             -1
         ];
@@ -4212,23 +4782,23 @@ function colourExpression(){
 
             [
                 'in',
-                ['get','HAD_EN'],
+                ['get','had_name_en'],
                 ['literal',hongKongDistricts]
             ],
             hongKongMomentum,
 
             [
                 'in',
-                ['get','HAD_EN'],
+                ['get','had_name_en'],
                 ['literal',kowloonDistricts]
             ],
             kowloonMomentum,
 
             [
                 'all',
-                ['has','HAD_EN'],
-                ['!=',['get','HAD_EN'],null],
-                ['!=',['get','HAD_EN'],'']
+                ['has','had_name_en'],
+                ['!=',['get','had_name_en'],null],
+                ['!=',['get','had_name_en'],'']
             ],
             newTerritoriesMomentum,
 
@@ -4248,7 +4818,7 @@ function colourExpression(){
                 1,
                 [
                     'to-number',
-                    ['get','Development Pressure v2'],
+                    ['get','development_pressure_raw_01'],
                     0
                 ]
             ]
@@ -4262,7 +4832,7 @@ function colourExpression(){
                 1,
                 [
                     'to-number',
-                    ['get','Analysis_v2_Capacity_Opportunity'],
+                    ['get','capacity_opportunity_mid_01'],
                     0
                 ]
             ]
@@ -4286,10 +4856,10 @@ function colourExpression(){
 
         const assessable = [
             'all',
-            ['has','Development Pressure v2'],
-            ['has','Analysis_v2_Capacity_Opportunity'],
-            ['!=',['get','Development Pressure v2'],null],
-            ['!=',['get','Analysis_v2_Capacity_Opportunity'],null],
+            ['has','development_pressure_raw_01'],
+            ['has','capacity_opportunity_mid_01'],
+            ['!=',['get','development_pressure_raw_01'],null],
+            ['!=',['get','capacity_opportunity_mid_01'],null],
             ['>=',regionMomentumExpression,0]
         ];
 
@@ -4692,9 +5262,9 @@ function marketContextMomentumExpression(){
     const hk=['Central and Western District','Eastern District','Southern District','Wan Chai District'];
     const kln=['Kowloon City District','Kwun Tong District','Sham Shui Po District','Wong Tai Sin District','Yau Tsim Mong District'];
     return ['case',
-        ['in',['get','HAD_EN'],['literal',hk]], value('Hong Kong'),
-        ['in',['get','HAD_EN'],['literal',kln]], value('Kowloon'),
-        ['all',['has','HAD_EN'],['!=',['get','HAD_EN'],null],['!=',['get','HAD_EN'],'']], value('New Territories'),
+        ['in',['get','had_name_en'],['literal',hk]], value('Hong Kong'),
+        ['in',['get','had_name_en'],['literal',kln]], value('Kowloon'),
+        ['all',['has','had_name_en'],['!=',['get','had_name_en'],null],['!=',['get','had_name_en'],'']], value('New Territories'),
         -1
     ];
 }
@@ -4705,25 +5275,25 @@ function marketContextPulseExpression(){
     for(const [name,raw] of Object.entries(scores)){
         const n=Number(raw); if(Number.isFinite(n)) parts.push(name,n);
     }
-    return parts.length ? ['match',['get','HAD_EN'],...parts,-1] : -1;
+    return parts.length ? ['match',['get','had_name_en'],...parts,-1] : -1;
 }
 
 function marketContextExposureExpression(){
     const momentum=marketContextMomentumExpression();
     const pressure=[
-        'max',0,['min',1,['to-number',['get','Development Pressure v2'],0]]
+        'max',0,['min',1,['to-number',['get','development_pressure_raw_01'],0]]
     ];
     const capacity=[
-        'max',0,['min',1,['to-number',['get','Analysis_v2_Capacity_Opportunity'],0]]
+        'max',0,['min',1,['to-number',['get','capacity_opportunity_mid_01'],0]]
     ];
     const localOpportunity=['/', ['+',pressure,capacity], 2];
     const exposure=['*',momentum,localOpportunity];
     const assessable=[
         'all',
-        ['has','Development Pressure v2'],
-        ['has','Analysis_v2_Capacity_Opportunity'],
-        ['!=',['get','Development Pressure v2'],null],
-        ['!=',['get','Analysis_v2_Capacity_Opportunity'],null],
+        ['has','development_pressure_raw_01'],
+        ['has','capacity_opportunity_mid_01'],
+        ['!=',['get','development_pressure_raw_01'],null],
+        ['!=',['get','capacity_opportunity_mid_01'],null],
         ['>=',momentum,0]
     ];
     return {exposure,assessable};
@@ -4733,19 +5303,19 @@ function marketContextExposureExpression(){
 function marketContextTransactionExposureExpression(){
     const pulse=marketContextPulseExpression();
     const pressure=[
-        'max',0,['min',1,['to-number',['get','Development Pressure v2'],0]]
+        'max',0,['min',1,['to-number',['get','development_pressure_raw_01'],0]]
     ];
     const capacity=[
-        'max',0,['min',1,['to-number',['get','Analysis_v2_Capacity_Opportunity'],0]]
+        'max',0,['min',1,['to-number',['get','capacity_opportunity_mid_01'],0]]
     ];
     const localOpportunity=['/', ['+',pressure,capacity], 2];
     const exposure=['*',pulse,localOpportunity];
     const assessable=[
         'all',
-        ['has','Development Pressure v2'],
-        ['has','Analysis_v2_Capacity_Opportunity'],
-        ['!=',['get','Development Pressure v2'],null],
-        ['!=',['get','Analysis_v2_Capacity_Opportunity'],null],
+        ['has','development_pressure_raw_01'],
+        ['has','capacity_opportunity_mid_01'],
+        ['!=',['get','development_pressure_raw_01'],null],
+        ['!=',['get','capacity_opportunity_mid_01'],null],
         ['>=',pulse,0]
     ];
     return {exposure,assessable};
@@ -4833,6 +5403,22 @@ marketContextOpacity?.addEventListener('input',updateMarketContextOverlay);
 // Analysis Hex Layer
 // -----------------------------------------------------
 
+// The 100 m cells remain the authoritative analytical geometry, but their
+// boundaries are infrastructure rather than the normal public visual language.
+// At exploration zooms adjacent fills therefore meet without a drawn grid.
+// A very light boundary returns only at close inspection zooms; hover and
+// selection layers remain available independently. No values or geometry are
+// interpolated, resampled or smoothed by this expression.
+function publicCellOutlineExpression(){
+    return [
+        'interpolate',['linear'],['zoom'],
+        10,'rgba(55,65,81,0.00)',
+        14.5,'rgba(55,65,81,0.00)',
+        15.5,'rgba(55,65,81,0.035)',
+        17,'rgba(55,65,81,0.12)'
+    ];
+}
+
 function drawAtlas(){
 
     const fillColor =
@@ -4865,7 +5451,7 @@ function drawAtlas(){
                     analysisFillOpacityExpression(),
 
                 'fill-outline-color':
-                    'rgba(60,60,60,0.04)'
+                    publicCellOutlineExpression()
 
             }
 
@@ -5018,21 +5604,7 @@ function drawAtlas(){
 
 const PLANNING_CONTEXT_ANALYSES = [
 
-    'Urban Genetic Signature',
-
-    'Development Pressure',
-
-    'GFA - Saturation',
-
-    'Renewal Potential',
-
-    'Genesis Potential',
-
-    'Latent Urban Capacity',
-
-    'Market Exposure',
-
-    'Transaction Exposure'
+    'Capacity Opportunity'
 
 ];
 
@@ -5068,7 +5640,7 @@ function applyAtlasFilters(){
                 '==',
                 [
                     'get',
-                    'SPZ - Capacity Context'
+                    'capacity_opportunity_context_class'
                 ],
                 context
             ]);
@@ -5090,7 +5662,7 @@ function applyAtlasFilters(){
                     'in',
                     [
                         'get',
-                        'UGS_v02_Code'
+                        'signature_code'
                     ],
                     [
                         'literal',
@@ -5101,7 +5673,7 @@ function applyAtlasFilters(){
                     '==',
                     [
                         'get',
-                        'UGS_v02_Code'
+                        'signature_code'
                     ],
                     '__none__'
                 ]
@@ -5709,7 +6281,9 @@ map.on('load', () => {
 
     map.addSource('atlas',{
         type:'vector',
-        url:'pmtiles://https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/atlas/852LAB_V1.6.pmtiles'
+        url:ATLAS_PMTILES_URL,
+        minzoom:v2SiteConfig.map.minzoom,
+        maxzoom:v2SiteConfig.map.maxzoom
     });
 
     // -----------------------------------------------------
@@ -6438,7 +7012,7 @@ perfMark('All sources registered');
 
                 [
                     'get',
-                    'UGS_v02_Code'
+                    'signature_code'
                 ],
 
                 'TC',
@@ -6480,7 +7054,50 @@ perfMark('All sources registered');
 
         filter:[
             '==',
-            'Hex ID',
+            'hex_id',
+            ''
+        ]
+
+    });
+
+// =====================================================
+// V2 SELECTED PLACE HIGHLIGHT
+// =====================================================
+// Persistent selection is separate from transient hover. Stage 03 selects
+// only a Hex; Building geometry/highlighting will be added only when an
+// authoritative Building relationship is connected.
+
+    map.addLayer({
+
+        id:'v2-selected-place',
+
+        type:'line',
+
+        source:'atlas',
+
+        'source-layer':
+            ATLAS_SOURCE_LAYER,
+
+        paint:{
+
+            'line-color':'#1f2937',
+
+            'line-width':[
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                10, 2.4,
+                13, 3.2,
+                16, 4.0
+            ],
+
+            'line-opacity':0.92
+
+        },
+
+        filter:[
+            '==',
+            ['to-string',['get','hex_id']],
             ''
         ]
 
@@ -6657,7 +7274,7 @@ map.on(
 
                     const id =
                         feature.properties[
-                            'Hex ID'
+                            'hex_id'
                         ];
 
 
@@ -6681,7 +7298,7 @@ map.on(
 
                             [
                                 '==',
-                                'Hex ID',
+                                'hex_id',
                                 id
                             ]
                         );
@@ -6726,7 +7343,7 @@ map.on(
 
                 [
                     '==',
-                    'Hex ID',
+                    'hex_id',
                     ''
                 ]
 
@@ -6742,6 +7359,588 @@ map.on(
 // POPUP
 // =====================================================
 
+
+// -----------------------------------------------------
+// V2 selection + Building / Place report shell
+// -----------------------------------------------------
+
+const v2SelectionApi =
+    window.UGA_V2_SELECTION || null;
+
+const v2ReportApi =
+    window.UGA_V2_REPORT || null;
+
+const v2AddressSearchApi =
+    window.UGA_V2_ADDRESS_SEARCH || null;
+
+const v2AddressProvider =
+    window.UGA_V2_ADDRESS_PROVIDER || null;
+
+const v2EntityProvider =
+    window.UGA_V2_ENTITY_PROVIDER || v2AddressProvider;
+
+const v2EntityBindingApi =
+    window.UGA_V2_ENTITY_BINDING || null;
+
+const v2HexProviderApi =
+    window.UGA_V2_HEX_PROVIDER || null;
+
+const v2ClimateProviderApi =
+    window.UGA_V2_CLIMATE_PROVIDER || null;
+
+const v2FieldAdapterApi =
+    window.UGA_V2_FIELD_ADAPTER || null;
+
+const v2HexReportBindingApi =
+    window.UGA_V2_HEX_REPORT_BINDING || null;
+
+const v2HexProvider =
+    v2HexProviderApi
+        ? v2HexProviderApi.createHexProvider({config:v2SiteConfig})
+        : null;
+
+const v2ClimateProvider =
+    v2ClimateProviderApi
+        ? v2ClimateProviderApi.createClimateProvider({config:v2SiteConfig})
+        : null;
+
+const v2HydratedSelections = new Map();
+let v2ReportRenderToken = 0;
+
+function applyV2SelectedPlaceHighlight(selection){
+
+    if(!map.getLayer('v2-selected-place')){
+        return;
+    }
+
+    const hexId =
+        selection?.primaryHexId || '';
+
+    map.setFilter(
+        'v2-selected-place',
+        [
+            '==',
+            ['to-string',['get','hex_id']],
+            String(hexId)
+        ]
+    );
+
+}
+
+function hideV2PlaceReport(){
+
+    if(!placeReportPanel){
+        return;
+    }
+
+    placeReportPanel.hidden = true;
+    placeReportPanel.setAttribute(
+        'aria-hidden',
+        'true'
+    );
+
+}
+
+async function renderV2PlaceReport(selection, focus=null, historyDepth=0){
+
+    if(
+        !placeReportPanel ||
+        !placeReportTitle ||
+        !placeReportSubtitle ||
+        !placeReportBody ||
+        !v2ReportApi
+    ){
+        return;
+    }
+
+    const renderToken = ++v2ReportRenderToken;
+
+    placeReportTitle.textContent = 'Selection Summary';
+    placeReportSubtitle.textContent = 'Loading report context…';
+    placeReportBody.innerHTML = `
+        <div class="v2-report-empty" data-state="loading">
+            Loading the report record…
+        </div>
+    `;
+    placeReportPanel.hidden = false;
+    placeReportPanel.setAttribute('aria-hidden','false');
+
+    try{
+
+        const activeFocus = focus || selection?.initialFocus || null;
+        let reportSelection = selection;
+        if(v2EntityBindingApi){
+            reportSelection = await v2EntityBindingApi.hydrate(
+                selection,
+                activeFocus,
+                {
+                    entityProvider:v2EntityProvider,
+                    hexProvider:v2HexProvider,
+                    climateProvider:v2ClimateProvider,
+                    hexBinding:v2HexReportBindingApi,
+                    fieldAdapter:v2FieldAdapterApi
+                }
+            );
+        }
+
+        if(renderToken !== v2ReportRenderToken){
+            return;
+        }
+
+        const reportModel =
+            v2ReportApi.buildReportViewModel(
+                reportSelection,
+                focus
+            );
+
+        placeReportTitle.textContent =
+            reportModel.entityType === 'building'
+                ? 'Building Summary'
+                : reportModel.entityType === 'lot'
+                    ? 'Lot Summary'
+                    : 'Selection Summary';
+
+        placeReportSubtitle.textContent =
+            reportModel.subtitle;
+
+        if(placeReportBack){
+            placeReportBack.textContent =
+                historyDepth > 0
+                    ? '← Back'
+                    : '← Map';
+            placeReportBack.setAttribute(
+                'aria-label',
+                historyDepth > 0
+                    ? 'Back to previous report'
+                    : 'Back to map'
+            );
+        }
+
+        placeReportBody.innerHTML =
+            v2ReportApi.renderReportHtml(
+                reportModel
+            );
+
+        placeReportPanel.hidden = false;
+        placeReportPanel.setAttribute(
+            'aria-hidden',
+            'false'
+        );
+
+        placeReportBody.scrollTop = 0;
+
+    } catch(error){
+
+        console.error(
+            '[UGA V2] Failed to render place report.',
+            error
+        );
+
+        placeReportTitle.textContent =
+            'Place details unavailable';
+
+        placeReportSubtitle.textContent =
+            'Selection could not be read';
+
+        placeReportBody.innerHTML = `
+            <div class="v2-report-failure">
+                The current area could not be read through the current
+                V2 report boundary.
+            </div>
+        `;
+
+        placeReportPanel.hidden = false;
+        placeReportPanel.setAttribute(
+            'aria-hidden',
+            'false'
+        );
+
+    }
+
+}
+
+function syncV2SelectionUi(state){
+
+    const selection =
+        state?.selection || null;
+
+    applyV2SelectedPlaceHighlight(
+        selection
+    );
+
+    if(
+        !selection ||
+        !state?.reportOpen
+    ){
+        hideV2PlaceReport();
+        return;
+    }
+
+    renderV2PlaceReport(
+        selection,
+        state?.focus || null,
+        Number(state?.historyDepth) || 0
+    );
+
+}
+
+if(v2SelectionApi){
+
+    v2SelectionApi.subscribe(
+        syncV2SelectionUi
+    );
+
+}else{
+
+    console.warn(
+        '[UGA V2] Selection-state contract is not available.'
+    );
+
+}
+
+window.addEventListener('uga-market-ready',() => {
+    const state=v2SelectionApi?.snapshot();
+    if(state?.selection && state?.reportOpen) syncV2SelectionUi(state);
+});
+
+if(!v2ReportApi){
+
+    console.warn(
+        '[UGA V2] Place-report shell is not available.'
+    );
+
+}
+
+popup?.addEventListener(
+    'click',
+    event => {
+
+        const action =
+            event.target.closest(
+                '[data-v2-action="open-place-report"], [data-v2-action="view-hex-report"]'
+            );
+
+        if(!action || !v2SelectionApi){
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        v2SelectionApi.openReport();
+        hidePopup();
+
+        if(
+            typeof mobileViewportQuery !== 'undefined' &&
+            mobileViewportQuery.matches
+        ){
+            setPanelMinimized(true);
+        }
+
+    }
+);
+
+placeReportBody?.addEventListener(
+    'click',
+    event => {
+        const target = event.target.closest(
+            '[data-v2-focus-type][data-v2-focus-id]'
+        );
+        if(!target || !v2SelectionApi){
+            return;
+        }
+
+        event.preventDefault();
+        v2SelectionApi.focusEntity(
+            target.dataset.v2FocusType,
+            target.dataset.v2FocusId,
+            {label:target.dataset.v2FocusLabel || null}
+        );
+    }
+);
+
+placeReportBack?.addEventListener(
+    'click',
+    () => {
+        if(!v2SelectionApi){
+            return;
+        }
+        const state = v2SelectionApi.snapshot();
+        if(Number(state.historyDepth) > 0){
+            v2SelectionApi.backFocus();
+        }else{
+            v2SelectionApi.closeReport();
+        }
+    }
+);
+
+placeReportClose?.addEventListener(
+    'click',
+    () => {
+        v2SelectionApi?.clearSelection();
+    }
+);
+
+placeReportPrint?.addEventListener(
+    'click',
+    () => window.print()
+);
+
+// -----------------------------------------------------
+// V2 Building search shell
+// -----------------------------------------------------
+
+let v2AddressSearchCandidates = [];
+let v2AddressSearchAbortController = null;
+let v2AddressSearchTimer = null;
+let v2AddressSearchActiveIndex = -1;
+
+if(v2AddressSearchApi?.providerStatus(v2AddressProvider).connected){
+    setTimeout(() => setV2AddressSearchStatus(
+        'Search full addresses, Building names and IDs, or Lot IDs.',
+        'ready'
+    ),0);
+}
+
+function setV2AddressSearchStatus(message, state=''){
+    if(!v2AddressSearchStatus){
+        return;
+    }
+    v2AddressSearchStatus.textContent = message || '';
+    if(state){
+        v2AddressSearchStatus.dataset.state = state;
+    }else{
+        delete v2AddressSearchStatus.dataset.state;
+    }
+}
+
+function hideV2AddressSearchResults(){
+    if(!v2AddressSearchResults){
+        return;
+    }
+    v2AddressSearchResults.hidden = true;
+    v2AddressSearchResults.innerHTML = '';
+    v2AddressSearchCandidates = [];
+    v2AddressSearchActiveIndex = -1;
+}
+
+function renderV2AddressSearchResults(results){
+    if(!v2AddressSearchResults || !v2ReportApi){
+        return;
+    }
+
+    v2AddressSearchCandidates = [...results];
+    const esc = v2ReportApi.escapeHtml;
+
+    v2AddressSearchResults.innerHTML = results.map((item, index) => {
+        const primaryLabel = item.displayLabelEn || item.displayLabelZh || item.entityId;
+        const secondaryLabel = item.secondaryLabel || item.displayLabelZh || (
+            item.entityType === 'lot'
+                ? `LotCSUID ${item.lotCsuid}`
+                : `BuildingCSUID ${item.buildingCsuid}`
+        );
+        return `
+            <button
+                type="button"
+                class="v2-address-result"
+                role="option"
+                data-v2-search-index="${index}"
+            >
+                <span class="v2-address-result-main">
+                    <strong>${esc(primaryLabel)}</strong>
+                    <span>${esc(secondaryLabel)}</span>
+                </span>
+                <span class="v2-address-result-meta">${esc(item.entityType)} · ${esc(item.matchType.replaceAll('_',' '))}</span>
+            </button>
+        `;
+    }).join('');
+    v2AddressSearchResults.hidden = false;
+    v2AddressSearchActiveIndex = results.length ? 0 : -1;
+    updateV2AddressSearchActiveResult();
+}
+
+function updateV2AddressSearchActiveResult(){
+    v2AddressSearchResults?.querySelectorAll('[data-v2-search-index]').forEach((element,index) => {
+        const active = index === v2AddressSearchActiveIndex;
+        element.classList.toggle('is-active',active);
+        element.setAttribute('aria-selected',String(active));
+        if(active) element.scrollIntoView({block:'nearest'});
+    });
+}
+
+async function runV2AddressSearch(query){
+    if(!v2AddressSearchApi){
+        setV2AddressSearchStatus(
+            'Address-search contract is unavailable in this build.',
+            'error'
+        );
+        hideV2AddressSearchResults();
+        return;
+    }
+
+    const providerState = v2AddressSearchApi.providerStatus(
+        v2AddressProvider
+    );
+    if(!providerState.connected){
+        setV2AddressSearchStatus(
+            providerState.message,
+            providerState.state
+        );
+        hideV2AddressSearchResults();
+        return;
+    }
+
+    if(v2AddressSearchAbortController){
+        v2AddressSearchAbortController.abort();
+    }
+    v2AddressSearchAbortController = new AbortController();
+
+    setV2AddressSearchStatus('Searching…', 'loading');
+    hideV2AddressSearchResults();
+
+    try{
+        const response = await v2AddressSearchApi.search(
+            v2AddressProvider,
+            query,
+            {
+                limit:8,
+                signal:v2AddressSearchAbortController.signal
+            }
+        );
+
+        if(response.status === 'results'){
+            setV2AddressSearchStatus(
+                `${response.results.length} matching ${response.results.length === 1 ? 'place' : 'places'}`,
+                'results'
+            );
+            renderV2AddressSearchResults(response.results);
+            return;
+        }
+
+        setV2AddressSearchStatus(
+            response.message || 'No matching address, Building or Lot was found.',
+            response.status
+        );
+        hideV2AddressSearchResults();
+    }catch(error){
+        if(error?.name === 'AbortError'){
+            return;
+        }
+        console.error('[UGA V2] Place search failed.', error);
+        setV2AddressSearchStatus(
+            'Place search could not be completed.',
+            'error'
+        );
+        hideV2AddressSearchResults();
+    }
+}
+
+async function openV2AddressCandidate(candidate){
+    if(!v2AddressSearchApi || !v2SelectionApi || !candidate){
+        return;
+    }
+
+    setV2AddressSearchStatus(`Loading ${candidate.entityType === 'lot' ? 'Lot' : 'Building'} context…`, 'loading');
+
+    try{
+        const resolution = await v2AddressSearchApi.resolve(
+            v2AddressProvider,
+            candidate
+        );
+        const selection = candidate.entityType === 'lot'
+            ? v2SelectionApi.createLotSelection(resolution)
+            : v2SelectionApi.createBuildingSelection(resolution);
+
+        v2SelectionApi.setSelection(selection);
+        v2SelectionApi.openReport();
+        hidePopup();
+        hideV2AddressSearchResults();
+
+        const center = selection.trustedCentroid;
+        if(center){
+            map.flyTo({
+                center:[center.lng, center.lat],
+                zoom:17,
+                essential:true
+            });
+        }
+
+        const label = selection.displayLabelEn || selection.displayLabelZh || selection.buildingCsuid || selection.lotCsuid;
+        setV2AddressSearchStatus(
+            `Selected ${label}`,
+            'selected'
+        );
+
+        if(
+            typeof mobileViewportQuery !== 'undefined' &&
+            mobileViewportQuery.matches
+        ){
+            setPanelMinimized(true);
+        }
+    }catch(error){
+        console.error('[UGA V2] Entity resolution failed.', error);
+        setV2AddressSearchStatus(
+            'The selected Building or Lot could not be resolved through the current search provider.',
+            'error'
+        );
+    }
+}
+
+v2AddressSearchForm?.addEventListener(
+    'submit',
+    event => {
+        event.preventDefault();
+        runV2AddressSearch(
+            v2AddressSearchInput?.value || ''
+        );
+    }
+);
+
+v2AddressSearchInput?.addEventListener('input',event => {
+    clearTimeout(v2AddressSearchTimer);
+    const query = event.target.value || '';
+    if(query.trim().length < 2){
+        hideV2AddressSearchResults();
+        setV2AddressSearchStatus('Enter at least two characters.','too_short');
+        return;
+    }
+    v2AddressSearchTimer = setTimeout(() => runV2AddressSearch(query),220);
+});
+
+v2AddressSearchInput?.addEventListener('keydown',event => {
+    if(v2AddressSearchResults?.hidden || !v2AddressSearchCandidates.length) return;
+    if(event.key === 'ArrowDown' || event.key === 'ArrowUp'){
+        event.preventDefault();
+        const direction=event.key === 'ArrowDown' ? 1 : -1;
+        v2AddressSearchActiveIndex=(v2AddressSearchActiveIndex+direction+v2AddressSearchCandidates.length)%v2AddressSearchCandidates.length;
+        updateV2AddressSearchActiveResult();
+    }else if(event.key === 'Enter' && v2AddressSearchActiveIndex >= 0){
+        event.preventDefault();
+        openV2AddressCandidate(v2AddressSearchCandidates[v2AddressSearchActiveIndex]);
+    }else if(event.key === 'Escape'){
+        hideV2AddressSearchResults();
+    }
+});
+
+v2AddressSearchResults?.addEventListener(
+    'click',
+    event => {
+        const target = event.target.closest(
+            '[data-v2-search-index]'
+        );
+        if(!target){
+            return;
+        }
+        const index = Number(target.dataset.v2SearchIndex);
+        v2AddressSearchActiveIndex = index;
+        const candidate = Number.isInteger(index)
+            ? v2AddressSearchCandidates[index]
+            : null;
+        if(candidate){
+            openV2AddressCandidate(candidate);
+        }
+    }
+);
 
 // -----------------------------------------------------
 // Hide Popup
@@ -7022,7 +8221,7 @@ function ugsWhyItems(
         SF:[],
 
         C:[
-            {label:'Planning context',field:'SPZ - Capacity Context'}
+            {label:'Planning context',field:'capacity_opportunity_context_class'}
         ],
 
         U:[
@@ -7562,707 +8761,381 @@ function positionPopup(point){
 // Build Popup
 // -----------------------------------------------------
 
+let v2PopupRenderToken = 0;
+
+function v2ClimateActiveLayer(climate, state){
+    const mode=state?.mode==='coastal'?'coastal':'heat';
+    if(mode==='coastal'){
+        const scenarios={
+            c_present:['coastal_present_p95','Present P95'],
+            c_2050_245:['coastal_2050_ssp245_med','2050 SSP2-4.5 median'],
+            c_2100_245:['coastal_2100_ssp245_med','2100 SSP2-4.5 median'],
+            c_2100_585:['coastal_2100_ssp585_med','2100 SSP5-8.5 median'],
+            c_2100_585_hi:['coastal_2100_ssp585_high','2100 SSP5-8.5 high']
+        };
+        const [prefix,label]=scenarios[state?.scenario]||scenarios.c_2100_245;
+        const fraction=Number(climate?.[`${prefix}_affected_fraction`]);
+        const depth=Number(climate?.[`${prefix}_depth_median_m`]);
+        const validFraction=Number.isFinite(fraction);
+        const formatted=!validFraction
+            ? 'Not available'
+            : fraction<=0
+                ? '0% affected'
+                : `${(fraction*100).toLocaleString('en-HK',{maximumFractionDigits:fraction<.01?1:0})}% affected`;
+        const evidence=!validFraction
+            ? 'No coastal screening context'
+            : fraction<=0
+                ? 'No affected land indicated in this local context'
+                : Number.isFinite(depth)
+                    ? `Median affected depth ${depth.toFixed(2)} m`
+                    : 'Median affected depth not available';
+        return Object.freeze({
+            id:`climate_${state?.scenario||'c_2100_245'}`,
+            label,
+            role:'Modelled screening evidence · Coastal',
+            question:'How much of the supported local land context is indicated as affected under this screening scenario?',
+            format:'climate_fraction',
+            value:validFraction?fraction:null,
+            formatted,
+            evidence,
+            domain:'climate'
+        });
+    }
+    const heat=Number(climate?.heat_persistent_relative_c);
+    const valid=Number.isFinite(heat);
+    const magnitude=valid?Math.abs(heat).toFixed(1):null;
+    return Object.freeze({
+        id:'climate_heat',
+        label:'Persistent Relative Surface Heat',
+        role:'Derived observational Lens · Heat',
+        question:'How persistently warm or cool is this surface relative to the same-date Hong Kong territorial reference?',
+        format:'climate_relative_heat',
+        value:valid?heat:null,
+        formatted:valid?`${heat>0?'+':heat<0?'−':''}${magnitude} °C`:'Not available',
+        evidence:'Summer Landsat record · 2020–2026',
+        domain:'climate'
+    });
+}
+
+function v2ClimatePopupViewModel(climate, state, baseViewModel=null){
+    const hexId=String(climate?.hex_id||baseViewModel?.hexId||'');
+    const activeLayer=v2ClimateActiveLayer(climate,state);
+    return Object.freeze({
+        version:'V2_CLIMATE_POPUP_VIEW_MODEL_V0_1',
+        hexId,
+        district:baseViewModel?.district||'Climate map',
+        signatureCode:baseViewModel?.signatureCode||null,
+        signatureName:baseViewModel?.signatureName||'Climate context',
+        signatureLabel:baseViewModel?.signatureLabel||null,
+        summary:baseViewModel?.summary||null,
+        profile:Array.isArray(baseViewModel?.profile)?baseViewModel.profile:[],
+        activeLayer,
+        reportAvailable:true
+    });
+}
+
+function v2ClimateSelectionViewModel(viewModel, properties){
+    return Object.freeze({
+        sourceBinding:v2SiteConfig.contractStatus,
+        identity:Object.freeze({
+            hexId:viewModel.hexId,
+            landUse:properties?.baseline_dominant_use || 'Not assessed'
+        }),
+        signature:Object.freeze({
+            code:viewModel.signatureCode || 'U',
+            name:viewModel.signatureName || 'Climate context',
+            supportLabel:properties?.signature_confidence || 'Not assessed',
+            whyStatement:viewModel.summary || 'Climate map selection'
+        }),
+        activeLayer:Object.freeze({
+            label:viewModel.activeLayer.label,
+            kind:viewModel.activeLayer.role,
+            formatted:viewModel.activeLayer.formatted || 'Not available',
+            evidence:viewModel.activeLayer.evidence || 'Not assessed',
+            caution:viewModel.activeLayer.domain==='climate'&&viewModel.activeLayer.id!=='climate_heat'
+                ? 'Coastal screening evidence is not observed flooding or a hydraulic flood prediction.'
+                : null,
+            state:viewModel.activeLayer.value===null?'missing':'observed'
+        }),
+        geography:Object.freeze({
+            hadDistrict:viewModel.district==='Not available'||viewModel.district==='Climate map'?null:viewModel.district,
+            marketRegion:null
+        })
+    });
+}
+
+async function showClimateLayerPopup(climateFeature, atlasFeature, point, lngLat=null){
+    const token=++v2PopupRenderToken;
+    const popupApi=window.UGA_V2_POPUP;
+    const hexId=String(climateFeature?.properties?.hex_id||'');
+    if(!popupApi||!v2ClimateProvider||!hexId){
+        return;
+    }
+    try{
+        const climate=await v2ClimateProvider.loadHex(hexId);
+        if(token!==v2PopupRenderToken||!climate) return;
+        let baseViewModel=null;
+        if(atlasFeature?.properties){
+            try{
+                baseViewModel=popupApi.buildViewModel(
+                    atlasFeature.properties,
+                    'urban_signature',
+                    v2SiteConfig
+                );
+            }catch(_error){
+                baseViewModel=null;
+            }
+        }
+        const state=window.UGAClimateMapState?.()||{mode:'heat',scenario:'c_2100_245'};
+        const viewModel=v2ClimatePopupViewModel(climate,state,baseViewModel);
+        if(v2SelectionApi){
+            const selection=v2SelectionApi.createHexSelection(
+                v2ClimateSelectionViewModel(viewModel,atlasFeature?.properties||null),
+                {lng:lngLat?.lng,lat:lngLat?.lat}
+            );
+            const reportWasOpen=v2SelectionApi.isReportOpen();
+            v2SelectionApi.setSelection(selection);
+            if(reportWasOpen){
+                hidePopup();
+                return;
+            }
+        }
+        popup.innerHTML=popupApi.render(viewModel,{climate,climateOnly:!baseViewModel});
+        positionPopup(point);
+    }catch(error){
+        console.warn('[UGA CLIMATE POPUP] Could not load Climate context.',error);
+    }
+}
+
+function v2SelectionViewModelFromPopup(viewModel, properties){
+
+    const layer =
+        v2SiteConfig.layers.find(
+            item => item.layerId === viewModel.activeLayer.id
+        ) || null;
+
+    const value = viewModel.activeLayer.value;
+    let formatted = 'Not assessed';
+    if(value !== null && value !== undefined && value !== ''){
+        if(layer?.format === 'unit_interval' && Number.isFinite(Number(value))){
+            formatted = `${(Number(value) * 100).toFixed(0)}%`;
+        }else if(layer?.format === 'population_context' && Number.isFinite(Number(value))){
+            formatted = `${Math.round(Number(value)).toLocaleString('en-GB')} model-allocated`;
+        }else if(layer?.format === 'numeric' && Number.isFinite(Number(value))){
+            formatted = Number(value).toLocaleString('en-GB',{maximumFractionDigits:3});
+        }else{
+            formatted = String(value);
+        }
+    }
+
+    let caution = null;
+    if(layer?.valueField){
+        try{
+            caution = v2FieldAdapterApi?.definition(layer.valueField)?.caution || null;
+        }catch(_error){
+            caution = null;
+        }
+    }
+
+    return Object.freeze({
+        sourceBinding:v2SiteConfig.contractStatus,
+        identity:Object.freeze({
+            hexId:viewModel.hexId,
+            landUse:properties?.baseline_dominant_use || 'Not assessed'
+        }),
+        signature:Object.freeze({
+            code:viewModel.signatureCode || 'U',
+            name:viewModel.signatureName,
+            supportLabel:properties?.signature_confidence || 'Not assessed',
+            whyStatement:viewModel.summary || viewModel.signatureLabel || 'Not assessed'
+        }),
+        activeLayer:Object.freeze({
+            label:viewModel.activeLayer.label,
+            kind:viewModel.activeLayer.role,
+            formatted,
+            evidence:viewModel.activeLayer.evidence || 'Not assessed',
+            caution,
+            state:value === null || value === undefined || value === ''
+                ? 'missing'
+                : 'observed'
+        }),
+        geography:Object.freeze({
+            hadDistrict:viewModel.district === 'Not available'
+                ? null
+                : viewModel.district,
+            marketRegion:null
+        })
+    });
+
+}
+
 function showPopup(
     feature,
     point,
-    reclaimedFeature = null
+    reclaimedFeature = null,
+    lngLat = null
 ){
 
+    const popupRenderToken = ++v2PopupRenderToken;
     popup.scrollTop = 0;
 
-
-    const p =
+    const properties =
         feature
             ? feature.properties
             : null;
 
-
-    const r =
+    const reclaimedProperties =
         reclaimedFeature
             ? reclaimedFeature.properties
             : null;
 
+    const popupApi =
+        window.UGA_V2_POPUP;
+
+    if(!popupApi){
+
+        console.error(
+            '[UGA V2] Popup boundary is not available.'
+        );
+
+        hidePopup();
+        return;
+
+    }
 
     // -------------------------------------------------
     // Reclaimed-land-only popup
     // -------------------------------------------------
 
-    if(!p && r){
+    if(!properties && reclaimedProperties){
+
+        v2SelectionApi?.clearSelection();
 
         popup.innerHTML = `
-
-            <h3>
-                Reclaimed Land
-            </h3>
-
-            <div class="popup-subtitle">
-                Historical urban fabric
-            </div>
-
-            <div class="popup-section">
-
-                <div class="popup-label">
-                    Urban Fabric · Reclaimed Land
-                </div>
-
-                <div class="popup-row">
-                    <span>Reclamation year</span>
-                    <span>${r['year'] ?? '—'}</span>
-                </div>
-
-                <div class="popup-row">
-                    <span>Reclaimed area</span>
-                    <span>
-                        ${
-                            Number(
-                                r[
-                                    'reclamation_area_sqm'
-                                ] || 0
-                            ).toLocaleString()
-                        }
-                        m²
-                    </span>
-                </div>
-
-            </div>
-
+            <section class="v2-popup">
+                <header>
+                    <small>Fabric context</small>
+                    <h3>Reclaimed land</h3>
+                </header>
+                <p>This location intersects the reclaimed-land context layer.</p>
+            </section>
         `;
 
-        positionPopup(
-            point
-        );
-
+        positionPopup(point);
         return;
 
     }
 
-
-    if(!p){
+    if(!properties){
 
         hidePopup();
-
         return;
 
     }
 
-
     // -------------------------------------------------
-    // Signature
+    // V2 selected-Hex presentation boundary
     // -------------------------------------------------
+    //
+    // The development map is backed by the frozen V2 public-Hex PMTiles.
+    // v2-popup.js applies the explicit public-field presentation boundary
+    // and converts tile properties into a concise view model.
+    //
+    // Market Exposure / Transaction Exposure are not recomputed by
+    // the popup. Where V1.6 derives a layer at runtime, the popup
+    // reports evidence availability without inventing a feature value.
 
-    const signatureCode =
-        String(
-            ugsValue(
-                p,
-                'UGS_v02_Code'
-            ) || 'U'
+    try{
+
+        const layerId =
+            feature?.layer?.id === 'demographics-atlas'
+                ? 'population_context'
+                : V2_LAYER_ID_BY_THEME[
+                    themeSelect?.value ||
+                    'Urban Genetic Signature'
+                ] || 'urban_signature';
+
+        const viewModel =
+            popupApi.buildViewModel(
+                properties,
+                layerId,
+                v2SiteConfig
+            );
+
+        if(v2SelectionApi){
+
+            const selection =
+                v2SelectionApi.createHexSelection(
+                    v2SelectionViewModelFromPopup(
+                        viewModel,
+                        properties
+                    ),
+                    {
+                        lng:lngLat?.lng,
+                        lat:lngLat?.lat
+                    }
+                );
+
+            const reportWasOpen =
+                v2SelectionApi.isReportOpen();
+
+            v2SelectionApi.setSelection(
+                selection
+            );
+
+            if(reportWasOpen){
+                hidePopup();
+                return;
+            }
+
+        }
+
+        popup.innerHTML =
+            popupApi.render(
+                viewModel
+            );
+
+        if(v2ClimateProvider && viewModel.hexId){
+            v2ClimateProvider.loadHex(viewModel.hexId)
+                .then(climate => {
+                    if(
+                        popupRenderToken !== v2PopupRenderToken ||
+                        !popup.classList.contains('visible') ||
+                        !climate
+                    ){
+                        return;
+                    }
+                    popup.innerHTML = popupApi.render(
+                        viewModel,
+                        {climate}
+                    );
+                    repositionPopup();
+                })
+                .catch(error => {
+                    console.warn('[UGA CLIMATE POPUP] Climate context unavailable for popup.',error);
+                });
+        }
+
+    } catch(error){
+
+        console.error(
+            '[UGA V2] Failed to build selected-Hex popup.',
+            error
         );
 
-
-    const signature =
-        UGS_SIGNATURES[
-            signatureCode
-        ] ||
-        UGS_SIGNATURES.U;
-
-
-    const signatureName =
-        ugsValue(
-            p,
-            'UGS_v02_Signature'
-        ) ||
-        signature.name;
-
-
-    const landUse =
-        ugsValue(
-            p,
-            'Land Use (SPZ)'
-        ) ||
-        'Urban fabric';
-
-
-    const interpretation =
-        ugsInterpretation(
-            p,
-            signatureName
-        );
-
-
-    const dataCompletenessValue =
-        ugsNumber(
-            p,
-            'UGS_v02_Data_Completeness'
-        );
-
-    const dataCompleteness =
-        dataCompletenessValue === null
-            ? null
-            : `${Math.round(dataCompletenessValue * 100)}%`;
-
-
-    const why =
-        ugsWhyItems(
-            p,
-            signatureCode
-        );
-
-
-    // -------------------------------------------------
-    // Visual fingerprint
-    // -------------------------------------------------
-
-    const profileRows = [
-
-        ugsProfileRow(
-            'INTENSITY',
-            ugsNumber(
-                p,
-                'UGS_v02_Intensity_Pct'
-            ),
-            ugsValue(
-                p,
-                'UGS_v02_Intensity_Band'
-            ),
-            signature.colour
-        ),
-
-        ugsProfileRow(
-            'ACCESSIBILITY',
-            ugsNumber(
-                p,
-                'UGS_v02_Access_Pct'
-            ),
-            ugsValue(
-                p,
-                'UGS_v02_Access_Band'
-            ),
-            signature.colour
-        ),
-
-        ugsProfileRow(
-            'HEIGHT / FORM',
-            ugsNumber(
-                p,
-                'UGS_v02_Height_Pct'
-            ),
-            ugsValue(
-                p,
-                'UGS_v02_Height_Band'
-            ),
-            signature.colour
-        ),
-
-        ugsProfileRow(
-            'CHANGE',
-            ugsNumber(
-                p,
-                'UGS_v02_Change_Pct'
-            ),
-            ugsValue(
-                p,
-                'UGS_v02_Change_Band'
-            ),
-            signature.colour
-        ),
-
-        ugsProfileRow(
-            'AGE',
-            ugsNumber(
-                p,
-                'UGS_v02_Age_Pct'
-            ),
-            ugsValue(
-                p,
-                'UGS_v02_Building_Age_Band'
-            ),
-            signature.colour
-        )
-
-    ].join('');
-
-
-    // -------------------------------------------------
-    // Why Signature
-    // -------------------------------------------------
-
-    const whyHtml =
-        why.length
-            ? why.map(
-                item => `
-                    <div class="ugs-why-item">
-                        <strong>
-                            ${item.label}
-                        </strong>
-
-                        ${item.band
-                            ? (
-                                item.label === 'Data availability' &&
-                                Number.isFinite(Number(item.band))
-                                    ? `${Math.round(Number(item.band) * 100)}%`
-                                    : ugsFriendlyBand(item.band)
-                            )
-                            : 'not available'
-                        }
-                    </div>
-                `
-            ).join('')
-            : `
-                <div class="ugs-why-item">
-                    No Signature-defining combination crossed the
-                    relevant thresholds here.
+        popup.innerHTML = `
+            <div class="v2-place-popup">
+                <h3>Place details unavailable</h3>
+                <div class="popup-subtitle">
+                    The current area could not be read through the
+                    current V2 presentation boundary.
                 </div>
-            `;
-
-
-    // -------------------------------------------------
-    // Existing underlying Atlas information
-    // -------------------------------------------------
-
-    const urbanFabricSection = `
-
-        <details
-            class="ugs-detail"
-        >
-
-            <summary>
-                Urban Fabric
-            </summary>
-
-            <div class="ugs-detail-body">
-
-                <div class="popup-row">
-                    <span>Existing GFA</span>
-                    <span>
-                        ${
-                            Number(
-                                p[
-                                    'GFA - Current (Est.)'
-                                ] || 0
-                            ).toFixed(1)
-                        }
-                    </span>
-                </div>
-
-                <div class="popup-row">
-                    <span>Potential GFA</span>
-                    <span>
-                        ${
-                            Number(
-                                p[
-                                    'GFA - Potential'
-                                ] || 0
-                            ).toFixed(1)
-                        }
-                    </span>
-                </div>
-
-                <div class="popup-row">
-                    <span>Remaining GFA</span>
-                    <span>
-                        ${
-                            Number(
-                                p[
-                                    'GFA - Remaining'
-                                ] || 0
-                            ).toFixed(1)
-                        }
-                    </span>
-                </div>
-
-                <div class="popup-row">
-                    <span>GFA saturation</span>
-                    <span>
-                        ${
-                            p[
-                                'GFA - Saturation'
-                            ] == null
-                                ? '—'
-                                :
-                                (
-                                    Number(
-                                        p[
-                                            'GFA - Saturation'
-                                        ]
-                                    ) * 100
-                                ).toFixed(1) + '%'
-                        }
-                    </span>
-                </div>
-
-                <div class="popup-row">
-                    <span>Planning context</span>
-                    <span>
-                        ${
-                            p[
-                                'SPZ - Capacity Context'
-                            ] ?? '—'
-                        }
-                    </span>
-                </div>
-
-                <div class="popup-row">
-                    <span>Capacity status</span>
-                    <span>
-                        ${
-                            p[
-                                'Latent Capacity Status'
-                            ] ?? '—'
-                        }
-                    </span>
-                </div>
-
-                <div class="popup-row">
-                    <span>Living space</span>
-                    <span>
-                        ${
-                            p[
-                                'GFA per Capita'
-                            ] == null
-                                ? '—'
-                                :
-                                Number(
-                                    p[
-                                        'GFA per Capita'
-                                    ]
-                                ).toFixed(1) +
-                                ' m²/person'
-                        }
-                    </span>
-                </div>
-
-                <div class="popup-row">
-                    <span>Residents / building</span>
-                    <span>
-                        ${
-                            p[
-                                'Population per Building'
-                            ] == null
-                                ? '—'
-                                :
-                                Number(
-                                    p[
-                                        'Population per Building'
-                                    ]
-                                ).toFixed(1)
-                        }
-                    </span>
-                </div>
-
             </div>
+        `;
 
-        </details>
+    }
 
-    `;
-
-
-    const pedestrianIndex =
-        ugsNumber(
-            p,
-            'Pedestrian - Index'
-        );
-
-
-    const roadConnectivityIndex =
-        ugsNumber(
-            p,
-            'Road - Connectivity Index'
-        );
-
-
-    const mtrBuiltIndex =
-        ugsNumber(
-            p,
-            'MTR - Index (Built)'
-        );
-
-
-    const connectivityRows = [
-
-        ugsIndexProfileRow(
-            'Pedestrian',
-            pedestrianIndex,
-            1,
-            signature.colour,
-            value =>
-                `${(value * 100).toFixed(0)}%`
-        ),
-
-        ugsIndexProfileRow(
-            'Road',
-            roadConnectivityIndex,
-            1,
-            signature.colour,
-            value =>
-                `${(value * 100).toFixed(0)}%`
-        ),
-
-        ugsIndexProfileRow(
-            'MTR built',
-            mtrBuiltIndex,
-            7,
-            signature.colour,
-            value =>
-                value.toFixed(3)
-        )
-
-    ].join('');
-
-
-    const connectivitySection = `
-
-        <details
-            class="ugs-detail"
-        >
-
-            <summary>
-                Connectivity
-            </summary>
-
-            <div class="ugs-detail-body">
-
-                ${
-                    connectivityRows ||
-                    `
-                        <div class="popup-row">
-                            <span>Connectivity</span>
-                            <span>Not available</span>
-                        </div>
-                    `
-                }
-
-            </div>
-
-        </details>
-
-    `;
-
-
-    const methodologySection = `
-
-        <details
-            class="ugs-detail ugs-methodology"
-        >
-
-            <summary>
-                How is the Signature calculated?
-            </summary>
-
-            <div class="ugs-detail-body">
-
-                <p>
-                    The Urban Genetic Signature is a rule-based classification.
-                    It compares each hex with the meaningful urban reference set
-                    across five characteristics: Intensity, Accessibility,
-                    Height / Form, Age and Change.
-                </p>
-
-                <p>
-                    A Signature is assigned when a defining combination crosses
-                    its thresholds. It is not an average of the five
-                    characteristics and it is not an overall score.
-                </p>
-
-                <p>
-                    Change is based on the relative Development Pressure signal.
-                    Renewal and Genesis remain separate strategic analyses and do
-                    not feed into the Signature classification.
-                </p>
-
-                <p>
-                    Development Pressure includes recorded building-approval
-                    activity as one component. Approvals are also shown separately
-                    so recorded activity can be distinguished from a modelled
-                    signal.
-                </p>
-
-                <p>
-                    The Signature describes a detected combination of urban
-                    characteristics. It does not predict redevelopment.
-                </p>
-
-                ${
-                    ugsNumber(
-                        p,
-                        'UGS_v02_Pressure_Pct'
-                    ) !== null
-                        ? `
-                            <div class="popup-row">
-                                <span>Change profile</span>
-                                <span>
-                                    ${
-                                        ugsNumber(
-                                            p,
-                                            'UGS_v02_Pressure_Pct'
-                                        ).toFixed(0)
-                                    }%
-                                </span>
-                            </div>
-                        `
-                        : ''
-                }
-
-                ${
-                dataCompleteness
-                ? `
-                    <div class="ugs-methodology-meta">
-                                Profile data coverage:
-                                <strong>
-                                    ${dataCompleteness}
-                                </strong>
-                            </div>
-                        `
-                        : ''
-                }
-
-            </div>
-
-        </details>
-
-    `;
-
-
-    // -------------------------------------------------
-    // Build final popup
-    // -------------------------------------------------
-
-    popup.innerHTML = `
-
-        <div
-            class="ugs-popup"
-            style="--ugs-accent:${signature.colour};"
-        >
-
-            <div class="ugs-popup-header">
-
-                <div>
-
-                    <div class="ugs-hex">
-                        HEX ${p['Hex ID'] ?? '—'}
-                    </div>
-
-                    <div class="ugs-landuse">
-                        ${landUse}
-                    </div>
-
-                </div>
-
-                <div
-                    class="ugs-signature-code"
-                    style="
-                        border-color:${signature.colour};
-                        color:${signature.colour};
-                    "
-                >
-                    ${signatureCode}
-                </div>
-
-            </div>
-
-
-            <div class="ugs-kicker">
-                URBAN GENETIC SIGNATURE
-            </div>
-
-
-            <div
-                class="ugs-signature-name"
-                style="
-                    color:${signature.colour};
-                "
-            >
-                ${signatureName}
-            </div>
-
-
-            <div class="ugs-signature-description">
-                ${signature.description}
-            </div>
-
-
-            <div class="ugs-profile">
-
-                ${profileRows}
-
-            </div>
-
-
-            <div class="ugs-section">
-
-                <div class="ugs-section-title">
-                    WHY THIS SIGNATURE?
-                </div>
-
-                <div class="ugs-why-list">
-                    ${whyHtml}
-                </div>
-
-                <p class="ugs-interpretation">
-                    ${interpretation}
-                </p>
-
-            </div>
-
-
-            ${ugsActivitySection(p)}
-
-
-            ${r ? `
-
-                <div class="ugs-section">
-
-                    <div class="ugs-section-title">
-                        RECLAIMED LAND
-                    </div>
-
-                    <div class="popup-row">
-                        <span>Reclamation year</span>
-                        <span>
-                            ${r['year'] ?? '—'}
-                        </span>
-                    </div>
-
-                    <div class="popup-row">
-                        <span>Reclaimed area</span>
-                        <span>
-                            ${
-                                Number(
-                                    r[
-                                        'reclamation_area_sqm'
-                                    ] || 0
-                                ).toLocaleString()
-                            }
-                            m²
-                        </span>
-                    </div>
-
-                </div>
-
-            ` : ''}
-
-
-            <div class="ugs-section">
-
-                <div class="ugs-section-title">
-                    UNDERLYING DATA
-                </div>
-
-                ${urbanFabricSection}
-
-                ${connectivitySection}
-
-            </div>
-
-            ${methodologySection}
-
-        </div>
-
-    `;
-
-
-    positionPopup(
-        point
-    );
+    positionPopup(point);
 
 }
 
@@ -8308,6 +9181,37 @@ map.on(
                 : null;
 
 
+        const climateState =
+            window.UGAClimateMapState?.() || null;
+
+        const climateLayerId =
+            climateState?.visible &&
+            climateState?.layerId &&
+            map.getLayer(climateState.layerId)
+                ? climateState.layerId
+                : null;
+
+        const climateFeature =
+            climateLayerId
+                ? (
+                    map.queryRenderedFeatures(
+                        e.point,
+                        {layers:[climateLayerId]}
+                    )[0] || null
+                )
+                : null;
+
+        if(climateFeature){
+            showClimateLayerPopup(
+                climateFeature,
+                atlasFeature,
+                e.point,
+                e.lngLat
+            );
+            return;
+        }
+
+
 // -----------------------------------------------------
 // Nothing clicked
 // -----------------------------------------------------
@@ -8317,7 +9221,9 @@ map.on(
             !reclaimedFeature
         ){
 
+            ++v2PopupRenderToken;
             hidePopup();
+            v2SelectionApi?.clearSelection();
 
             return;
 
@@ -8331,7 +9237,8 @@ map.on(
         showPopup(
             atlasFeature,
             e.point,
-            reclaimedFeature
+            reclaimedFeature,
+            e.lngLat
         );
 
     }
@@ -8545,8 +9452,9 @@ function updateStatus(){
             : '';
 
     status.textContent =
-        `Hong Kong SAR · 100 m grid · ${analysisName} · ` +
-        `${coverageText}${filter} · Zoom ${zoom}`;
+        `Hong Kong SAR · ${analysisName} · ` +
+        `Place coverage ${Number(v2SiteConfig.hexReport.records || 84877).toLocaleString()} areas` +
+        `${filter} · Zoom ${zoom}`;
 
 }
 
@@ -10037,14 +10945,14 @@ updateStatus();
             key:'analysis',
             section:document.getElementById('analysisSection'),
             toggle:document.getElementById('analysisSectionToggle'),
-            title:'Urban Analysis',
+            title:'Lenses',
             icon:'assets/Analysis_Icon.png'
         },
         {
             key:'market',
             section:document.getElementById('marketSection'),
             toggle:document.getElementById('marketSectionToggle'),
-            title:'Market Data',
+            title:'Market',
             icon:'assets/Market_Icon.png'
         }
     ].filter(x => x.section && x.toggle);
@@ -10083,8 +10991,8 @@ updateStatus();
     const version = document.querySelector('#brand .version');
     if(aboutTrigger && version && !version.contains(aboutTrigger)){
         aboutTrigger.classList.add('atlas-about-trigger');
-        aboutTrigger.setAttribute('aria-label','About the Urban Genetics Atlas');
-        aboutTrigger.setAttribute('title','About the Atlas');
+        aboutTrigger.setAttribute('aria-label','About 852LAB and Urban Genetics');
+        aboutTrigger.setAttribute('title','About 852LAB');
         version.appendChild(aboutTrigger);
     }
 
@@ -11055,7 +11963,7 @@ updateStatus();
 (() => {
     'use strict';
 
-    const VERSION = 'IA-v1.7-production';
+    const VERSION = 'IA-v2.0-evidence-lens';
     const WELCOME_KEY = 'urbanGeneticsAtlasWelcomeDismissed';
     const MOBILE_QUERY = window.matchMedia('(max-width:900px)');
 
@@ -11081,7 +11989,7 @@ updateStatus();
     const demographicsState = {
         visible:false,
         opacity:100,
-        theme:'Population per Building'
+        theme:'population_allocated'
     };
     let demographicsLayerReady = false;
     let demographicsMapClickBound = false;
@@ -11287,25 +12195,54 @@ updateStatus();
     }
 
     function allowedAnalysisOption(option){
-        const t = `${option.value} ${option.textContent}`;
-        return /Urban Genetic Signature|UGS|Development Pressure|Renewal Potential|Genesis Potential/i.test(t);
+        return Object.prototype.hasOwnProperty.call(
+            V2_LAYER_ID_BY_THEME,
+            option.value
+        );
     }
 
     function organiseAnalysisSelector(){
         const select = themeSelect();
         if(!select) return;
-        Array.from(select.options).forEach(option => {
-            if(!allowedAnalysisOption(option)){
-                option.hidden = true;
-                option.dataset.ugaRehomed = 'true';
-            }
+        const lensThemes = new Set([
+            'Urban Genetic Signature','Development Pressure','Renewal Potential',
+            'Genesis Potential','Capacity Opportunity'
+        ]);
+        const evidenceThemes = new Set([
+            'MTR - Index (Built)','Dominant Use','Planning Zone'
+        ]);
+        const options = Array.from(select.options).filter(allowedAnalysisOption);
+        const lensGroup = document.createElement('optgroup');
+        const evidenceGroup = document.createElement('optgroup');
+        lensGroup.label = 'LENSES — derived interpretations';
+        evidenceGroup.label = 'EVIDENCE & INDICATORS — inspect the basis';
+        select.innerHTML = '';
+        options.forEach(option => {
+            if(option.value === 'Capacity Opportunity') option.textContent = 'Capacity Context';
+            if(lensThemes.has(option.value)) lensGroup.appendChild(option);
+            else if(evidenceThemes.has(option.value)) evidenceGroup.appendChild(option);
         });
+        select.append(lensGroup,evidenceGroup);
         const label = $('#analysisSelectorControl .section-label');
-        if(label) label.textContent = 'Choose an analysis:';
+        if(label) label.textContent = 'Choose a Lens or inspect its evidence:';
+        if(!$('#ugaOutputRoleGuide')){
+            const guide = document.createElement('div');
+            guide.id = 'ugaOutputRoleGuide';
+            guide.className = 'uga-output-role-guide';
+            guide.innerHTML = '<span data-role="lens"><strong>Lens</strong> creates a question-led interpretation.</span><span data-role="evidence"><strong>Evidence</strong> shows a source or supporting condition.</span>';
+            select.after(guide);
+        }
         const desc = $('#analysisSection .mode-description');
-        if(desc) desc.textContent = 'Higher-order patterns that emerge when different parts of the city are read together.';
+        if(desc) desc.textContent = 'Questions explored through connected evidence — with the supporting basis kept visible.';
         const title = $('#analysisSection .mode-title');
-        if(title) title.textContent = 'Urban Analysis';
+        if(title) title.textContent = 'Lenses';
+        const info = $('#analysisSection .info-trigger[data-info-key="analysis"]');
+        if(info){
+            info.setAttribute('aria-label','About Urban Genetics lenses');
+            info.setAttribute('title','About Lenses');
+        }
+        const master = $('#analysisSection .analysis-toggle span');
+        if(master) master.textContent = 'Show selected Lens or evidence';
         $('#analysisSelectorControl')?.classList.add('uga-selector-block');
         $('#analysisControls')?.classList.add('uga-selector-block','uga-planning-selector-block');
         select.classList.add('uga-domain-select');
@@ -11357,8 +12294,9 @@ updateStatus();
         section.className = `mode-panel collapsed has-collapsed-opacity uga-domain-panel${comingSoon ? ' uga-coming-soon-panel' : ''}`;
         section.dataset.ugaDomainPanel = 'true';
         const isClimate = id === 'climateSection';
+        const climatePending = isClimate && comingSoon;
         const compactValue = isClimate
-            ? 'Opacity · <span data-uga-climate-opacity-value>100%</span>'
+            ? 'Opacity · <span data-uga-climate-opacity-value>70%</span>'
             : 'Opacity · <span data-uga-demo-opacity-value>100%</span>';
         section.innerHTML = `
             <div class="mode-header">
@@ -11375,7 +12313,7 @@ updateStatus();
                         <span class="stack-collapsed-opacity-label">${title.toUpperCase()}</span>
                         <output class="stack-collapsed-opacity-value">${compactValue}</output>
                     </div>
-                    <input type="range" class="stack-collapsed-opacity-range" ${isClimate ? 'data-uga-climate-opacity disabled' : 'data-uga-demo-opacity'} min="0" max="100" step="1" value="100" aria-label="${title} opacity${isClimate ? ' — coming soon' : ''}">
+                    <input type="range" class="stack-collapsed-opacity-range" ${isClimate ? 'data-uga-climate-opacity' : 'data-uga-demo-opacity'} ${climatePending ? 'disabled' : ''} min="0" max="100" step="1" value="${isClimate ? '70' : '100'}" aria-label="${title} opacity${climatePending ? ' — coming soon' : ''}">
                 </div>
                 <button type="button" class="mode-icon-toggle uga-domain-icon-toggle" id="${id}Toggle" aria-expanded="false" aria-label="Expand ${title}" aria-controls="${id}Body" title="Expand ${title}">
                     <img class="mode-stack-icon" src="${iconSrc}" alt="" aria-hidden="true">
@@ -11418,13 +12356,12 @@ updateStatus();
                 </label>
                 <div id="demographicsOpacityHost" class="uga-domain-opacity-host"></div>
                 <div class="uga-selector-block uga-domain-selector-block">
-                <label class="section-label" for="demographicsTheme">Choose a demographic view:</label>
+                <label class="section-label" for="demographicsTheme">Map view:</label>
                 <select id="demographicsTheme" class="uga-domain-select">
-                    <option value="Population per Building">Population Intensity</option>
-                    <option value="GFA per Capita">Living Space (sqm/cap)</option>
+                    <option value="population_allocated">Allocated Population</option>
                 </select>
                 </div>
-                <div class="uga-domain-note uga-method-note">Current Atlas estimates are shown here while the demographic foundation is being rebuilt from finer Census geography.</div>
+                <div class="uga-domain-note uga-method-note">Census age, household and public-living evidence is organised in <strong>View place details</strong>. Map values are model allocations, not exact occupancy.</div>
                 <hr class="mode-divider">
                 <div id="demographicsLegendHost" class="uga-demographics-legend-host"></div>
             `
@@ -11455,16 +12392,43 @@ updateStatus();
         const section = makeModePanel({
             id:'climateSection',
             title:'Climate',
-            description:'Heat, terrain and environmental conditions across the city.',
-            comingSoon:true,
+            description:'Heat and coastal conditions, with terrain retained as physical context.',
             iconSrc:'assets/Climate_Icon.png',
             infoKey:'climate',
             bodyHtml:`
-                <div class="uga-coming-soon-content">
-                    <div class="uga-domain-kicker">CLIMATE MODULE</div>
-                    <p>Heat and flood / coastal exposure are being developed as the first public climate views.</p>
-                    <p class="uga-domain-note">Coming soon. No climate layer is shown yet.</p>
+                <label class="toggle uga-domain-master-toggle">
+                    <input type="checkbox" id="climateToggle">
+                    <span>Show Climate</span>
+                </label>
+                <div id="climateOpacityHost" class="uga-domain-opacity-host">
+                    <div class="uga-domain-opacity-card">
+                        <div class="uga-domain-opacity-head">
+                            <span>Climate opacity</span>
+                            <strong id="climateOpacityValue">70%</strong>
+                        </div>
+                        <input type="range" id="climateOpacity" min="0" max="100" step="1" value="70" aria-label="Climate opacity">
+                    </div>
                 </div>
+                <div class="uga-selector-block uga-domain-selector-block">
+                    <label class="section-label" for="climateTheme">Map view:</label>
+                    <select id="climateTheme" class="uga-domain-select">
+                        <option value="heat">Persistent Relative Surface Heat</option>
+                        <option value="coastal">Coastal Screening</option>
+                    </select>
+                </div>
+                <div id="climateScenarioBlock" class="uga-selector-block uga-domain-selector-block uga-climate-scenario-block" hidden>
+                    <label class="section-label" for="climateScenario">Scenario:</label>
+                    <select id="climateScenario" class="uga-domain-select">
+                        <option value="c_present">Present P95</option>
+                        <option value="c_2050_245">2050 SSP2-4.5 median</option>
+                        <option value="c_2100_245" selected>2100 SSP2-4.5 median</option>
+                        <option value="c_2100_585">2100 SSP5-8.5 median</option>
+                        <option value="c_2100_585_hi">2100 SSP5-8.5 high</option>
+                    </select>
+                </div>
+                <div id="climateMethodNote" class="uga-domain-note uga-method-note"></div>
+                <hr class="mode-divider">
+                <div id="climateLegendHost" class="uga-climate-legend-host"></div>
             `
         });
         panelScroll.appendChild(section);
@@ -11481,7 +12445,24 @@ updateStatus();
             desc.className = 'mode-description';
             $('.mode-header-text', section)?.appendChild(desc);
         }
-        if(desc) desc.textContent = 'Property and transaction activity — from broad market context to local exposure.';
+        if(desc) desc.textContent = 'Source market evidence and Lenses that connect it back to place.';
+        const body = $('.mode-body',section);
+        const snapshot = $('#marketSnapshotPanel');
+        const control = $('#marketContextMapControl');
+        if(body && snapshot && !$('#ugaMarketEvidenceIntro')){
+            const evidence = document.createElement('div');
+            evidence.id = 'ugaMarketEvidenceIntro';
+            evidence.className = 'uga-market-role-intro';
+            evidence.innerHTML = '<div class="uga-domain-kicker">MARKET EVIDENCE</div><p>Official price, rent, yield, stock, vacancy and transaction observations at their published geographies.</p>';
+            body.insertBefore(evidence,snapshot);
+        }
+        if(body && control && !$('#ugaMarketLensIntro')){
+            const lenses = document.createElement('div');
+            lenses.id = 'ugaMarketLensIntro';
+            lenses.className = 'uga-market-role-intro uga-market-role-intro--lens';
+            lenses.innerHTML = '<div class="uga-domain-kicker">MARKET LENSES</div><p>Question-led signals connecting wider market movement with local Urban Genetics conditions.</p>';
+            body.insertBefore(lenses,control);
+        }
         ensureMarketVisibilityControl();
         normaliseMarketOpacityRange();
     }
@@ -11497,7 +12478,7 @@ updateStatus();
             }
         });
         // Remove the now-empty / misleading "Market analysis" group header as
-        // Market is a first-class domain rather than an Urban Analysis mode.
+        // Market is a first-class domain rather than a Lens-selector mode.
         Array.from(select.querySelectorAll('optgroup')).forEach(group => {
             const options = Array.from(group.querySelectorAll('option'));
             const hasVisible = options.some(option => !option.hidden && !option.disabled);
@@ -11642,7 +12623,7 @@ updateStatus();
             paint:{
                 'fill-color':fabricMeasureColourExpression(fabricMeasureState.theme),
                 'fill-opacity':fabricMeasureOpacityExpression(),
-                'fill-outline-color':'rgba(60,60,60,0.035)'
+                'fill-outline-color':publicCellOutlineExpression()
             }
         };
         try{
@@ -11717,32 +12698,21 @@ updateStatus();
         }
     }
 
-    function demographicsColourExpression(theme){
-        if(theme === 'GFA per Capita'){
-            return [
-                'interpolate',['linear'],
-                ['sqrt',['coalesce',['to-number',['get','GFA per Capita']],0]],
-                0,'rgba(255,255,255,0.00)',
-                3,'rgba(220,245,220,0.25)',
-                5,'rgba(185,226,185,0.55)',
-                7,'rgba(161,217,155,0.62)',
-                9,'rgba(135,196,116,0.62)',
-                11,'rgba(95,171,65,0.62)',
-                13,'rgba(56,139,35,0.62)',
-                15,'rgba(16,68,0,0.62)'
-            ];
-        }
+    function demographicsColourExpression(_theme){
+        const value = ['coalesce',['to-number',['get','population_allocated']],0];
         return [
-            'interpolate',['linear'],
-            ['ln',['+',1,['coalesce',['to-number',['get','Population per Building']],0]]],
-            0,'rgba(255,255,255,0.00)',
-            1,'rgba(245,240,220,0.25)',
-            2,'rgba(230,199,170,0.55)',
-            3,'rgba(252,146,114,0.62)',
-            4,'rgba(253,131,104,0.62)',
-            5,'rgba(238,88,74,0.62)',
-            6,'rgba(199,62,67,0.62)',
-            7,'rgba(112,35,45,0.62)'
+            'case',
+            ['<=',value,0], 'rgba(255,255,255,0.00)',
+            [
+                'interpolate',['linear'],['ln',['+',1,value]],
+                0.693,'rgba(247,229,215,0.42)',
+                2.398,'rgba(247,229,215,0.62)',
+                4.615,'rgba(239,195,170,0.68)',
+                5.994,'rgba(233,145,117,0.72)',
+                6.909,'rgba(215,95,95,0.76)',
+                7.824,'rgba(164,63,80,0.80)',
+                8.517,'rgba(103,37,54,0.84)'
+            ]
         ];
     }
 
@@ -11781,7 +12751,7 @@ updateStatus();
             paint:{
                 'fill-color':demographicsColourExpression(demographicsState.theme),
                 'fill-opacity':demographicsOpacityExpression(),
-                'fill-outline-color':'rgba(60,60,60,0.035)'
+                'fill-outline-color':publicCellOutlineExpression()
             }
         };
         try{
@@ -11811,24 +12781,20 @@ updateStatus();
     function renderDemographicsLegend(){
         const host = $('#demographicsLegendHost');
         if(!host) return;
-        const living = demographicsState.theme === 'GFA per Capita';
-        const title = living ? 'Living Space' : 'Population Intensity';
-        const desc = living
-            ? 'Estimated residential floor area per resident within each hex.'
-            : 'Estimated number of residents associated with buildings within each hex.';
-        const gradient = living
-            ? 'linear-gradient(90deg,rgba(220,245,220,.35),rgb(135,196,116),rgb(16,68,0))'
-            : 'linear-gradient(90deg,rgba(245,240,220,.35),rgb(252,146,114),rgb(112,35,45))';
-        const infoKey = living ? 'demographics:GFA per Capita' : 'demographics:Population per Building';
+        const title = 'Allocated Population';
+        const desc = 'Model-allocated 2021 population. Zero means none allocated by this method, not proof of no residents.';
+        const gradient = 'linear-gradient(90deg,rgba(247,229,215,.50),rgb(233,145,117),rgb(103,37,54))';
+        const infoKey = 'demographics:population_allocated';
         host.innerHTML = `
             <div class="uga-demographics-legend">
                 <div class="legend-title-row uga-demographics-legend-heading">
                     <h3 class="uga-demographics-legend-title">${title}</h3>
                     <button type="button" class="info-trigger uga-demographics-info-trigger" data-info-key="${infoKey}" aria-label="About ${title}" title="About ${title}">i</button>
                 </div>
+                <div class="uga-output-role" data-output-role="indicator">Modelled evidence · Population</div>
                 <div class="uga-demographics-legend-copy">${desc}</div>
                 <div class="uga-demographics-gradient" style="background:${gradient}"></div>
-                <div class="uga-demographics-gradient-labels"><span>Lower</span><span>Higher</span></div>
+                <div class="uga-demographics-gradient-labels"><span>None allocated</span><span>More allocated</span></div>
             </div>
         `;
     }
@@ -11960,28 +12926,32 @@ updateStatus();
     const MARKET_VIEW_LEGENDS = {
         'Market Momentum': {
             title:'Market Momentum',
-            description:'Summarises the direction of 12-month regional private-domestic price and rent movement. The value retains the geography of the official source rather than inventing a 100 m market price.',
+            role:'Lens · Market direction',
+            description:'How is the wider private-domestic market moving? This Lens summarises 12-month regional price and rent movement without inventing a 100 m market price.',
             gradient:'linear-gradient(90deg,#d9dde0,#d4cec1,#d9b779,#d89145,#c76d2d,#8a421f)',
             low:'Weaker or downward regional movement.', mid:'Broadly stable / mixed regional movement.', high:'Stronger upward regional movement.',
             note:'Regional market context. It is not a property valuation or forecast.'
         },
         'Market Exposure': {
             title:'Market Exposure',
-            description:'Shows where wider Market Momentum overlaps with local Atlas opportunity conditions. Local differentiation comes from Development Pressure and Capacity Opportunity.',
+            role:'Lens · Market and place',
+            description:'Asks where wider Market Momentum overlaps with local Urban Genetics conditions. Local differentiation comes from Development Pressure and Capacity Context.',
             gradient:'linear-gradient(90deg,#edf8f6,#ccece6,#7fcdbb,#41b6c4,#25788e,#084081)',
             low:'Limited market movement and/or local opportunity.', mid:'Meaningful overlap between market movement and local opportunity.', high:'Stronger market movement coinciding with stronger local opportunity.',
             note:'A combined market-and-urban indicator; not a valuation, investment recommendation or forecast.'
         },
         'Transaction Pulse': {
             title:'Transaction Pulse',
-            description:'Shows whether recent registered transaction activity is stronger or weaker relative to its recent norm and the same period a year earlier. It retains the geography published by the source.',
+            role:'Lens · Market activity',
+            description:'Is recent registered transaction activity stronger or softer than its recent norm and the same period a year earlier? The Lens retains the geography published by the source.',
             gradient:'linear-gradient(90deg,#e2e4e6,#ebd1d0,#e9aaa4,#df7c78,#c94f5c,#8b2948)',
             low:'Quieter recent registered transaction activity.', mid:'Activity broadly around its recent reference level.', high:'Stronger recent registered transaction activity.',
             note:'This is an activity signal at source geography, not an invented transaction count for each 100 m hex.'
         },
         'Transaction Exposure': {
             title:'Transaction Exposure',
-            description:'Shows where Transaction Pulse overlaps with local Atlas opportunity conditions. The broad transaction signal is interpreted against local Development Pressure and Capacity Opportunity.',
+            role:'Lens · Transactions and place',
+            description:'Asks where Transaction Pulse overlaps with local Urban Genetics conditions. The broad transaction signal is interpreted against local Development Pressure and Capacity Context.',
             gradient:'linear-gradient(90deg,#e3e4e6,#ded5e8,#c9b3df,#a884cf,#7a51b5,#4d2688)',
             low:'Limited transaction activity and/or local opportunity.', mid:'Meaningful overlap between transaction activity and local opportunity.', high:'Stronger transaction activity coinciding with stronger local opportunity.',
             note:'Local differentiation comes from Atlas conditions; it does not imply 100 m transaction observations.'
@@ -12060,6 +13030,7 @@ updateStatus();
                 <h3 class="uga-market-layer-title">${cfg.title}</h3>
                 <button type="button" class="info-trigger uga-market-info-trigger" data-info-key="market:${key}" aria-label="About ${cfg.title}" title="About ${cfg.title}">i</button>
             </div>
+            <div class="uga-output-role" data-output-role="lens">${cfg.role || 'Lens · Market'}</div>
             <div class="uga-market-layer-copy">${cfg.description}</div>
             <div class="uga-market-layer-gradient" style="background:${cfg.gradient}"></div>
             <div class="uga-market-layer-gradient-labels"><span>Lower</span><span>Higher</span></div>
@@ -12270,7 +13241,7 @@ updateStatus();
                 event.preventDefault();
                 event.stopImmediatePropagation();
                 activateAddedMobileSection('demographics');
-                demographicsState.theme = $('#demographicsTheme')?.value || 'Population per Building';
+                demographicsState.theme = $('#demographicsTheme')?.value || 'population_allocated';
                 demographicsState.visible = !!$('#demographicsToggle')?.checked;
                 updateDemographicsRenderer();
                 return;
@@ -12326,7 +13297,12 @@ updateStatus();
 
     function activateStart(key){
         openPanelShell();
-        if(key === 'fabric'){
+        if(key === 'search'){
+            if(MOBILE_QUERY.matches) $('#panel')?.classList.add('panel-minimized');
+            const input = $('#v2AddressSearchInput');
+            input?.focus({preventScroll:true});
+            input?.select?.();
+        } else if(key === 'fabric'){
             setChecked(analysisToggle(), false);
             setChecked($('#reclaimedToggle'), true);
             if(MOBILE_QUERY.matches) mobileSelect('fabric');
@@ -12344,8 +13320,8 @@ updateStatus();
             else collapseOtherDesktopSections($('#marketSection'));
         } else if(key === 'demographics'){
             const demoSelect = $('#demographicsTheme');
-            if(demoSelect) demoSelect.value = 'Population per Building';
-            demographicsState.theme = 'Population per Building';
+            if(demoSelect) demoSelect.value = 'population_allocated';
+            demographicsState.theme = 'population_allocated';
             demographicsState.visible = true;
             if($('#demographicsToggle')) $('#demographicsToggle').checked = true;
             setChecked(analysisToggle(), false);
@@ -12372,18 +13348,18 @@ updateStatus();
         const closeButton = $('#welcomeCloseButton');
         if(!content || content.dataset.ugaIaWelcome === 'true') return;
         content.dataset.ugaIaWelcome = 'true';
-        if(subtitle) subtitle.textContent = 'Read Hong Kong through data';
+        const title = $('#welcomeTitle');
+        if(title) title.textContent = 'See the city through a different lens.';
+        if(subtitle) subtitle.textContent = '852LAB · Powered by Urban Genetics';
         content.innerHTML = `
-            <p class="uga-welcome-lead">Explore how the city is built, who lives in it, how its markets are moving, and the patterns that emerge when these things are read together.</p>
-            <p class="uga-welcome-prompt"><strong>Choose what interests you about the city and start there.</strong><br><span>You can explore everything else at any time.</span></p>
+            <p class="uga-welcome-lead"><strong>852LAB connects evidence about how Hong Kong is built, inhabited, connected and changing — then uses Urban Genetics to reveal relationships that no single dataset shows.</strong></p>
+            <p class="uga-welcome-prompt">Start with a place, a Lens or the evidence behind it. You can move between them at any time.</p>
             <div class="uga-welcome-choices" role="group" aria-label="Choose where to start">
-                <button type="button" class="uga-welcome-choice" data-uga-start="fabric"><span class="uga-choice-title"><span class="uga-choice-heading"><img class="uga-choice-icon" src="assets/Fabric_Icon.png" alt="">Fabric</span></span><span class="uga-choice-copy">How the city is physically built and connected.</span></button>
-                <button type="button" class="uga-welcome-choice" data-uga-start="analysis"><span class="uga-choice-title"><span class="uga-choice-heading"><img class="uga-choice-icon" src="assets/Analysis_Icon.png" alt="">Urban Analysis</span></span><span class="uga-choice-copy">Patterns that emerge when different parts of the city are read together.</span></button>
-                <button type="button" class="uga-welcome-choice" data-uga-start="market"><span class="uga-choice-title"><span class="uga-choice-heading"><img class="uga-choice-icon" src="assets/Market_Icon.png" alt="">Market</span></span><span class="uga-choice-copy">How property and transaction activity vary across the city and relate to place.</span></button>
-                <button type="button" class="uga-welcome-choice" data-uga-start="demographics"><span class="uga-choice-title"><span class="uga-choice-heading"><img class="uga-choice-icon" src="assets/Demographics_Icon.png" alt="">Demographics</span></span><span class="uga-choice-copy">Where people live and how population and living conditions vary.</span></button>
-                <button type="button" class="uga-welcome-choice uga-welcome-choice-disabled" disabled aria-disabled="true"><span class="uga-choice-title"><span class="uga-choice-heading"><img class="uga-choice-icon" src="assets/Climate_Icon.png" alt="">Climate</span><em>Coming soon</em></span><span class="uga-choice-copy">How heat, terrain and environmental conditions affect the city.</span></button>
+                <button type="button" class="uga-welcome-choice" data-uga-start="search"><span class="uga-choice-title"><span class="uga-choice-heading">Find a place</span></span><span class="uga-choice-copy">Search an address, Building or Lot and follow its connections.</span></button>
+                <button type="button" class="uga-welcome-choice" data-uga-start="analysis"><span class="uga-choice-title"><span class="uga-choice-heading"><img class="uga-choice-icon" src="assets/Analysis_Icon.png" alt="">Explore a Lens</span></span><span class="uga-choice-copy">Ask what connected evidence allows 852LAB to learn about a place.</span></button>
+                <button type="button" class="uga-welcome-choice" data-uga-start="fabric"><span class="uga-choice-title"><span class="uga-choice-heading"><img class="uga-choice-icon" src="assets/Fabric_Icon.png" alt="">Inspect evidence</span></span><span class="uga-choice-copy">Explore the physical, demographic, planning and market basis behind the analyses.</span></button>
             </div>
-            <p class="uga-welcome-caveat">The Atlas combines sources with different dates, scales and levels of coverage. Use it to explore patterns and relationships rather than as a precise statement about an individual property.</p>
+            <p class="uga-welcome-caveat"><strong>Evidence</strong> shows what the sources tell us. <strong>Lenses</strong> create question-led interpretations from relationships between sources. Dates, scales and coverage vary, so use the Atlas to investigate rather than as a precise determination about an individual property.</p>
         `;
         if(closeButton) closeButton.textContent = 'Explore map';
         footer?.classList.add('uga-welcome-footer');
@@ -12483,24 +13459,17 @@ updateStatus();
         prepareSharedAnalysisUI();
         organiseAnalysisSelector();
         hideMarketFromAnalysis();
-        createFabricMeasures();
-        initialiseFabricMeasureRenderer();
         createDemographicsPanel();
         createClimatePanel();
         improveMarketSection();
         normaliseTopLevelControls();
         initialiseFiveDomainRail();
+        extendMobileNavigation();
         initialiseDemographicsRenderer();
         setTimeout(() => { initialiseDomainOpacity(); normaliseDomainIconScale(); ensureMarketVisibilityControl(); normaliseMarketOpacityRange(); syncMarketVisibilityToggle(); initialiseMarketViewPresentation(); }, 0);
         watchMarketControls();
         rebuildWelcome();
         exposeDebugState();
-
-        let attempts = 0;
-        const mobileTimer = setInterval(() => {
-            attempts += 1;
-            if(extendMobileNavigation() || attempts > 40) clearInterval(mobileTimer);
-        }, 100);
 
         returningVisitorDefault();
         console.info('[ATLAS IA] Information Architecture V1.7 production layer initialised.');

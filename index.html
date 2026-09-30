@@ -6,11 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#f5f5f5">
 
-    <title>Urban Genetics Atlas</title>
-    <meta name="description" content="Explore how Hong Kong is built, connected and changing through urban data, spatial analysis and market context.">
+    <title>852LAB · Hong Kong Urban Atlas</title>
+    <meta name="description" content="Explore connected evidence about Hong Kong and the Urban Genetics lenses that reveal relationships no single dataset shows.">
+    <meta name="atlas-release" content="V2.0-20260930-155716">
+
     <link rel="icon" type="image/png" href="assets/Favicon.png">
     <link rel="canonical" href="https://852lab.github.io/Urban-Genetics-Atlas/">
-    <meta name="atlas-release" content="V1.6-20260916-125932">
     <link rel="alternate" type="text/plain" href="llms.txt">
     <link rel="alternate" type="text/plain" href="llms-full.txt">
     <link rel="alternate" type="text/plain" href="atlas-context.txt">
@@ -50,7 +51,7 @@
 <div
     id="atlasLoader"
     aria-live="polite"
-    aria-label="Initialising Urban Genetics Atlas"
+    aria-label="Initialising the 852LAB Hong Kong Urban Atlas"
 >
 
     <div class="atlas-loader-card glass">
@@ -62,14 +63,14 @@
         >
 
         <div class="atlas-loader-title">
-            Urban Genetics Atlas
+            852LAB
         </div>
 
         <div
             id="atlasLoaderStatus"
             class="atlas-loader-status"
         >
-            Initialising Atlas
+            Connecting evidence and lenses
         </div>
 
         <div
@@ -118,11 +119,11 @@
                         id="welcomeTitle"
                         class="welcome-title"
                     >
-                        Welcome to the Urban Genetics Atlas
+                        See the city through a different lens.
                     </div>
 
                     <div class="welcome-subtitle">
-                        Explore Hong Kong through data · 852LAB
+                        852LAB · Powered by Urban Genetics
                     </div>
 
                 </div>
@@ -133,7 +134,7 @@
                 type="button"
                 id="welcomeClose"
                 class="welcome-close"
-                aria-label="Start exploring the Urban Genetics Atlas"
+                aria-label="Start exploring 852LAB"
             >
                 ×
             </button>
@@ -146,22 +147,21 @@
         <div class="welcome-content">
 
             <p>
-                Explore how Hong Kong is built, connected and changing.
-                Choose a layer, move around the map, or click a hex to see
-                how different pieces of the city relate.
+                Explore connected evidence about how Hong Kong is built,
+                inhabited, connected and changing. Find a place, choose a
+                Lens or inspect the evidence supporting it.
             </p>
 
             <p>
-                Use the Atlas to compare places, spot patterns and ask why
-                they differ. There is no single way to read a city — this is
-                an invitation to explore.
+                Lenses use Urban Genetics to ask questions that no single
+                source dataset answers. Select a place to move between its
+                local context, Buildings and Lots.
             </p>
 
             <p class="welcome-secondary-note">
-                Data comes from multiple sources and varies in coverage.
-                The Atlas is designed to reveal patterns and relationships
-                rather than make a precise claim about any individual
-                property or site.
+                Source geography, date and coverage vary. Patterns support
+                investigation; they are not precise property determinations,
+                predictions or recommendations.
             </p>
 
         </div>
@@ -188,7 +188,7 @@
                 type="button"
                 id="welcomeCloseButton"
                 class="welcome-close-button"
-                aria-label="Start exploring the Urban Genetics Atlas"
+                aria-label="Start exploring 852LAB"
             >
                 Start exploring
             </button>
@@ -204,12 +204,54 @@
     <div id="brand">
         <img src="assets/Logo.png" alt="852LAB">
         <div>
-            <h1>Urban Genetics Atlas</h1>
-            <div class="subtitle">Reading Hong Kong through data</div>
-            <div class="version">Beta</div>
+            <h1>852LAB</h1>
+            <div class="subtitle">Powered by Urban Genetics</div>
+            <div class="version">Hong Kong Atlas · V2</div>
         </div>
     </div>
 </header>
+
+<!-- =====================================================
+     V2 ADDRESS / BUILDING / LOT SEARCH
+     Stable identities, accepted addresses and polygon relationships.
+     ===================================================== -->
+<div id="v2AddressSearch" class="v2-address-search glass">
+    <form id="v2AddressSearchForm" class="v2-address-search-form" role="search" novalidate>
+        <label class="v2-address-search-label" for="v2AddressSearchInput">
+            Find a place
+        </label>
+        <div class="v2-address-search-input-row">
+            <input
+                id="v2AddressSearchInput"
+                class="v2-address-search-input"
+                type="search"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="Address, Building or Lot"
+                aria-describedby="v2AddressSearchStatus"
+                aria-controls="v2AddressSearchResults"
+            >
+            <button
+                type="submit"
+                id="v2AddressSearchSubmit"
+                class="v2-address-search-submit"
+                aria-label="Search address, Building or Lot"
+            >⌕</button>
+        </div>
+    </form>
+    <div
+        id="v2AddressSearchStatus"
+        class="v2-address-search-status"
+        aria-live="polite"
+    ></div>
+    <div
+        id="v2AddressSearchResults"
+        class="v2-address-search-results"
+        role="listbox"
+        aria-label="Address, Building and Lot search results"
+        hidden
+    ></div>
+</div>
 
 <!-- =====================================================
      MAIN CONTROL PANEL
@@ -227,15 +269,15 @@
 
     <div class="atlas-control-title-row">
         <div class="atlas-control-title">
-            Atlas Controls
+            Explore the Atlas
         </div>
 
         <button
             type="button"
             class="info-trigger"
             data-info-key="about"
-            aria-label="About the Urban Genetics Atlas"
-            title="About the Atlas"
+            aria-label="About 852LAB and Urban Genetics"
+            title="About 852LAB"
         >ⓘ</button>
     </div>
 
@@ -298,7 +340,7 @@
 <div id="panelScroll" class="panel-scroll">
 
     <!-- =================================================
-         URBAN ANALYSIS
+         LENSES
          ================================================= -->
 
     <section
@@ -314,21 +356,20 @@
 
                 <div class="mode-title-line">
                     <div class="mode-title">
-                        Urban Analysis
+                        Lenses
                     </div>
 
                     <button
                         type="button"
                         class="info-trigger"
                         data-info-key="analysis"
-                        aria-label="About Urban Analysis"
-                        title="About Urban Analysis"
+                        aria-label="About Urban Genetics lenses"
+                        title="About Lenses"
                     >ⓘ</button>
                 </div>
 
                 <div class="mode-description">
-                    Different ways of reading how the city is built,
-                    connected and changing.
+                    Question-led interpretations created from connected evidence.
                 </div>
 
             </div>
@@ -338,7 +379,7 @@
                 class="mode-chevron"
                 id="analysisSectionToggle"
                 aria-expanded="true"
-                aria-label="Collapse Urban Analysis"
+                aria-label="Collapse Lenses"
                 aria-controls="analysisBody"
             >
                 ▾
@@ -357,7 +398,7 @@
                 >
 
                 <span>
-                    Show Urban Analysis
+                    Show selected Lens or evidence
                 </span>
 
             </label>
@@ -375,7 +416,7 @@
 
             <div class="group-opacity-control" id="analysisOpacityControl">
                 <div class="group-opacity-head">
-                    <label for="analysisOpacity">Analysis opacity</label>
+                    <label for="analysisOpacity">Map overlay opacity</label>
                     <output id="analysisOpacityValue" for="analysisOpacity">100%</output>
                 </div>
                 <input
@@ -385,7 +426,7 @@
                     max="100"
                     value="100"
                     step="1"
-                    aria-label="Urban Analysis opacity"
+                    aria-label="Lens or evidence overlay opacity"
                 >
             </div>
 
@@ -394,7 +435,7 @@
             <div id="analysisSelectorControl">
 
             <label class="section-label">
-            Choose an analysis:
+            Choose a Lens:
             </label>
 
             <select id="theme">
@@ -407,14 +448,10 @@
 
             </optgroup>
 
-            <optgroup label="Urban Analysis">
+            <optgroup label="Urban Genetics Lenses">
 
                 <option value="Development Pressure">
                     Development Pressure
-                </option>
-
-                <option value="GFA - Saturation">
-                    GFA Saturation
                 </option>
 
                 <option value="MTR - Index (Built)">
@@ -429,32 +466,16 @@
                     Genesis Potential
                 </option>
 
-                <option value="GFA per Capita">
-                    Living Space (m² per resident)
+                <option value="Capacity Opportunity">
+                    Capacity Context
                 </option>
 
-                <option value="Population per Building">
-                    Population Intensity
+                <option value="Dominant Use">
+                    Dominant Use
                 </option>
 
-                <option value="Latent Urban Capacity">
-                    Latent Urban Capacity
-                </option>
-
-            </optgroup>
-
-            <optgroup label="Market Analysis">
-
-                <option value="Market Exposure">
-                    Market Exposure
-                </option>
-
-                <option value="Transaction Exposure">
-                    Transaction Exposure
-                </option>
-
-                <option value="Transaction Pulse">
-                    Transaction Pulse
+                <option value="Planning Zone">
+                    Planning Zone
                 </option>
 
             </optgroup>
@@ -465,7 +486,7 @@
 
 
     <!-- =================================================
-     LATENT URBAN CAPACITY — CONTEXT CONTROL
+     CAPACITY OPPORTUNITY — EVIDENCE CONTEXT CONTROL
      ================================================= -->
 
 <div id="analysisControls">
@@ -480,32 +501,44 @@
             All Contexts
         </option>
 
-        <option value="Residential">
-            Residential
+        <option value="AT_OR_ABOVE_PEER_UPPER_QUARTILE">
+            At or above peer upper quartile
         </option>
 
-        <option value="Commercial / Mixed">
-            Commercial / Mixed
+        <option value="BETWEEN_PEER_MEDIAN_AND_UPPER_QUARTILE">
+            Between peer median and upper quartile
         </option>
 
-        <option value="Industrial">
-            Industrial
+        <option value="BELOW_PEER_MEDIAN">
+            Below peer median
         </option>
 
-        <option value="Comprehensive Development">
-            Comprehensive Development
+        <option value="EXPLICIT_ZERO_WITH_VALID_SITE_CONTEXT">
+            Explicit zero with valid site context
         </option>
 
-        <option value="Village / Other Development">
-            Village / Other Development
+        <option value="EXISTING_FORM_ABOVE_CURRENT_PLANNING_ENVELOPE">
+            Existing form above current planning envelope
         </option>
 
-        <option value="Constrained / Non-urban">
-            Constrained / Non-urban
+        <option value="SCREENING_OPPORTUNITY_RANGE">
+            Screening opportunity range
         </option>
 
-        <option value="Other / Unclassified">
-            Other / Unclassified
+        <option value="NOT_ASSESSED_MATERIAL_LOT_BASIS_NOT_SUPPORTED">
+            Not assessed — material Lot basis unsupported
+        </option>
+
+        <option value="NOT_ASSESSED_DOMINANT_ZONE_THRESHOLD_NOT_MET">
+            Not assessed — dominant-zone threshold not met
+        </option>
+
+        <option value="NOT_ASSESSED_NO_CONTRACTED_PEER_COHORT">
+            Not assessed — no contracted peer cohort
+        </option>
+
+        <option value="NOT_ASSESSED_NO_USABLE_ZONE_LABEL">
+            Not assessed — no usable zone label
         </option>
 
     </select>
@@ -607,8 +640,8 @@
                 </div>
 
                 <div class="mode-description">
-                    Physical, infrastructural and historical layers that help
-                    explain how the city took shape.
+                    Physical, infrastructural and historical evidence describing
+                    how the city took shape.
                 </div>
 
             </div>
@@ -1616,7 +1649,7 @@ FABRIC BODY
     </section>
 
     <!-- =================================================
-         MARKET DATA
+         MARKET
          ================================================= -->
 
     <section
@@ -1630,20 +1663,20 @@ FABRIC BODY
 
                 <div class="mode-title-line">
                     <div class="mode-title">
-                        Market Data
+                        Market
                     </div>
 
                     <button
                         type="button"
                         class="info-trigger"
                         data-info-key="market"
-                        aria-label="About Market Data"
-                        title="About Market Data"
+                        aria-label="About Market evidence and lenses"
+                        title="About Market"
                     >ⓘ</button>
                 </div>
 
                 <div class="mode-description">
-                    Property-market context linked back to place.
+                    Market evidence and question-led signals linked back to place.
                 </div>
 
             </div>
@@ -1653,7 +1686,7 @@ FABRIC BODY
                 class="mode-chevron"
                 id="marketSectionToggle"
                 aria-expanded="true"
-                aria-label="Collapse Market Data"
+                aria-label="Collapse Market"
                 aria-controls="marketDataBody"
             >
                 ▾
@@ -1718,9 +1751,55 @@ FABRIC BODY
     <!-- Floating popup -->
     <div id="popup" class="glass"></div>
 
+    <!-- =====================================================
+         V2 ENTITY REPORT PANEL
+         Stage 04 router — Hex / Building / Lot views share this
+         surface; production relationship payloads are not bound yet.
+         ===================================================== -->
+    <aside
+        id="placeReportPanel"
+        class="v2-place-report glass"
+        role="dialog"
+        aria-modal="false"
+        aria-labelledby="placeReportTitle"
+        aria-hidden="true"
+        hidden
+    >
+        <div class="v2-report-header">
+            <button
+                type="button"
+                id="placeReportBack"
+                class="v2-report-back"
+                aria-label="Back to map"
+            >← Map</button>
+
+            <div class="v2-report-heading">
+                <div id="placeReportTitle" class="v2-report-title">Selection Summary</div>
+                <div id="placeReportSubtitle" class="v2-report-subtitle">Place overview · Lenses and supporting evidence</div>
+            </div>
+
+            <button
+                type="button"
+                id="placeReportPrint"
+                class="v2-report-print"
+                aria-label="Print or save this report"
+                title="Print or save as PDF"
+            >Print</button>
+
+            <button
+                type="button"
+                id="placeReportClose"
+                class="v2-report-close"
+                aria-label="Close place details and clear selection"
+            >×</button>
+        </div>
+
+        <div id="placeReportBody" class="v2-report-body"></div>
+    </aside>
+
     <!-- Status strip -->
     <div id="status" class="glass">
-        Hong Kong SAR · 100 m grid · Loading coverage…
+        Hong Kong SAR · Connecting place evidence…
     </div>
 
     <div id="copyright">
@@ -1742,7 +1821,7 @@ FABRIC BODY
     >
         <div class="atlas-info-header">
             <div id="atlasInfoTitle" class="atlas-info-title">
-                About the Atlas
+                About 852LAB
             </div>
 
             <button
@@ -1767,7 +1846,21 @@ FABRIC BODY
     src="https://unpkg.com/pmtiles@4.2.1/dist/pmtiles.js">
     </script>
 
+    <script src="site/v2-site-config.js"></script>
+    <script src="site/v2-hex-provider.js"></script>
+    <script src="site/v2-climate-provider.js"></script>
+    <script src="site/v2-field-adapter.js"></script>
+    <script src="site/v2-selection.js"></script>
+    <script src="site/v2-popup.js"></script>
+    <script src="site/v2-hex-report-binding.js"></script>
+    <script src="site/v2-report-benchmarks.js"></script>
+    <script src="site/v2-report.js"></script>
+    <script src="site/v2-address-search.js"></script>
+    <script src="site/v2-entity-provider.js"></script>
+    <script src="site/v2-entity-binding.js"></script>
     <script src="atlas.js"></script>
+    <script src="site/v2-climate-map.js"></script>
+    <script src="site/v2-native-demographics.js"></script>
     <script src="site/market-data.js"></script>
 
 </body>

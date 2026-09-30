@@ -561,3 +561,42 @@ Information architecture + interface release:
 - Removed legacy desktop max-two-panel and content-fit behaviour from the new five-panel rail while retaining the established mobile sheet behaviour.
 
 This release reorganises and improves access to existing Atlas data and analyses. It does not change the underlying PMTiles, Market calculations or analytical model mathematics. Population Intensity and Living Space remain the current Atlas estimates pending the Demographics v2 rebuild; Climate remains a public interface placeholder while the first module outputs are prepared.
+
+# Urban Genetics Atlas — V2.0-20260930-155716
+
+**Date:** 2026-09-30 21:43:14 CST
+
+## Release
+
+Major V2 release of the Urban Genetics Atlas.
+
+### V2 platform
+- New V2 Hex/report architecture and place-report workflow.
+- Building, Lot and Hex entity/report relationships.
+- Address and building search through the V2 entity provider.
+- Native demographics and Census context.
+- Integrated market context and evidence.
+- Updated popup, report and Evidence / Lens language.
+
+### Climate
+- Persistent Relative Surface Heat map and report evidence.
+- Heat magnitude and interannual-variability profile graphics.
+- Coastal Screening scenarios.
+- Climate-aware popup context.
+- Terrain retained as physical context rather than duplicated as a Climate map layer.
+
+### Production architecture
+- Application/runtime interface hosted on GitHub Pages.
+- Large versioned V2 runtime data hosted on Cloudflare R2.
+- 2,542 V2 R2 objects.
+- 1,529,383,678 bytes of V2 runtime data.
+- Existing shared terrain, MTR, reclamation and building-age resources retained on R2.
+- Legacy V1.6 PMTiles and superseded building-search payload are not part of the V2 runtime.
+
+## Release checks
+- V2 R2 payload reconciled against local production data.
+- Public R2 manifests and representative JSON resources return successfully.
+- GitHub Pages CORS verified.
+- Main V2 and Climate PMTiles byte-range requests verified with HTTP 206.
+- Production runtime contains no local `data/v2` dependency.
+- JavaScript syntax checks passed.
