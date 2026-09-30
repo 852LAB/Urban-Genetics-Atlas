@@ -6779,7 +6779,7 @@ perfMark('All sources registered');
                 'to-number',
                 [
                     'get',
-                    'Building Height_mean'
+                    'baseline_building_height'
                 ]
             ],
             0
@@ -6798,7 +6798,7 @@ perfMark('All sources registered');
             'to-number',
             [
                 'get',
-                'Building Height_mean'
+                'baseline_building_height'
             ]
         ],
 
@@ -6860,7 +6860,7 @@ perfMark('All sources registered');
                     'to-number',
                     [
                         'get',
-                        'Building Height_mean'
+                        'baseline_building_height'
                     ]
                 ],
 
@@ -9972,7 +9972,7 @@ function updateBuildingHeightFilter(){
             'to-number',
             [
                 'get',
-                'Building Height_mean'
+                'baseline_building_height'
             ]
         ],
         0
