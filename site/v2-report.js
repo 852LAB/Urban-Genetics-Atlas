@@ -301,23 +301,272 @@
         </div>`;
     }
 
+    // =====================================================
+    // V2 PLACE OVERVIEW INTERPRETATION POLISH V0.1
+    // =====================================================
+
+    function heroRelativeContext(value,field){
+        const context=contextPosition(value,field);
+
+        if(!context){
+            return {
+                label:'Not assessed',
+                tone:'missing'
+            };
+        }
+
+        if(context.label === 'Lower context'){
+            return {
+                label:'Lower',
+                tone:'lower'
+            };
+        }
+
+        if(context.label === 'Higher context'){
+            return {
+                label:'Higher',
+                tone:'higher'
+            };
+        }
+
+        return {
+            label:'Typical',
+            tone:'typical'
+        };
+    }
+
+    function heroMetric(
+        label,
+        formatted,
+        rawValue,
+        field,
+        detail=''
+    ){
+        const relative=
+            heroRelativeContext(
+                rawValue,
+                field
+            );
+
+        return `
+            <div
+                class="v2-sheet-metric
+                    v2-sheet-metric--relative
+                    is-${escapeHtml(relative.tone)}"
+            >
+                <span>${escapeHtml(label)}</span>
+
+                <strong>
+                    ${escapeHtml(formatted)}
+                </strong>
+
+                <div class="v2-sheet-metric-meta">
+                    ${
+                        detail
+                            ? `<small>${escapeHtml(detail)}</small>`
+                            : ''
+                    }
+
+                    <em class="v2-relative-tag">
+                        ${escapeHtml(relative.label)}
+                    </em>
+                </div>
+            </div>
+        `;
+    }
+
+
     function radarChart(record){
         const axes=[
-            ['Intensity','intensity_axis_01'],['Access','accessibility_axis_01'],['Form','height_form_axis_01'],['Change','change_axis_01'],['Age','age_axis_01']
+            {
+                axis:'Intensity',
+                label:'Intensity',
+                field:'intensity_axis_01',
+                description:'how built-up the place is relative to other urban cells.'
+            },
+            {
+                axis:'Access',
+                label:'Accessibility',
+                field:'accessibility_axis_01',
+                description:'how strongly it connects to pedestrian, road and built MTR networks.'
+            },
+            {
+                axis:'Form',
+                label:'Height / Form',
+                field:'height_form_axis_01',
+                description:'how tall and vertically built the recorded fabric is.'
+            },
+            {
+                axis:'Change',
+                label:'Change',
+                field:'change_axis_01',
+                description:'how strong the Development Pressure signal is relative to other urban cells.'
+            },
+            {
+                axis:'Age',
+                label:'Age',
+                field:'age_axis_01',
+                description:'how old the recorded building stock is.'
+            }
         ];
-        const values=axes.map(([,field])=>numeric(record?.[field]));
-        if(values.filter(value=>value!==null).length<3) return `<div class="v2-report-empty" data-state="not_available">The five-axis place profile is not available.</div>`;
-        const cx=90,cy=78,radius=57;
+
+        const values=
+            axes.map(
+                axis =>
+                    numeric(
+                        record?.[axis.field]
+                    )
+            );
+
+        if(
+            values.filter(
+                value =>
+                    value !== null
+            ).length < 3
+        ){
+            return `<div class="v2-report-empty" data-state="not_available">The five-axis place profile is not available.</div>`;
+        }
+
+        const cx=90;
+        const cy=78;
+        const radius=57;
+
         const point=(index,scale)=>{
-            const angle=-Math.PI/2+index*Math.PI*2/axes.length;
-            return [cx+Math.cos(angle)*radius*scale,cy+Math.sin(angle)*radius*scale];
+            const angle=
+                -Math.PI/2 +
+                index*Math.PI*2/axes.length;
+
+            return [
+                cx +
+                Math.cos(angle)*radius*scale,
+                cy +
+                Math.sin(angle)*radius*scale
+            ];
         };
-        const polygon=values.map((value,index)=>point(index,Math.max(0,Math.min(1,value??0))).map(x=>x.toFixed(1)).join(',')).join(' ');
-        const rings=[.25,.5,.75,1].map(scale=>`<polygon points="${axes.map((_,index)=>point(index,scale).map(x=>x.toFixed(1)).join(',')).join(' ')}"></polygon>`).join('');
-        const spokes=axes.map((_,index)=>{const [x,y]=point(index,1);return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"></line>`;}).join('');
-        const labels=axes.map(([label],index)=>{const [x,y]=point(index,1.27);return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}">${escapeHtml(label)}</text>`;}).join('');
-        return `<div class="v2-radar-wrap"><svg class="v2-radar" viewBox="0 0 180 160" role="img" aria-label="Five-axis urban profile"><g class="v2-radar-grid">${rings}${spokes}</g><polygon class="v2-radar-value" points="${polygon}"></polygon>${labels}</svg>
-            <div class="v2-radar-values">${axes.map(([label],index)=>`<span>${escapeHtml(label)} <b>${values[index]===null?'—':Math.round(values[index]*100)}</b></span>`).join('')}</div></div>`;
+
+        const polygon=
+            values
+                .map(
+                    (value,index) =>
+                        point(
+                            index,
+                            Math.max(
+                                0,
+                                Math.min(
+                                    1,
+                                    value ?? 0
+                                )
+                            )
+                        )
+                        .map(
+                            coordinate =>
+                                coordinate.toFixed(1)
+                        )
+                        .join(',')
+                )
+                .join(' ');
+
+        const rings=
+            [.25,.5,.75,1]
+                .map(
+                    scale =>
+                        `<polygon points="${
+                            axes
+                                .map(
+                                    (_,index) =>
+                                        point(index,scale)
+                                            .map(
+                                                coordinate =>
+                                                    coordinate.toFixed(1)
+                                            )
+                                            .join(',')
+                                )
+                                .join(' ')
+                        }"></polygon>`
+                )
+                .join('');
+
+        const spokes=
+            axes
+                .map(
+                    (_,index) => {
+                        const [x,y]=
+                            point(index,1);
+
+                        return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"></line>`;
+                    }
+                )
+                .join('');
+
+        const labels=
+            axes
+                .map(
+                    (axis,index) => {
+                        const [x,y]=
+                            point(index,1.27);
+
+                        return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}">${escapeHtml(axis.axis)}</text>`;
+                    }
+                )
+                .join('');
+
+        const valueList=
+            axes
+                .map(
+                    (axis,index) => `
+                        <div class="v2-radar-value-row">
+                            <span>
+                                <strong>
+                                    ${escapeHtml(axis.label)}
+                                </strong>
+
+                                <b>
+                                    ${
+                                        values[index] === null
+                                            ? '—'
+                                            : Math.round(
+                                                values[index]*100
+                                            )
+                                    }
+                                </b>
+                            </span>
+
+                            <small>
+                                ${escapeHtml(axis.description)}
+                            </small>
+                        </div>
+                    `
+                )
+                .join('');
+
+        return `
+            <div class="v2-radar-wrap">
+
+                <svg
+                    class="v2-radar"
+                    viewBox="0 0 180 160"
+                    role="img"
+                    aria-label="Five-axis urban profile"
+                >
+                    <g class="v2-radar-grid">
+                        ${rings}
+                        ${spokes}
+                    </g>
+
+                    <polygon
+                        class="v2-radar-value"
+                        points="${polygon}"
+                    ></polygon>
+
+                    ${labels}
+                </svg>
+
+                <div class="v2-radar-values">
+                    ${valueList}
+                </div>
+
+            </div>
+        `;
     }
 
     function lensBand(value){
@@ -523,10 +772,38 @@
         const age=numeric(record.baseline_building_age);
         const height=numeric(record.baseline_building_height);
         const overview=metricGrid([
-            metric('Allocated population',populationLabel,'2021 model allocation'),
-            metric('Built floor area',metres(record.baseline_current_floor_area_m2,0),'current physical estimate'),
-            metric('Typical building height',height===null?'Not available':`${number(height,1)} m`,'local baseline'),
-            metric('Typical building age',age===null?'Not available':`${number(age,0)} years`,'local baseline')
+            heroMetric(
+                'Allocated population',
+                populationLabel,
+                record.population_allocated,
+                'population_allocated',
+                '2021 model allocation'
+            ),
+            heroMetric(
+                'Built floor area',
+                metres(record.baseline_current_floor_area_m2,0),
+                record.baseline_current_floor_area_m2,
+                'baseline_current_floor_area_m2',
+                'current physical estimate'
+            ),
+            heroMetric(
+                'Typical building height',
+                height===null
+                    ? 'Not available'
+                    : `${number(height,1)} m`,
+                record.baseline_building_height,
+                'baseline_building_height',
+                'local baseline'
+            ),
+            heroMetric(
+                'Typical building age',
+                age===null
+                    ? 'Not available'
+                    : `${number(age,0)} years`,
+                record.baseline_building_age,
+                'baseline_building_age',
+                'local baseline'
+            )
         ],'v2-sheet-metric-grid--hero');
         const censusAvailable=numeric(record.census_under15_pct)!==null || numeric(record.census_average_household_size)!==null;
         const censusBody=censusAvailable ? `${ageComposition(record)}<div class="v2-sheet-comparison-grid">

@@ -1,9 +1,9 @@
 {
-  "release_id": "V2.0.1-20261001-123205",
-  "version": "V2.0.1",
+  "release_id": "V2.0.2-20261001-180221",
+  "version": "V2.0.2",
   "site": "https://852lab.github.io/Urban-Genetics-Atlas/",
   "repo": "https://github.com/852LAB/Urban-Genetics-Atlas",
-  "generated": "2026-10-01 12:38:41 CST",
+  "generated": "2026-10-01 18:02:52 CST",
   "architecture": {
     "application": "GitHub Pages",
     "runtime_data": "Cloudflare R2",

@@ -6258,51 +6258,62 @@ async function warmBackgroundZooms(){
 }
 
 // -----------------------------------------------------
-// Lazy Building Age / Heritage payload
+// Building Age / Heritage PMTiles + lazy count summary
 // -----------------------------------------------------
 
-const BUILDING_AGE_HERITAGE_DATA_URL =
-    'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/buildings/Buildings_Age_or_Heritage_Grade.geojson';
+const BUILDING_AGE_HERITAGE_SUMMARY_URL =
+    'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/v2/fabric/building-age-heritage/v0.1/building-age-heritage-summary-v0.1.json';
 
-let buildingAgeHeritageDataPromise = null;
+let buildingAgeHeritageSummaryPromise = null;
+let buildingAgeHeritageSummary = null;
 
 function ensureBuildingAgeHeritageData(){
-    if(buildingAgeHeritageDataPromise){
-        return buildingAgeHeritageDataPromise;
+    if(buildingAgeHeritageSummaryPromise){
+        return buildingAgeHeritageSummaryPromise;
     }
 
-    const source = map.getSource('buildingAge');
-    if(!source || typeof source.setData !== 'function'){
-        return Promise.resolve(null);
-    }
+    perfMark('Building Age / Heritage summary requested');
 
-    perfMark('Building Age / Heritage payload requested');
-
-    buildingAgeHeritageDataPromise = fetch(
-        BUILDING_AGE_HERITAGE_DATA_URL,
+    buildingAgeHeritageSummaryPromise = fetch(
+        BUILDING_AGE_HERITAGE_SUMMARY_URL,
         {cache:'force-cache'}
     )
         .then(response => {
             if(!response.ok){
                 throw new Error(
-                    `Building Age / Heritage payload request failed (${response.status})`
+                    `Building Age / Heritage summary request failed (${response.status})`
                 );
             }
             return response.json();
         })
         .then(data => {
-            source.setData(data);
+            if(
+                !data ||
+                Number(data.source_features) !== 64307 ||
+                data.analytical_values_changed !== false
+            ){
+                throw new Error(
+                    'Building Age / Heritage summary failed validation'
+                );
+            }
+
+            buildingAgeHeritageSummary = data;
             buildingAgeYearsCache = null;
-            perfMark('Building Age / Heritage payload loaded');
+
+            perfMark('Building Age / Heritage summary loaded');
+
             return data;
         })
         .catch(error => {
-            buildingAgeHeritageDataPromise = null;
-            console.error('Building Age / Heritage payload failed to load:',error);
+            buildingAgeHeritageSummaryPromise = null;
+            console.error(
+                'Building Age / Heritage summary failed to load:',
+                error
+            );
             throw error;
         });
 
-    return buildingAgeHeritageDataPromise;
+    return buildingAgeHeritageSummaryPromise;
 }
 
 function refreshBuildingAgeHeritageCountsWhenReady(){
@@ -6375,8 +6386,8 @@ map.on('load', () => {
 
 
     map.addSource('buildingAge',{
-        type:'geojson',
-        data:{type:'FeatureCollection',features:[]}
+        type:'vector',
+        url:'pmtiles://https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/v2/fabric/building-age-heritage/v0.1/building-age-heritage-v0.1.pmtiles'
     });
 
 perfMark('All data sources added');
@@ -6633,6 +6644,7 @@ perfMark('All sources registered');
         type:'circle',
 
         source:'buildingAge',
+        'source-layer':'building_age_heritage',
 
         layout:{
             visibility:'none'
@@ -6732,6 +6744,7 @@ perfMark('All sources registered');
         type:'circle',
 
         source:'buildingAge',
+        'source-layer':'building_age_heritage',
 
         layout:{
             visibility:'none'
@@ -10341,24 +10354,37 @@ function getBuildingAgeYears(){
         return buildingAgeYearsCache;
     }
 
-    const features =
-        map.getSource('buildingAge')?._data?.features || [];
+    if(!buildingAgeHeritageSummary?.year_counts){
+        return [];
+    }
+
+    const years = [];
+
+    Object.entries(
+        buildingAgeHeritageSummary.year_counts
+    ).forEach(([year,count]) => {
+
+        const y = Number(year);
+        const n = Number(count);
+
+        if(
+            !Number.isFinite(y) ||
+            !Number.isFinite(n) ||
+            y <= 0 ||
+            n <= 0
+        ){
+            return;
+        }
+
+        for(let i = 0; i < n; i++){
+            years.push(y);
+        }
+    });
 
     buildingAgeYearsCache =
-        features
-            .map(
-                feature =>
-                    Number(feature.properties?.Year)
-            )
-            .filter(
-                year =>
-                    Number.isFinite(year) &&
-                    year > 0
-            )
-            .sort((a,b) => a - b);
+        years.sort((a,b) => a - b);
 
     return buildingAgeYearsCache;
-
 }
 
 function countYearsUpTo(
@@ -10428,13 +10454,10 @@ function updateBuildingAgeFilter(){
 
 function updateBuildingAgeCount(){
 
-    if(!map.getSource('buildingAge')){
-
+    if(!buildingAgeHeritageSummary){
         buildingAgeCountValue.textContent =
             '—';
-
         return;
-
     }
 
     const selectedYear =
@@ -10612,88 +10635,41 @@ function updateHeritageFilter(){
 
 function updateHeritageCount(){
 
-    if(!map.getSource('buildingAge')){
-
+    if(!buildingAgeHeritageSummary?.heritage_counts){
         heritageCountValue.textContent =
             '—';
-
         return;
-
     }
-
 
     const grades = [];
 
-
     if(grade1Toggle.checked){
-
-        grades.push(
-            'Grade 1'
-        );
-
+        grades.push('Grade 1');
     }
-
 
     if(grade2Toggle.checked){
-
-        grades.push(
-            'Grade 2'
-        );
-
+        grades.push('Grade 2');
     }
-
 
     if(grade3Toggle.checked){
-
-        grades.push(
-            'Grade 3'
-        );
-
+        grades.push('Grade 3');
     }
 
-
-    const features =
-        map
-            .getSource('buildingAge')
-            ._data
-            .features;
-
-
-    let count = 0;
-
-
-    features.forEach(
-        feature => {
-
-            const grade =
-                feature
-                    .properties
-                    ?.HBG_GRADE;
-
-
-            if(
-
-                grade !== null &&
-
-                grade !== undefined &&
-
-                grades.includes(grade)
-
-            ){
-
-                count++;
-
-            }
-
-        }
-    );
-
+    const count =
+        grades.reduce(
+            (sum,grade) =>
+                sum +
+                Number(
+                    buildingAgeHeritageSummary
+                        .heritage_counts?.[grade] || 0
+                ),
+            0
+        );
 
     heritageCountValue.textContent =
         count.toLocaleString();
 
 }
-
 
 // -----------------------------------------------------
 // Heritage Grade Toggles

@@ -1,11 +1,11 @@
 /* Urban Genetics Atlas V2 — native Census Building Group map themes. */
 (function attachNativeDemographics(root){
     'use strict';
-    const VERSION='V2_NATIVE_DEMOGRAPHICS_MAP_V0_3';
+    const VERSION='V2_NATIVE_DEMOGRAPHICS_MAP_V0_4';
     const SOURCE='v2-census-context';
     const SURFACE_LAYER='v2-census-context-surface';
     const POINT_LAYER='v2-census-context-points';
-    const BASE='https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/v2/entity-market-demographics/v0.1/demographics/v0.1/v2-census-context-v0.1.pmtiles';
+    const BASE='https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/v2/entity-market-demographics/v0.1/demographics/v0.1/v2-census-context-v0.2.pmtiles';
     const THEMES={
         census_under15_pct:{label:'Population aged under 15',field:'census_under15_pct',infoKey:'demographics:census_under15_pct',unit:'%',stops:[0,8,12,16,22,30],colours:['#fff7ec','#fee8c8','#fdd49e','#fdbb84','#e34a33','#8c2d04'],low:'Lower share',high:'Higher share'},
         census_age65plus_pct:{label:'Population aged 65+',field:'census_age65plus_pct',infoKey:'demographics:census_age65plus_pct',unit:'%',stops:[0,10,15,20,30,45],colours:['#fcfbfd','#efedf5','#dadaeb','#bcbddc','#756bb1','#3f007d'],low:'Lower share',high:'Higher share'},

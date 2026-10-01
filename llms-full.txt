@@ -26,8 +26,8 @@ https://852lab.github.io/Urban-Genetics-Atlas/
 
 - Page title: **852LAB · Hong Kong Urban Atlas**
 - UI version label: **Hong Kong Atlas · V2**
-- Release ID: **V2.0.1-20261001-123205**
-- Generated: **2026-10-01 04:38 UTC**
+- Release ID: **V2.0.2-20261001-180221**
+- Generated: **2026-10-01 10:03 UTC**
 - PMTiles: **v2/v2-public-hex-map-v0.1.pmtiles**
 - Public GeoJSON resources: **3**
 - Terrain objects: **51941**

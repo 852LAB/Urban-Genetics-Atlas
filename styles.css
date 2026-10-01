@@ -11013,3 +11013,163 @@ and (orientation:landscape){
     }
 }
 
+
+
+/* =========================================================
+   V2 PLACE OVERVIEW INTERPRETATION POLISH V0.1
+   ========================================================= */
+
+/* Radar labels */
+.v2-sheet-card--radar .v2-radar text{
+    font-weight:700;
+}
+
+/* Expanded five-axis explanation */
+.v2-sheet-card--radar .v2-radar-values{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    align-self:center;
+}
+
+.v2-sheet-card--radar .v2-radar-value-row{
+    min-width:0;
+}
+
+.v2-sheet-card--radar .v2-radar-value-row > span{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:8px;
+}
+
+.v2-sheet-card--radar .v2-radar-value-row strong{
+    color:var(--text-primary);
+    font-size:.53rem;
+    font-weight:700;
+    line-height:1.2;
+}
+
+.v2-sheet-card--radar .v2-radar-value-row b{
+    flex:0 0 auto;
+    font-size:.53rem;
+    font-weight:700;
+}
+
+.v2-sheet-card--radar .v2-radar-value-row small{
+    display:block;
+    margin-top:2px;
+    color:var(--text-secondary);
+    font-size:.43rem;
+    line-height:1.35;
+}
+
+
+/* Headline Place Overview metrics — relative context */
+.v2-sheet-metric--relative{
+    --v2-relative-accent:#9aa3ad;
+    --v2-relative-soft:rgba(154,163,173,.06);
+
+    position:relative;
+    overflow:hidden;
+
+    background:
+        linear-gradient(
+            180deg,
+            var(--v2-relative-soft),
+            rgba(255,255,255,0) 62%
+        );
+
+    box-shadow:
+        inset 0 3px 0
+        var(--v2-relative-accent);
+}
+
+.v2-sheet-metric--relative.is-lower{
+    --v2-relative-accent:#8296aa;
+    --v2-relative-soft:rgba(130,150,170,.10);
+}
+
+.v2-sheet-metric--relative.is-typical{
+    --v2-relative-accent:#a99c83;
+    --v2-relative-soft:rgba(169,156,131,.10);
+}
+
+.v2-sheet-metric--relative.is-higher{
+    --v2-relative-accent:#785b7d;
+    --v2-relative-soft:rgba(120,91,125,.10);
+}
+
+.v2-sheet-metric--relative.is-missing{
+    --v2-relative-accent:#c5c8ca;
+    --v2-relative-soft:rgba(197,200,202,.06);
+}
+
+.v2-sheet-metric-meta{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:4px;
+    margin-top:3px;
+}
+
+.v2-sheet-metric-meta > small{
+    margin:0;
+}
+
+.v2-relative-tag{
+    display:inline-flex;
+    align-items:center;
+
+    padding:2px 6px;
+
+    border:
+        1px solid
+        color-mix(
+            in srgb,
+            var(--v2-relative-accent) 48%,
+            transparent
+        );
+
+    border-radius:999px;
+
+    background:
+        color-mix(
+            in srgb,
+            var(--v2-relative-accent) 9%,
+            white
+        );
+
+    color:var(--text-secondary);
+
+    font-size:.43rem;
+    font-style:normal;
+    font-weight:650;
+    line-height:1.2;
+    letter-spacing:.01em;
+}
+
+
+/* Keep the explanatory radar legible on narrower reports */
+@media (max-width:560px){
+    .v2-sheet-card--radar .v2-radar-wrap{
+        grid-template-columns:
+            minmax(118px,.9fr)
+            minmax(120px,1.1fr);
+        gap:10px;
+    }
+
+    .v2-sheet-card--radar .v2-radar-values{
+        gap:7px;
+    }
+}
+
+
+/* Print */
+@media print{
+    .v2-sheet-metric--relative{
+        print-color-adjust:exact;
+        -webkit-print-color-adjust:exact;
+    }
+}
+
