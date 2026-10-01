@@ -669,6 +669,9 @@ const placeReportClose =
 const placeReportPrint =
     document.getElementById('placeReportPrint');
 
+const v2AddressSearch =
+    document.getElementById('v2AddressSearch');
+
 const v2AddressSearchForm =
     document.getElementById('v2AddressSearchForm');
 
@@ -6007,18 +6010,10 @@ setTimeout(
 
 
 // -------------------------------------------------
-// Background zoom pre-warming
+// Deep background zoom pre-warming disabled for V2 performance pass.
+// Startup zoom 11/12 warming above is retained; z13–16 are left demand-led
+// so address search/report activity does not compete for bandwidth/CPU.
 // -------------------------------------------------
-
-setTimeout(
-    () => {
-
-        warmBackgroundZooms();
-
-    },
-
-    600
-);
 
     } catch(error){
 
@@ -6262,6 +6257,67 @@ async function warmBackgroundZooms(){
 
 }
 
+// -----------------------------------------------------
+// Lazy Building Age / Heritage payload
+// -----------------------------------------------------
+
+const BUILDING_AGE_HERITAGE_DATA_URL =
+    'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/buildings/Buildings_Age_or_Heritage_Grade.geojson';
+
+let buildingAgeHeritageDataPromise = null;
+
+function ensureBuildingAgeHeritageData(){
+    if(buildingAgeHeritageDataPromise){
+        return buildingAgeHeritageDataPromise;
+    }
+
+    const source = map.getSource('buildingAge');
+    if(!source || typeof source.setData !== 'function'){
+        return Promise.resolve(null);
+    }
+
+    perfMark('Building Age / Heritage payload requested');
+
+    buildingAgeHeritageDataPromise = fetch(
+        BUILDING_AGE_HERITAGE_DATA_URL,
+        {cache:'force-cache'}
+    )
+        .then(response => {
+            if(!response.ok){
+                throw new Error(
+                    `Building Age / Heritage payload request failed (${response.status})`
+                );
+            }
+            return response.json();
+        })
+        .then(data => {
+            source.setData(data);
+            buildingAgeYearsCache = null;
+            perfMark('Building Age / Heritage payload loaded');
+            return data;
+        })
+        .catch(error => {
+            buildingAgeHeritageDataPromise = null;
+            console.error('Building Age / Heritage payload failed to load:',error);
+            throw error;
+        });
+
+    return buildingAgeHeritageDataPromise;
+}
+
+function refreshBuildingAgeHeritageCountsWhenReady(){
+    void ensureBuildingAgeHeritageData()
+        .then(() => {
+            if(buildingAgeToggle?.checked){
+                updateBuildingAgeCount();
+            }
+            if(heritageToggle?.checked){
+                updateHeritageCount();
+            }
+        })
+        .catch(() => {});
+}
+
 // =====================================================
 // MAP LOAD
 // =====================================================
@@ -6320,7 +6376,7 @@ map.on('load', () => {
 
     map.addSource('buildingAge',{
         type:'geojson',
-        data:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/buildings/Buildings_Age_or_Heritage_Grade.geojson'
+        data:{type:'FeatureCollection',features:[]}
     });
 
 perfMark('All data sources added');
@@ -7871,6 +7927,10 @@ async function openV2AddressCandidate(candidate){
             'selected'
         );
 
+        if(isV2MobileAddressSearch()){
+            setV2AddressSearchExpanded(false);
+        }
+
         if(
             typeof mobileViewportQuery !== 'undefined' &&
             mobileViewportQuery.matches
@@ -7886,25 +7946,123 @@ async function openV2AddressCandidate(candidate){
     }
 }
 
+// V2_MOBILE_POLISH_V0_1
+function isV2MobileAddressSearch(){
+    if(typeof mobileViewportQuery !== 'undefined'){
+        return mobileViewportQuery.matches;
+    }
+    return window.matchMedia('(max-width:900px)').matches;
+}
+
+function setV2AddressSearchExpanded(expanded,{focus=false}={}){
+    if(!v2AddressSearch || !isV2MobileAddressSearch()){
+        return;
+    }
+
+    const next=Boolean(expanded);
+    v2AddressSearch.classList.toggle('is-expanded',next);
+    v2AddressSearch.dataset.mobileSearchState=next ? 'expanded' : 'collapsed';
+
+    const submit=v2AddressSearchForm?.querySelector('.v2-address-search-submit');
+    submit?.setAttribute('aria-expanded',String(next));
+
+    if(next && focus){
+        requestAnimationFrame(() => {
+            try{
+                v2AddressSearchInput?.focus({preventScroll:true});
+            }catch(_error){
+                v2AddressSearchInput?.focus();
+            }
+        });
+    }
+}
+
+function collapseV2AddressSearchIfInactive(){
+    if(!v2AddressSearch || !isV2MobileAddressSearch()){
+        return;
+    }
+    const hasText=Boolean(v2AddressSearchInput?.value?.trim());
+    const resultsOpen=Boolean(v2AddressSearchResults && !v2AddressSearchResults.hidden);
+    const ownsFocus=v2AddressSearch.contains(document.activeElement);
+    if(!hasText && !resultsOpen && !ownsFocus){
+        setV2AddressSearchExpanded(false);
+    }
+}
+
+v2AddressSearchInput?.addEventListener('focus',() => {
+    setV2AddressSearchExpanded(true);
+});
+
+v2AddressSearchInput?.addEventListener('blur',() => {
+    setTimeout(collapseV2AddressSearchIfInactive,120);
+});
+
 v2AddressSearchForm?.addEventListener(
     'submit',
     event => {
         event.preventDefault();
+
+        if(
+            isV2MobileAddressSearch() &&
+            !v2AddressSearch?.classList.contains('is-expanded')
+        ){
+            setV2AddressSearchExpanded(true,{focus:true});
+            return;
+        }
+
         runV2AddressSearch(
             v2AddressSearchInput?.value || ''
         );
     }
 );
 
-v2AddressSearchInput?.addEventListener('input',event => {
+function cancelV2AddressSearchWork(){
     clearTimeout(v2AddressSearchTimer);
+    v2AddressSearchTimer = null;
+    if(v2AddressSearchAbortController){
+        v2AddressSearchAbortController.abort();
+        v2AddressSearchAbortController = null;
+    }
+}
+
+function v2AddressAutoSearchMinimum(query){
+    const text = String(query || '').trim();
+    if(/[\u3400-\u9fff]/.test(text)){
+        return 2;
+    }
+    if(/^\d+$/.test(text)){
+        return 6;
+    }
+    return 3;
+}
+
+v2AddressSearchInput?.addEventListener('focus',() => {
+    userHasInteracted = true;
+});
+
+v2AddressSearchInput?.addEventListener('input',event => {
+    cancelV2AddressSearchWork();
+    userHasInteracted = true;
+
     const query = event.target.value || '';
-    if(query.trim().length < 2){
+    const text = query.trim();
+    const minLength = v2AddressAutoSearchMinimum(text);
+
+    if(text.length < minLength){
         hideV2AddressSearchResults();
-        setV2AddressSearchStatus('Enter at least two characters.','too_short');
+        const message = /^\d+$/.test(text)
+            ? 'Type at least six digits for suggestions, or press Enter to search now.'
+            : /[\u3400-\u9fff]/.test(text)
+                ? 'Enter at least two Chinese characters.'
+                : 'Enter at least three characters.';
+        setV2AddressSearchStatus(message,'too_short');
         return;
     }
-    v2AddressSearchTimer = setTimeout(() => runV2AddressSearch(query),220);
+
+    v2AddressSearchTimer = setTimeout(
+        () => runV2AddressSearch(query),
+        320
+    );
 });
 
 v2AddressSearchInput?.addEventListener('keydown',event => {
@@ -7919,6 +8077,9 @@ v2AddressSearchInput?.addEventListener('keydown',event => {
         openV2AddressCandidate(v2AddressSearchCandidates[v2AddressSearchActiveIndex]);
     }else if(event.key === 'Escape'){
         hideV2AddressSearchResults();
+        if(!v2AddressSearchInput?.value?.trim()){
+            setV2AddressSearchExpanded(false);
+        }
     }
 });
 
@@ -8538,13 +8699,13 @@ function repositionPopup(){
             '44px';
 
         popup.style.width =
-            '225px';
+            '248px';
 
         popup.style.minWidth =
             '0';
 
         popup.style.maxWidth =
-            '225px';
+            '248px';
 
         popup.style.maxHeight =
             '35dvh';
@@ -9646,6 +9807,8 @@ buildingAgeToggle.addEventListener(
 
         if(e.target.checked){
 
+            refreshBuildingAgeHeritageCountsWhenReady();
+
             expandFabricModule(
                 buildingAgeModule
             );
@@ -9690,6 +9853,8 @@ heritageToggle.addEventListener(
 
 
         if(e.target.checked){
+
+            refreshBuildingAgeHeritageCountsWhenReady();
 
             expandFabricModule(
                 heritageModule

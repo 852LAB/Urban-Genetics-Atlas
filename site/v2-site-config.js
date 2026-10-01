@@ -8,7 +8,7 @@
         version:'V2_SITE_RUNTIME_CONFIG_V0_3_1',
         contractStatus:'FROZEN_AUTHORITATIVE_PUBLIC_HEX_BINDING',
         map:Object.freeze({pmtilesUrl:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/v2/v2-public-hex-map-v0.1.pmtiles',sourceLayer:'atlas_v2',minzoom:10,maxzoom:14,idField:'hex_id',properties:57}),
-        hexReport:Object.freeze({manifestUrl:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/v2/hex-report/v0.1/manifest.json',shardUrlPattern:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/v2/hex-report/v0.1/shards/{shard}.json',shards:256,idField:'hex_id'}),
+        hexReport:Object.freeze({manifestUrl:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/v2/hex-report/v0.2/manifest.json',shardUrlPattern:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/v2/hex-report/v0.2/shards/{shard}.json',shards:1024,idField:'hex_id'}),
         entities:Object.freeze({
             baseUrl:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/v2/entity-market-demographics/v0.1/',
             manifestUrl:'https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/v2/entity-market-demographics/v0.1/manifest.json',

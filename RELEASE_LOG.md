@@ -600,3 +600,22 @@ Major V2 release of the Urban Genetics Atlas.
 - Main V2 and Climate PMTiles byte-range requests verified with HTTP 206.
 - Production runtime contains no local `data/v2` dependency.
 - JavaScript syntax checks passed.
+
+# Urban Genetics Atlas — V2.0.1-20261001-123205
+
+Performance and mobile refinement release following V2.0.
+
+## Performance
+- Deferred speculative deep map warming while retaining useful startup warming.
+- Refined address-search debounce, cancellation and automatic query thresholds.
+- Building Age / Heritage data now loads on first use rather than at initial startup.
+- Hex report package re-sharded from 256 to 1024 shards.
+- Hex-report analytical records and values remain unchanged.
+- Mean raw cold Hex-report shard reduced from approximately 2.792 MB to 0.698 MB.
+
+## Mobile
+- Address search collapses to a compact search control when inactive.
+- Mobile popup widened and internal spacing/typography refined.
+
+## Methodology
+No analytical calculations, identifiers, provenance, Building/Lot/Hex relationships or data meaning changed.

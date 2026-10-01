@@ -5,7 +5,7 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
 
-  const VERSION='V2_HEX_PROVIDER_V0_1';
+  const VERSION='V2_HEX_PROVIDER_V0_2';
   function normaliseHexId(value){
     const text=String(value??'').trim();
     if(!/^\d+$/.test(text)) throw new Error('Hex ID must be a positive integer.');
@@ -13,9 +13,12 @@
     if(!Number.isSafeInteger(number)||number<1||number>374784) throw new Error('Hex ID is outside the canonical range.');
     return String(number);
   }
-  function shardForHex(value){
+  function shardForHex(value,shards=256){
     const id=Number(normaliseHexId(value));
-    return (id%256).toString(16).padStart(2,'0');
+    const count=Number(shards);
+    if(!Number.isSafeInteger(count)||count<1) throw new Error('Hex shard count must be a positive integer.');
+    const width=Math.max(2,Math.ceil(Math.log2(count)/4));
+    return (id%count).toString(16).padStart(width,'0');
   }
   function createHexProvider(options={}){
     const config=options.config||(typeof globalThis!=='undefined'&&globalThis.UGA_V2_SITE_CONFIG);
@@ -31,7 +34,7 @@
     }
     function loadManifest(){
       if(!manifestPromise) manifestPromise=fetchJson(config.hexReport.manifestUrl).then(value=>{
-        if(Number(value.records)!==84877||Number(value.shards)!==256) throw new Error('V2 Hex manifest contract mismatch.');
+        if(Number(value.records)!==84877||Number(value.shards)!==Number(config.hexReport.shards)) throw new Error('V2 Hex manifest contract mismatch.');
         return value;
       });
       return manifestPromise;
@@ -49,7 +52,7 @@
     async function loadHex(hexId){
       const id=normaliseHexId(hexId);
       await loadManifest();
-      const shard=shardForHex(id);
+      const shard=shardForHex(id,config.hexReport.shards);
       const records=await loadShard(shard);
       if(!Object.prototype.hasOwnProperty.call(records,id)) return null;
       const record=records[id];

@@ -10902,3 +10902,114 @@ and (orientation:landscape){
         text-align:right;
     }
 }
+
+/* =====================================================
+   V2 MOBILE POLISH V0.1
+   Popup fit + collapsible address search only.
+   ===================================================== */
+
+@media (max-width:900px){
+
+    /* Keep the fixed mobile popup behaviour; provide ~10% more width
+       and slightly tighter content so profile labels/values fit cleanly. */
+    #popup{
+        width:248px;
+        max-width:248px;
+        padding:11px 13px;
+    }
+
+    .ugs-signature-name{
+        font-size:0.90rem;
+        line-height:1.18;
+    }
+
+    .ugs-signature-description{
+        margin-bottom:12px;
+        font-size:0.65rem;
+        line-height:1.36;
+    }
+
+    .ugs-profile{
+        gap:6px;
+        margin-bottom:13px;
+    }
+
+    .ugs-profile-row{
+        grid-template-columns:64px minmax(0,1fr) 42px;
+        gap:5px;
+    }
+
+    .ugs-profile-label{
+        font-size:0.55rem;
+        letter-spacing:0.035em;
+    }
+
+    .ugs-profile-value{
+        font-size:0.53rem;
+    }
+
+    .ugs-profile-track{
+        height:4px;
+    }
+
+    .ugs-section{
+        margin-top:10px;
+        padding-top:9px;
+    }
+
+    /* Expanded search remains the existing search UI, simply positioned
+       below the mobile 852LAB header rather than overlapping it. */
+    .v2-address-search{
+        top:88px;
+        left:10px;
+        width:min(360px,calc(100vw - 20px));
+        transition:width 160ms ease,padding 160ms ease,border-radius 160ms ease;
+    }
+
+    /* Normal mobile state: compact magnifying-glass/search control only. */
+    .v2-address-search:not(.is-expanded){
+        width:40px;
+        padding:2px;
+        border-radius:12px;
+    }
+
+    .v2-address-search:not(.is-expanded) .v2-address-search-form{
+        display:block;
+    }
+
+    .v2-address-search:not(.is-expanded) .v2-address-search-input-row{
+        display:block;
+    }
+
+    .v2-address-search:not(.is-expanded) .v2-address-search-input,
+    .v2-address-search:not(.is-expanded) .v2-address-search-label,
+    .v2-address-search:not(.is-expanded) .v2-address-search-status,
+    .v2-address-search:not(.is-expanded) .v2-address-search-results{
+        display:none !important;
+    }
+
+    .v2-address-search:not(.is-expanded) .v2-address-search-submit{
+        display:block;
+        width:36px;
+        height:36px;
+        border-radius:10px;
+    }
+}
+
+@media (max-width:900px) and (orientation:landscape){
+    #popup{
+        width:258px;
+        max-width:258px;
+    }
+
+    .v2-address-search{
+        top:66px;
+        left:8px;
+        width:min(360px,calc(100vw - 16px));
+    }
+
+    .v2-address-search:not(.is-expanded){
+        width:40px;
+    }
+}
+
