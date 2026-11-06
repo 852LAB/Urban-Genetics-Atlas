@@ -1,0 +1,9 @@
+{
+  "status": "DEVELOPMENT_PREVIEW",
+  "release_id": "V2RC-20261106T052258Z",
+  "public_r2_prefix": "releases/V2RC-20261106T052258Z/",
+  "editorial_stats": "V1.6 figures suppressed; current V2 coverage not recalculated",
+  "census_binding_note": "Preserves tested DEV config v0.1 and native renderer v0.2; both asset versions uploaded",
+  "stage6b_inventory": "57 of 58 directories; 1670 snapshot-detail objects pending complete inventory",
+  "purpose": "Meeting demonstrations and project development/funding review; not final validated product"
+}

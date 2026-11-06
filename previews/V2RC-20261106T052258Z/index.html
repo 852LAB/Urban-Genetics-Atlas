@@ -1,0 +1,1906 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f5f5f5">
+
+    <title>852LAB · Urban Genetics V2 — Development Preview</title>
+    <meta name="description" content="Explore connected evidence about Hong Kong and the Urban Genetics lenses that reveal relationships no single dataset shows.">
+    <meta property="og:title" content="852LAB · Hong Kong Urban Atlas">
+    <meta property="og:description" content="See the city through a different lens. Explore evidence, relationships and Urban Genetics analyses across Hong Kong.">
+    <meta name="twitter:title" content="852LAB · Hong Kong Urban Atlas">
+    <meta name="twitter:description" content="See the city through a different lens. Explore evidence, relationships and Urban Genetics analyses across Hong Kong.">
+    <meta name="atlas-release" content="V2 Development Preview · V2RC-20261106T052258Z">
+
+    <link rel="icon" type="image/png" href="assets/Favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.9.0/dist/maplibre-gl.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <link href="site/market-data.css" rel="stylesheet">
+<!-- UGA_SRPE_CSS_V01 -->
+<link rel="stylesheet" href="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-srpe/v0.1/srpe-registers.css">
+<!-- UGA_NEW_DEVELOPMENTS_CSS_V02 -->
+<link rel="stylesheet" href="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-new-developments/v0.2/new-developments.css">
+<!-- UGA_NEW_DEVELOPMENTS_AREA_CSS_V01 -->
+<link rel="stylesheet" href="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-new-developments/v0.4/unit-area.css">
+<!-- UGA_NEW_DEVELOPMENTS_NAVIGATION_CSS_V01 -->
+<link rel="stylesheet" href="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-new-developments/v0.5/navigation.css">
+<!-- UGA_MOBILITY_SAVED_READER_V01 -->
+<link rel="stylesheet" href="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/mobility-reader/v0.4/reader.css">
+<!-- UGA Market report experience v0.1 styles -->
+<link rel="stylesheet" href="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-report/v0.1/report.css">
+
+<!-- UGA_CENTALINE_CURRENT_V02_CSS_START -->
+<link rel="stylesheet" href="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-private-resale/v0.2/private-resale.css?v=f9a78bcb2d6632ad">
+<!-- UGA_CENTALINE_CURRENT_V02_CSS_END -->
+<!-- UGA_MARKET_LEGEND_SECTIONS_V01_CSS_START -->
+<link rel="stylesheet" href="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-panel/v0.1/sections.css?v=06cfa0a2b8442d8b">
+<!-- UGA_MARKET_LEGEND_SECTIONS_V01_CSS_END -->
+<!-- UGA_MARKET_ANALYSIS_V01_CSS_START -->
+<link rel="stylesheet" href="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-analysis/v0.1/analysis.css?v=6bf118c423e24403">
+<!-- UGA_MARKET_ANALYSIS_V01_CSS_END -->
+</head>
+
+<body>
+
+    <div id="map"></div>
+
+    <!-- =====================================================
+     ATLAS INITIALISATION / WARM-UP
+     ===================================================== -->
+
+<div
+    id="atlasLoader"
+    aria-live="polite"
+    aria-label="Initialising the 852LAB Hong Kong Urban Atlas"
+>
+
+    <div class="atlas-loader-card glass">
+
+        <img
+            src="assets/Logo-Mark.png"
+            alt="852LAB"
+            class="atlas-loader-logo"
+        >
+
+        <div class="atlas-loader-title">
+            852LAB
+        </div>
+
+        <div
+            id="atlasLoaderStatus"
+            class="atlas-loader-status"
+        >
+            Connecting evidence and lenses
+        </div>
+
+        <div
+            id="atlasLoaderDots"
+            class="atlas-loader-dots"
+        >
+            ···
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =====================================================
+     WELCOME / ATLAS INTRODUCTION
+     ===================================================== -->
+
+<div
+    id="welcomeOverlay"
+    class="welcome-overlay hidden"
+    aria-hidden="true"
+>
+
+    <div
+        id="welcomePanel"
+        class="welcome-panel glass"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="welcomeTitle"
+    >
+
+        <!-- Welcome header -->
+
+        <div class="welcome-header">
+
+            <div class="welcome-brand">
+
+                <img
+                    src="assets/Logo-Mark.png"
+                    alt="852LAB"
+                >
+
+                <div>
+
+                    <div
+                        id="welcomeTitle"
+                        class="welcome-title"
+                    >
+                        See the city through a different lens.
+                    </div>
+
+                    <div class="welcome-subtitle">
+                        852LAB · Powered by Urban Genetics
+                    </div>
+
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                id="welcomeClose"
+                class="welcome-close"
+                aria-label="Start exploring 852LAB"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <!-- Welcome message -->
+
+        <div class="welcome-content">
+
+            <p>
+                Explore connected evidence about how Hong Kong is built,
+                inhabited, connected and changing. Find a place, choose a
+                Lens or inspect the evidence supporting it.
+            </p>
+
+            <p>
+                Lenses use Urban Genetics to ask questions that no single
+                source dataset answers. Select a place to move between its
+                local context, Buildings and Lots.
+            </p>
+
+            <p class="welcome-secondary-note">
+                Source geography, date and coverage vary. Patterns support
+                investigation; they are not precise property determinations,
+                predictions or recommendations.
+            </p>
+
+        </div>
+
+
+        <!-- Welcome footer -->
+
+        <div class="welcome-footer">
+
+            <label class="welcome-preference">
+
+                <input
+                    type="checkbox"
+                    id="welcomeDontShow"
+                >
+
+                <span>
+                    Do not show again
+                </span>
+
+            </label>
+
+            <button
+                type="button"
+                id="welcomeCloseButton"
+                class="welcome-close-button"
+                aria-label="Start exploring 852LAB"
+            >
+                Start exploring
+            </button>
+
+        </div>
+
+    </div>
+
+</div>    
+
+    <!-- Header -->
+<header id="header" class="glass">
+    <div id="brand">
+        <img src="assets/Logo.png" alt="852LAB">
+        <div>
+            <h1>852LAB</h1>
+            <div class="subtitle">Powered by Urban Genetics</div>
+            <div class="version">Hong Kong Atlas · V2</div>
+        </div>
+    </div>
+</header>
+
+<!-- =====================================================
+     V2 ADDRESS / BUILDING / LOT SEARCH
+     Stable identities, accepted addresses and polygon relationships.
+     ===================================================== -->
+<div id="v2AddressSearch" class="v2-address-search glass">
+    <form id="v2AddressSearchForm" class="v2-address-search-form" role="search" novalidate>
+        <label class="v2-address-search-label" for="v2AddressSearchInput">
+            Find a place
+        </label>
+        <div class="v2-address-search-input-row">
+            <input
+                id="v2AddressSearchInput"
+                class="v2-address-search-input"
+                type="search"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="Address, Building or Lot"
+                aria-describedby="v2AddressSearchStatus"
+                aria-controls="v2AddressSearchResults"
+            >
+            <button
+                type="submit"
+                id="v2AddressSearchSubmit"
+                class="v2-address-search-submit"
+                aria-label="Search address, Building or Lot"
+            >⌕</button>
+        </div>
+    </form>
+    <div
+        id="v2AddressSearchStatus"
+        class="v2-address-search-status"
+        aria-live="polite"
+    ></div>
+    <div
+        id="v2AddressSearchResults"
+        class="v2-address-search-results"
+        role="listbox"
+        aria-label="Address, Building and Lot search results"
+        hidden
+    ></div>
+</div>
+
+<!-- =====================================================
+     MAIN CONTROL PANEL
+     ===================================================== -->
+
+<aside id="panel" class="glass panel-minimized">
+    
+
+
+    <!-- =================================================
+     ATLAS CONTROL HEADER
+     ================================================= -->
+
+<div class="atlas-control-header">
+
+    <div class="atlas-control-title-row">
+        <div class="atlas-control-title">
+            Explore the Atlas
+        </div>
+
+        <button
+            type="button"
+            class="info-trigger"
+            data-info-key="about"
+            aria-label="About 852LAB and Urban Genetics"
+            title="About 852LAB"
+        >ⓘ</button>
+    </div>
+
+    <div
+    class="basemap-control"
+    id="basemapControl"
+>
+
+    <span
+        class="basemap-label active"
+        id="basemapMapLabel"
+    >
+        BASEMAP
+    </span>
+
+    <label
+        class="basemap-switch"
+        aria-label="Switch between base map and satellite imagery"
+    >
+
+        <input
+            type="checkbox"
+            id="basemapToggle"
+            role="switch"
+            aria-checked="false"
+        >
+
+        <span
+            class="basemap-switch-track"
+            aria-hidden="true"
+        >
+            <span class="basemap-switch-thumb"></span>
+        </span>
+
+    </label>
+
+    <span
+        class="basemap-label"
+        id="basemapSatelliteLabel"
+    >
+        SATELLITE
+    </span>
+
+    <label
+        class="basemap-building-toggle"
+        title="Show or hide basemap buildings"
+    >
+        <input
+            type="checkbox"
+            id="buildingBaseToggle"
+            checked
+        >
+        <span>BUILDINGS</span>
+    </label>
+
+</div>
+
+</div>
+
+<div id="panelScroll" class="panel-scroll">
+
+    <!-- =================================================
+         LENSES
+         ================================================= -->
+
+    <section
+        id="analysisSection"
+        class="mode-panel expanded"
+    >
+
+        <!-- Fixed Section Header -->
+
+        <div class="mode-header">
+
+            <div class="mode-header-text">
+
+                <div class="mode-title-line">
+                    <div class="mode-title">
+                        Lenses
+                    </div>
+
+                    <button
+                        type="button"
+                        class="info-trigger"
+                        data-info-key="analysis"
+                        aria-label="About Urban Genetics lenses"
+                        title="About Lenses"
+                    >ⓘ</button>
+                </div>
+
+                <div class="mode-description">
+                    Question-led interpretations created from connected evidence.
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="mode-chevron"
+                id="analysisSectionToggle"
+                aria-expanded="true"
+                aria-label="Collapse Lenses"
+                aria-controls="analysisBody"
+            >
+                ▾
+            </button>
+
+        </div>
+
+            <!-- Analysis master visibility -->
+
+            <label class="toggle analysis-toggle">
+
+                <input
+                    type="checkbox"
+                    id="analysisToggle"
+                    checked
+                >
+
+                <span>
+                    Show selected Lens or evidence
+                </span>
+
+            </label>
+
+    <!-- =================================================
+    ANALYSIS BODY
+    ================================================= -->            
+
+            <div
+            id="analysisBody"
+            class="mode-body"
+        >
+
+            <!-- Analysis group opacity -->
+
+            <div class="group-opacity-control" id="analysisOpacityControl">
+                <div class="group-opacity-head">
+                    <label for="analysisOpacity">Map overlay opacity</label>
+                    <output id="analysisOpacityValue" for="analysisOpacity">100%</output>
+                </div>
+                <input
+                    type="range"
+                    id="analysisOpacity"
+                    min="0"
+                    max="100"
+                    value="100"
+                    step="1"
+                    aria-label="Lens or evidence overlay opacity"
+                >
+            </div>
+
+            <!-- Analysis selector -->
+
+            <div id="analysisSelectorControl">
+
+            <label class="section-label">
+            Choose a Lens:
+            </label>
+
+            <select id="theme">
+
+            <optgroup label="Urban Genetic Signature">
+
+                <option value="Urban Genetic Signature">
+                    Urban Genetic Signature
+                </option>
+
+            </optgroup>
+
+            <optgroup label="Urban Genetics Lenses">
+
+                <option value="Development Pressure">
+                    Development Pressure
+                </option>
+
+                <option value="MTR - Index (Built)">
+                    MTR Built Accessibility
+                </option>
+
+                <option value="Renewal Potential">
+                    Renewal Potential
+                </option>
+
+                <option value="Genesis Potential">
+                    Genesis Potential
+                </option>
+
+                <option value="Capacity Opportunity">
+                    Capacity Context
+                </option>
+
+                <option value="Dominant Use">
+                    Dominant Use
+                </option>
+
+                <option value="Planning Zone">
+                    Planning Zone
+                </option>
+
+            </optgroup>
+
+            </select>
+
+        </div>
+
+
+    <!-- =================================================
+     CAPACITY OPPORTUNITY — EVIDENCE CONTEXT CONTROL
+     ================================================= -->
+
+<div id="analysisControls">
+
+    <label class="section-label">
+        Planning context:
+    </label>
+
+    <select id="capacityContext">
+
+        <option value="All">
+            All Contexts
+        </option>
+
+        <option value="AT_OR_ABOVE_PEER_UPPER_QUARTILE">
+            At or above peer upper quartile
+        </option>
+
+        <option value="BETWEEN_PEER_MEDIAN_AND_UPPER_QUARTILE">
+            Between peer median and upper quartile
+        </option>
+
+        <option value="BELOW_PEER_MEDIAN">
+            Below peer median
+        </option>
+
+        <option value="EXPLICIT_ZERO_WITH_VALID_SITE_CONTEXT">
+            Explicit zero with valid site context
+        </option>
+
+        <option value="EXISTING_FORM_ABOVE_CURRENT_PLANNING_ENVELOPE">
+            Existing form above current planning envelope
+        </option>
+
+        <option value="SCREENING_OPPORTUNITY_RANGE">
+            Screening opportunity range
+        </option>
+
+        <option value="NOT_ASSESSED_MATERIAL_LOT_BASIS_NOT_SUPPORTED">
+            Not assessed — material Lot basis unsupported
+        </option>
+
+        <option value="NOT_ASSESSED_DOMINANT_ZONE_THRESHOLD_NOT_MET">
+            Not assessed — dominant-zone threshold not met
+        </option>
+
+        <option value="NOT_ASSESSED_NO_CONTRACTED_PEER_COHORT">
+            Not assessed — no contracted peer cohort
+        </option>
+
+        <option value="NOT_ASSESSED_NO_USABLE_ZONE_LABEL">
+            Not assessed — no usable zone label
+        </option>
+
+    </select>
+
+</div>
+
+
+            <hr class="mode-divider">
+
+
+            <!-- =================================================
+                 ACTIVE ANALYSIS LEGEND
+                 ================================================= -->
+
+            <div id="analysisLegend">
+
+                <div id="legend">
+
+                    <div class="legend-title-row">
+                        <h3 id="legendTitle">
+                            Development Pressure
+                        </h3>
+
+                        <button
+                            type="button"
+                            id="legendInfoButton"
+                            class="info-trigger"
+                            data-info-key="analysis:Development Pressure"
+                            aria-label="About Development Pressure"
+                            title="About Development Pressure"
+                        >ⓘ</button>
+                    </div>
+
+                    <p id="legendDescription">
+                        Shows where the conditions associated with development
+                        pressure combine more or less strongly.
+                    </p>
+
+                    <div id="legendScale">
+
+                        <div
+                            class="legend-gradient"
+                            id="legendGradient"
+                        ></div>
+
+                        <div class="legend-labels">
+
+                            <span id="legendLow">
+                                Lower
+                            </span>
+
+                            <span id="legendHigh">
+                                Higher
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div id="legendInterpretation">
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         URBAN FABRIC
+         ================================================= -->
+
+    <section
+        id="fabricSection"
+        class="mode-panel expanded"
+    >
+
+        <!-- Fixed Section Header -->
+
+        <div class="mode-header">
+
+            <div class="mode-header-text">
+
+                <div class="mode-title-line">
+                    <div class="mode-title">
+                        Urban Fabric
+                    </div>
+
+                    <button
+                        type="button"
+                        class="info-trigger"
+                        data-info-key="fabric"
+                        aria-label="About Urban Fabric"
+                        title="About Urban Fabric"
+                    >ⓘ</button>
+                </div>
+
+                <div class="mode-description">
+                    Physical, infrastructural and historical evidence describing
+                    how the city took shape.
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="mode-chevron"
+                id="fabricSectionToggle"
+                aria-expanded="true"
+                aria-label="Collapse Urban Fabric"
+                aria-controls="fabricBody"
+            >
+                ▾
+            </button>
+
+        </div>
+
+        <!-- Fabric master visibility -->
+
+<label class="toggle fabric-master-toggle">
+
+    <input
+        type="checkbox"
+        id="fabricToggle"
+        checked
+    >
+
+    <span>
+        Show Urban Fabric
+    </span>
+
+</label>
+
+<!-- =================================================
+FABRIC BODY
+    ================================================= -->
+
+        <div
+            id="fabricBody"
+            class="mode-body"
+        >
+
+            <div class="group-opacity-control" id="fabricOpacityControl">
+                <div class="group-opacity-head">
+                    <label for="fabricOpacity">Fabric opacity</label>
+                    <output id="fabricOpacityValue" for="fabricOpacity">100%</output>
+                </div>
+                <input
+                    type="range"
+                    id="fabricOpacity"
+                    min="0"
+                    max="100"
+                    value="100"
+                    step="1"
+                    aria-label="Urban Fabric opacity"
+                >
+            </div>
+
+<hr class="mode-divider">
+
+            <!-- =================================================
+                 TERRAIN MODULE
+                 ================================================= -->
+
+            <div
+                class="fabric-module"
+                id="terrainModule"
+            >
+
+                <div class="fabric-module-header">
+
+                <div class="toggle">
+
+                    <input
+                        type="checkbox"
+                        id="terrainToggle"
+                    >
+
+                    <button
+                        type="button"
+                        class="fabric-module-label"
+                        data-module="terrainModule"
+                        aria-expanded="false"
+                    >
+                        <span>Terrain</span>
+                    </button>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="module-chevron"
+                    data-module="terrainModule"
+                    aria-expanded="false"
+                    aria-label="Expand Terrain"
+                >
+                    ▸
+                </button>
+
+            </div>
+
+
+                <div class="fabric-module-content">
+
+                    <div class="fabric-module-description">
+
+                        Shows the topography beneath the city — the hills, valleys
+                        and landform that shape Hong Kong's urban pattern.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 RECLAIMED LAND MODULE
+                 ================================================= -->
+
+            <div
+                class="fabric-module"
+                id="reclaimedModule"
+            >
+
+                <div class="fabric-module-header">
+
+                <div class="toggle">
+
+                    <input
+                        type="checkbox"
+                        id="reclaimedToggle"
+                    >
+
+                    <button
+                        type="button"
+                        class="fabric-module-label"
+                        data-module="reclaimedModule"
+                        aria-expanded="false"
+                    >
+                        <span>Reclaimed Land</span>
+                    </button>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="module-chevron"
+                    data-module="reclaimedModule"
+                    aria-expanded="false"
+                    aria-label="Expand Reclaimed Land"
+                >
+                    ▸
+                </button>
+
+            </div>
+
+
+                <div class="fabric-module-content">
+
+                    <!-- Reclamation controls -->
+
+                    <div
+                        id="reclamation-controls"
+                        style="display:none;"
+                    >
+
+                        <div class="fabric-control-title">
+                            RECLAMATION HISTORY
+                        </div>
+
+                        <div class="reclamation-year">
+
+                            <span>
+                                Show reclamation up to:
+                            </span>
+
+                            <strong id="reclamation-year-value">
+                                2025
+                            </strong>
+
+                        </div>
+
+                        <input
+                            type="range"
+                            id="reclamation-year"
+                            min="1800"
+                            max="2025"
+                            step="1"
+                            value="2025"
+                        >
+
+                        <div class="reclamation-area">
+
+                            <span>
+                                Total reclaimed land:
+                            </span>
+
+                            <strong id="reclamation-area-value">
+                                —
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Reclamation legend -->
+
+                    <div
+                        id="reclamationLegend"
+                        class="fabric-module-legend"
+                        style="display:none;"
+                    >
+
+                        <div class="fabric-module-description">
+
+                            Shows where Hong Kong has expanded into the sea,
+                            and approximately when that land was reclaimed.
+
+                        </div>
+
+                        <div
+                            class="legend-gradient"
+                            id="reclamationLegendGradient"
+                        ></div>
+
+                        <div class="legend-labels">
+
+                            <span>
+                                Earlier
+                            </span>
+
+                            <span>
+                                Later
+                            </span>
+
+                        </div>
+
+                        <div class="legend-item">
+
+                            <strong>
+                                Reclamation history
+                            </strong>
+
+                            — Areas are coloured according to the
+                            approximate year in which land was reclaimed.
+
+                        </div>
+
+                        <div class="legend-item">
+
+                            <strong>
+                                Slider
+                            </strong>
+
+                            — Move the year to see how reclamation has
+                            progressively redrawn Hong Kong's coastline.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 BUILDING AGE MODULE
+                 ================================================= -->
+
+            <div
+                class="fabric-module"
+                id="buildingAgeModule"
+            >
+
+                <div class="fabric-module-header">
+
+                <div class="toggle">
+
+                    <input
+                        type="checkbox"
+                        id="buildingAgeToggle"
+                    >
+
+                    <button
+                        type="button"
+                        class="fabric-module-label"
+                        data-module="buildingAgeModule"
+                        aria-expanded="false"
+                    >
+                        <span>Building Age</span>
+                    </button>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="module-chevron"
+                    data-module="buildingAgeModule"
+                    aria-expanded="false"
+                    aria-label="Expand Building Age"
+                >
+                    ▸
+                </button>
+
+            </div>
+
+
+                <div class="fabric-module-content">
+
+                    <!-- Building age controls -->
+
+                    <div
+                        id="buildingAgeControls"
+                        style="display:none;"
+                    >
+
+                        <div class="fabric-control-title">
+                            BUILDING AGE
+                        </div>
+
+                        <div class="building-age-year">
+
+                            <span>
+                                Buildings up to:
+                            </span>
+
+                            <strong id="building-age-year-value">
+                                2025
+                            </strong>
+
+                        </div>
+
+                        <input
+                            type="range"
+                            id="building-age-year"
+                            min="1945"
+                            max="2025"
+                            step="5"
+                            value="2025"
+                        >
+
+                        <div class="building-age-count">
+
+                            <span>
+                                Identified buildings:
+                            </span>
+
+                            <strong id="building-age-count-value">
+                                —
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Building age legend -->
+
+                    <div
+                        id="buildingAgeLegend"
+                        class="fabric-module-legend"
+                        style="display:none;"
+                    >
+
+                        <div class="fabric-module-description">
+
+                            Shows identified buildings by recorded year of construction.
+
+                            <div class="fabric-module-note">
+                                Building age helps reveal where older and newer
+                                fabric is concentrated. If a construction year is
+                                missing, no year is available in the source data;
+                                the building should not be treated as new.
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="legend-gradient"
+                            id="buildingAgeLegendGradient"
+                        ></div>
+
+                        <div class="legend-labels">
+
+                            <span>
+                                1945
+                            </span>
+
+                            <span>
+                                2025
+                            </span>
+
+                        </div>
+
+                        <div class="legend-item">
+
+                            <strong>
+                                Older → newer
+                            </strong>
+
+                            — Recorded year of construction.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 HERITAGE MODULE
+                 ================================================= -->
+
+            <div
+                class="fabric-module"
+                id="heritageModule"
+            >
+
+                <div class="fabric-module-header">
+
+                <div class="toggle">
+
+                    <input
+                        type="checkbox"
+                        id="heritageToggle"
+                    >
+
+                    <button
+                        type="button"
+                        class="fabric-module-label"
+                        data-module="heritageModule"
+                        aria-expanded="false"
+                    >
+                        <span>Heritage</span>
+                    </button>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="module-chevron"
+                    data-module="heritageModule"
+                    aria-expanded="false"
+                    aria-label="Expand Heritage"
+                >
+                    ▸
+                </button>
+
+            </div>
+
+
+                <div class="fabric-module-content">
+
+                    <!-- Heritage grade controls -->
+
+                    <div
+                        id="heritageControls"
+                        style="display:none;"
+                    >
+
+                        <div class="fabric-control-title">
+                            HERITAGE GRADES
+                        </div>
+
+                        <label class="toggle">
+
+                            <input
+                                type="checkbox"
+                                id="grade1Toggle"
+                                checked
+                            >
+
+                            <span>
+                                Grade 1
+                            </span>
+
+                        </label>
+
+                        <label class="toggle">
+
+                            <input
+                                type="checkbox"
+                                id="grade2Toggle"
+                                checked
+                            >
+
+                            <span>
+                                Grade 2
+                            </span>
+
+                        </label>
+
+                        <label class="toggle">
+
+                            <input
+                                type="checkbox"
+                                id="grade3Toggle"
+                                checked
+                            >
+
+                            <span>
+                                Grade 3
+                            </span>
+
+                        </label>
+
+                        <div class="building-age-count">
+
+                            <span>
+                                Identified heritage buildings:
+                            </span>
+
+                            <strong id="heritage-count-value">
+                                —
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Heritage legend -->
+
+                    <div
+                        id="heritageLegend"
+                        class="fabric-module-legend"
+                        style="display:none;"
+                    >
+
+                        <div class="fabric-module-description">
+
+                            Shows Grade 1–3 heritage buildings recorded in the
+                            heritage dataset.
+
+                            <div class="fabric-module-note">
+                                A heritage designation may exist even where a
+                                construction year is not recorded.
+                            </div>
+
+                        </div>
+
+                        <div class="fabric-sublegend-title">
+                            Heritage Grade
+                        </div>
+
+                        <div class="heritage-legend-item">
+
+                            <span
+                                class="heritage-swatch grade-1"
+                            ></span>
+
+                            <span>
+                                Grade 1
+                            </span>
+
+                        </div>
+
+                        <div class="heritage-legend-item">
+
+                            <span
+                                class="heritage-swatch grade-2"
+                            ></span>
+
+                            <span>
+                                Grade 2
+                            </span>
+
+                        </div>
+
+                        <div class="heritage-legend-item">
+
+                            <span
+                                class="heritage-swatch grade-3"
+                            ></span>
+
+                            <span>
+                                Grade 3
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 MTR NETWORK MODULE
+                 ================================================= -->
+
+            <div
+                class="fabric-module"
+                id="mtrModule"
+            >
+
+                <div class="fabric-module-header">
+
+                    <div class="toggle">
+
+                    <input
+                        type="checkbox"
+                        id="mtrToggle"
+                    >
+
+                    <button
+                        type="button"
+                        class="fabric-module-label"
+                        data-module="mtrModule"
+                        aria-expanded="false"
+                    >
+                        <span>MTR Network</span>
+                    </button>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="module-chevron"
+                    data-module="mtrModule"
+                    aria-expanded="false"
+                    aria-label="Expand MTR Network"
+                >
+                    ▸
+                </button>
+
+            </div>
+
+
+                <div class="fabric-module-content">
+
+                    <div class="fabric-module-description">
+                        Shows the existing MTR network and the planned
+                        Northern Link.
+                    </div>
+
+                    <!-- MTR colour mode -->
+
+                    <div class="mtr-module-controls">
+
+                        <label class="mtr-style-toggle">
+
+                            <input
+                                type="checkbox"
+                                id="mtrColourToggle"
+                                checked
+                            >
+
+                            <span>
+                                Line colours
+                            </span>
+
+                        </label>
+
+                    </div>
+
+
+                    <!-- MTR legend -->
+
+                    <div
+                        id="mtrLegend"
+                        class="mtr-module-legend"
+                    >
+
+                        <div class="mtr-legend-list">
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#005EB8;"
+                                ></span>
+                                <span>
+                                    Island Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#00A94F;"
+                                ></span>
+                                <span>
+                                    Kwun Tong Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#E2231A;"
+                                ></span>
+                                <span>
+                                    Tsuen Wan Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#7A3E9D;"
+                                ></span>
+                                <span>
+                                    Tseung Kwan O Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#F57C00;"
+                                ></span>
+                                <span>
+                                    Tung Chung Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#4DA6FF;"
+                                ></span>
+                                <span>
+                                    East Rail Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#9B6A4B;"
+                                ></span>
+                                <span>
+                                    Tuen Ma Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#9ACD32;"
+                                ></span>
+                                <span>
+                                    South Island Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#E78AC3;"
+                                ></span>
+                                <span>
+                                    Disneyland Resort Line
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch"
+                                    style="background:#008C95;"
+                                ></span>
+                                <span>
+                                    Airport Express
+                                </span>
+                            </div>
+
+                            <div class="mtr-legend-item">
+                                <span
+                                    class="mtr-swatch mtr-dashed"
+                                    style="border-color:#C2188B;"
+                                ></span>
+                                <span>
+                                    Northern Link · planned
+                                </span>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- =================================================
+            BUILDING HEIGHT MODULE
+            ================================================= -->
+
+            <div
+                class="fabric-module"
+                id="buildingHeightModule"
+            >
+
+                <div class="fabric-module-header">
+
+                    <div class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="buildingHeightToggle"
+                        >
+
+                        <button
+                            type="button"
+                            class="fabric-module-label"
+                            data-module="buildingHeightModule"
+                            aria-expanded="false"
+                        >
+                            <span>Building Height</span>
+                        </button>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="module-chevron"
+                        data-module="buildingHeightModule"
+                        aria-expanded="false"
+                        aria-label="Expand Building Height"
+                    >
+                        ▸
+                    </button>
+
+                </div>
+
+
+                <div class="fabric-module-content">
+
+                    <div class="fabric-control-title">
+                        MEAN BUILDING HEIGHT
+                    </div>
+
+                    <div class="building-height-slider" id="building-height-slider">
+
+                        <div class="building-height-slider-track"></div>
+
+                        <div
+                            class="building-height-slider-fill"
+                            id="building-height-slider-fill"
+                        ></div>
+
+                        <input
+                            type="range"
+                            id="building-height-min"
+                            min="0"
+                            max="500"
+                            step="10"
+                            value="50"
+                            aria-label="Minimum mean building height"
+                        >
+
+                        <input
+                            type="range"
+                            id="building-height-max"
+                            min="10"
+                            max="500"
+                            step="10"
+                            value="500"
+                            aria-label="Maximum mean building height"
+                        >
+
+                    </div>
+
+                    <div class="building-height-range">
+
+                        <span>
+                            Showing:
+                        </span>
+
+                        <strong id="building-height-value">
+                            50–500+ m
+                        </strong>
+
+                    </div>
+
+                    <div class="fabric-module-description">
+                        Shows 100 m hexes by mean recorded building height. Use
+                        both handles to choose the range displayed.
+                    </div>
+
+                    <div
+                        id="buildingHeightCoverageStat"
+                        class="fabric-dynamic-stat"
+                    >
+                        Height data: loading coverage…
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- =================================================
+                ROADS MODULE
+                ================================================= -->
+
+            <div
+                class="fabric-module"
+                id="roadsModule"
+            >
+
+                <div class="fabric-module-header">
+
+                    <div class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="roadsToggle"
+                            checked
+                        >
+
+                        <button
+                            type="button"
+                            class="fabric-module-label"
+                            data-module="roadsModule"
+                            aria-expanded="false"
+                        >
+                            <span>Roads</span>
+                        </button>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="module-chevron"
+                        data-module="roadsModule"
+                        aria-expanded="false"
+                        aria-label="Expand Roads"
+                    >
+                        ▸
+                    </button>
+
+                </div>
+
+
+                <div class="fabric-module-content">
+
+                    <div class="fabric-control-title">
+                        ROAD EMPHASIS
+                    </div>
+
+
+                    <label class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="roadHighwayToggle"
+                            checked
+                        >
+
+                        <span>
+                            Highway
+                        </span>
+
+                    </label>
+
+
+                    <label class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="roadMainToggle"
+                            checked
+                        >
+
+                        <span>
+                            Main
+                        </span>
+
+                    </label>
+
+
+                    <label class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="roadSecondaryToggle"
+                            checked
+                        >
+
+                        <span>
+                            Secondary
+                        </span>
+
+                    </label>
+
+
+                    <div class="fabric-module-description">
+
+                        Highway highlights motorways. Main shows trunk and primary
+                        roads. Secondary groups secondary, minor and service roads.
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </section>
+
+    <!-- =================================================
+         MARKET
+         ================================================= -->
+
+    <section
+        id="marketSection"
+        class="mode-panel market-mode-panel expanded"
+    >
+
+        <div class="mode-header">
+
+            <div class="mode-header-text">
+
+                <div class="mode-title-line">
+                    <div class="mode-title">
+                        Market
+                    </div>
+
+                    <button
+                        type="button"
+                        class="info-trigger"
+                        data-info-key="market"
+                        aria-label="About Market evidence and lenses"
+                        title="About Market"
+                    >ⓘ</button>
+                </div>
+
+                <div class="mode-description">
+                    Market evidence and question-led signals linked back to place.
+                </div>
+
+            </div>
+
+            <button
+                type="button"
+                class="mode-chevron"
+                id="marketSectionToggle"
+                aria-expanded="true"
+                aria-label="Collapse Market"
+                aria-controls="marketDataBody"
+            >
+                ▾
+            </button>
+
+        </div>
+
+        <div
+            id="marketDataBody"
+            class="mode-body"
+        >
+            <div
+                id="marketSnapshotPanel"
+                class="market-snapshot-panel"
+                aria-live="polite"
+            >
+                <div class="market-snapshot-loading">Loading 12-month snapshot…</div>
+            </div>
+
+            <div class="market-context-map-control" id="marketContextMapControl">
+                <div class="market-context-map-head">
+                    <label for="marketContextOverlay">Map context overlay</label>
+                    <span>Optional secondary market layer</span>
+                </div>
+                <select id="marketContextOverlay" aria-label="Market context overlay">
+                    <option value="Off">Off</option>
+                    <option value="Market Momentum">Market Momentum</option>
+                    <option value="Market Exposure">Market Exposure</option>
+                    <option value="Transaction Pulse">Transaction Pulse</option>
+                    <option value="Transaction Exposure">Transaction Exposure</option>
+                </select>
+                <div class="market-context-opacity">
+                    <div class="market-context-opacity-head">
+                        <label for="marketContextOpacity">Context opacity</label>
+                        <output id="marketContextOpacityValue" for="marketContextOpacity">30%</output>
+                    </div>
+                    <input id="marketContextOpacity" type="range" min="0" max="60" value="30" step="1" aria-label="Market context overlay opacity">
+                </div>
+            </div>
+
+            <div id="marketDataStatus" class="market-data-status">
+                Loading market data…
+            </div>
+        </div>
+
+    </section>
+
+</div>
+
+</aside>
+
+<!-- Legend Hamburger -->
+<button
+    type="button"
+    id="panelMinimize"
+    class="panel-minimize"
+    aria-label="Minimize Atlas controls"
+    aria-expanded="false"
+>
+</button>
+
+    <!-- Floating popup -->
+    <div id="popup" class="glass"></div>
+
+    <!-- =====================================================
+         V2 ENTITY REPORT PANEL
+         Stage 04 router — Hex / Building / Lot views share this
+         surface; production relationship payloads are not bound yet.
+         ===================================================== -->
+    <aside
+        id="placeReportPanel"
+        class="v2-place-report glass"
+        role="dialog"
+        aria-modal="false"
+        aria-labelledby="placeReportTitle"
+        aria-hidden="true"
+        hidden
+    >
+        <div class="v2-report-header">
+            <button
+                type="button"
+                id="placeReportBack"
+                class="v2-report-back"
+                aria-label="Back to map"
+            >← Map</button>
+
+            <div class="v2-report-heading">
+                <div id="placeReportTitle" class="v2-report-title">Selection Summary</div>
+                <div id="placeReportSubtitle" class="v2-report-subtitle">Place overview · Lenses and supporting evidence</div>
+            </div>
+
+            <button
+                type="button"
+                id="placeReportPrint"
+                class="v2-report-print"
+                aria-label="Print or save this report"
+                title="Print or save as PDF"
+            >Print</button>
+
+            <button
+                type="button"
+                id="placeReportClose"
+                class="v2-report-close"
+                aria-label="Close place details and clear selection"
+            >×</button>
+        </div>
+
+        <div id="placeReportBody" class="v2-report-body"></div>
+    </aside>
+
+    <!-- Status strip -->
+    <div id="status" class="glass">
+        Hong Kong SAR · Connecting place evidence…
+    </div>
+
+    <div id="copyright">
+    © 852LAB · All rights reserved
+</div>
+
+
+    <!-- =====================================================
+         CONTEXT / INFORMATION POPOVER
+         ===================================================== -->
+
+    <div
+        id="atlasInfoPopover"
+        class="atlas-info-popover glass"
+        role="dialog"
+        aria-modal="false"
+        aria-labelledby="atlasInfoTitle"
+        hidden
+    >
+        <div class="atlas-info-header">
+            <div id="atlasInfoTitle" class="atlas-info-title">
+                About 852LAB
+            </div>
+
+            <button
+                type="button"
+                id="atlasInfoClose"
+                class="atlas-info-close"
+                aria-label="Close information panel"
+            >×</button>
+        </div>
+
+        <div
+            id="atlasInfoBody"
+            class="atlas-info-body"
+        ></div>
+    </div>
+
+    <script
+    src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.9.0/dist/maplibre-gl.js">
+    </script>
+
+    <script
+    src="https://unpkg.com/pmtiles@4.2.1/dist/pmtiles.js">
+    </script>
+
+    <script src="site/v2-site-config.js"></script>
+    <script src="site/v2-hex-provider.js"></script>
+    <script src="site/v2-climate-provider.js"></script>
+    <script src="site/v2-field-adapter.js"></script>
+    <script src="site/v2-selection.js"></script>
+    <script src="site/v2-popup.js"></script>
+    <script src="site/v2-hex-report-binding.js"></script>
+    <script src="site/v2-report-benchmarks.js"></script>
+    <script src="site/v2-mobility-context.js"></script>
+    <script src="site/v2-report.js"></script>
+<!-- UGA_SRPE_DEV_V01 -->
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-srpe/v0.1/srpe-register-data.js"></script>
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-srpe/v0.1/srpe-registers.js"></script>
+<!-- UGA_NEW_DEVELOPMENTS_V02 -->
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-new-developments/v0.1/new-developments-data.js"></script>
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-new-developments/v0.2/new-developments-locations.js"></script>
+<!-- UGA_NEW_DEVELOPMENTS_AREA_V01 -->
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-new-developments/v0.4/new-developments-area-data.js"></script>
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-new-developments/v0.6/building-links.js"></script>
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-new-developments/v0.6/new-developments.js"></script>
+<!-- UGA Market report experience v0.1 -->
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-report/v0.1/hkha-context.js"></script>
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-report/v0.1/hkha-secondary.js"></script>
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-report/v0.1/public-housing-data.js"></script>
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-report/v0.1/public-housing.js"></script>
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-report/v0.1/context.js"></script>
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-report/v0.1/report.js?v=6bf118c423e24403"></script>
+    <script src="site/v2-address-search.js"></script>
+    <script src="site/v2-entity-provider.js"></script>
+    <script src="site/v2-entity-binding.js"></script>
+    <script src="atlas.js"></script>
+    <script src="site/v2-climate-map.js"></script>
+    <script src="site/v2-native-demographics.js"></script>
+    <script src="site/market-data.js"></script>
+
+<!-- UGA_MOBILITY_REPORT_PROFILES_V01 -->
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/mobility-reader/v0.4/report-profiles.js"></script>
+
+<!-- UGA_CENTALINE_CURRENT_V02_JS_START -->
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-private-resale/v0.2/data.js?v=f9a78bcb2d6632ad"></script>
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-private-resale/v0.2/private-resale.js?v=f9a78bcb2d6632ad"></script>
+<!-- UGA_CENTALINE_CURRENT_V02_JS_END -->
+<!-- UGA_MARKET_LEGEND_SECTIONS_V01_JS_START -->
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-panel/v0.1/sections.js?v=06cfa0a2b8442d8b"></script>
+<!-- UGA_MARKET_LEGEND_SECTIONS_V01_JS_END -->
+<!-- UGA_MARKET_ANALYSIS_V01_JS_START -->
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-analysis/v0.1/data.js?v=6bf118c423e24403"></script>
+<script src="https://pub-c831f6efbc4341068a1653dcf6c592b9.r2.dev/releases/V2RC-20261106T052258Z/site/market-analysis/v0.1/analysis.js?v=6bf118c423e24403"></script>
+<!-- UGA_MARKET_ANALYSIS_V01_JS_END -->
+</body>
+
+</html>
