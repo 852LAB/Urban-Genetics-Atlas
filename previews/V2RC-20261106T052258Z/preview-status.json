@@ -5,5 +5,11 @@
   "editorial_stats": "V1.6 figures suppressed; current V2 coverage not recalculated",
   "census_binding_note": "Preserves tested DEV config v0.1 and native renderer v0.2; both asset versions uploaded",
   "stage6b_inventory": "57 of 58 directories; 1670 snapshot-detail objects pending complete inventory",
-  "purpose": "Meeting demonstrations and project development/funding review; not final validated product"
+  "purpose": "Meeting demonstrations and project development/funding review; not final validated product",
+  "frontend_parity": "STAGE7C_DEVELOPMENT_PREVIEW_ENABLED",
+  "frontend_revision": "stage7c-20261108",
+  "frontend_modules_same_origin": 29,
+  "enablement_scope": "This isolated preview only",
+  "network_microservice": "Disabled outside localhost; source Mobility datasets on R2",
+  "browser_validation": "REQUIRED_NOT_YET_CONFIRMED"
 }

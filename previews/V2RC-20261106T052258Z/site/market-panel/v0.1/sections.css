@@ -1,0 +1,12 @@
+/* Scoped to the three subsection containers inside the existing Market body. */
+#marketDataBody details.ug-market-section{display:block;margin:12px 0 0;padding:0;border:0;border-top:1px solid rgba(70,75,85,.2);max-width:100%;box-sizing:border-box;color:inherit;font-family:inherit}
+#marketDataBody details.ug-market-section>summary{display:flex;align-items:center;gap:8px;padding:10px 2px;min-height:44px;box-sizing:border-box;cursor:pointer;list-style:none;font-family:inherit;font-size:14px;font-weight:600;line-height:1.4;color:inherit;overflow-wrap:anywhere}
+#marketDataBody details.ug-market-section>summary::-webkit-details-marker{display:none}
+#marketDataBody details.ug-market-section>summary::marker{content:''}
+#marketDataBody details.ug-market-section>summary::before{content:'▸';display:inline-block;flex:0 0 14px;font-size:13px;text-align:center}
+#marketDataBody details.ug-market-section[open]>summary::before{content:'▾'}
+#marketDataBody details.ug-market-section>summary:focus-visible{outline:2px solid #654082;outline-offset:2px;border-radius:3px}
+#marketDataBody .ug-market-section-heading{min-width:0}
+#marketDataBody .ug-market-section-heading small{display:block;font-size:11px;line-height:1.4;font-weight:400;opacity:.8}
+#marketDataBody details.ug-market-section>.ug-nd-controls,#marketDataBody details.ug-market-section>.ug-ph-controls,#marketDataBody details.ug-market-section>.ug-pr-controls{margin:0;padding:0 0 10px;border-top:0;max-width:100%;box-sizing:border-box}
+#marketDataBody details.ug-market-section>.ug-nd-controls>h3:first-child,#marketDataBody details.ug-market-section>.ug-ph-controls>h3:first-child,#marketDataBody details.ug-market-section>.ug-pr-controls>h3:first-child{display:none}
