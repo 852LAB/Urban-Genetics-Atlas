@@ -1,0 +1,29 @@
+/* Match the existing Atlas report and legend hierarchy; scoped to this module. */
+.ug-nd-report,.ug-nd-building,.ug-nd-controls{font-family:inherit;color:var(--text-primary,#1f2937);line-height:1.5}
+.ug-nd-report{font-size:.68rem}
+.ug-nd-report h2{font-size:1.15rem;font-weight:700;line-height:1.2;letter-spacing:-.02em}
+.ug-nd-report h3{font-size:.76rem;font-weight:650}
+.ug-nd-report .ug-nd-date,.ug-nd-report .ug-nd-note,.ug-nd-report details,.ug-nd-report .ug-nd-area-documents,.ug-nd-report .ug-nd-evidence,.ug-nd-building .ug-nd-evidence{font-size:.60rem;color:var(--text-secondary,#6b7280)}
+.ug-nd-report .ug-nd-badge,.ug-nd-report .ug-nd-metrics span,.ug-nd-report .ug-nd-compare-names span{font-size:.56rem}
+.ug-nd-report .ug-nd-metrics strong{font-size:.95rem;font-weight:650;overflow-wrap:anywhere}
+.ug-nd-report .ug-nd-metrics>div,.ug-nd-report .ug-nd-compare-names>div{background:rgba(249,248,246,.72);border-color:rgba(31,41,55,.075)}
+.ug-nd-report .ug-nd-table table{font-size:.62rem}
+.ug-nd-report .ug-nd-table small,.ug-nd-report .ug-nd-unit-source,.ug-nd-report .ug-nd-unit-source summary{font-size:.56rem}
+.ug-nd-report .ug-nd-table th{background:rgba(249,248,246,.72)}
+.ug-nd-report .ug-nd-area-supported,.ug-nd-report .ug-nd-area p,.ug-nd-report .ug-nd-compare-names p{font-size:.62rem}
+.ug-nd-report .ug-nd-area-supported strong{font-size:.68rem}
+.ug-nd-report button,.ug-nd-building button,.ug-nd-controls button{font-family:inherit;font-size:.62rem;font-weight:600;line-height:1.4;border-radius:9px;border-color:rgba(31,41,55,.14);background:rgba(255,255,255,.42);color:var(--text-primary,#1f2937)}
+.ug-nd-report .ug-nd-tabs button[aria-pressed=true]{background:#672536;border-color:#672536;color:#fff}
+.ug-nd-report button:hover,.ug-nd-building button:hover,.ug-nd-controls button:hover{background:rgba(103,37,54,.07);border-color:rgba(103,37,54,.32)}
+.ug-nd-context-link{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:12px 0}
+.ug-nd-context-link small{font-size:.60rem;color:var(--text-secondary,#6b7280)}
+.ug-nd-building p{font-size:.60rem;margin:6px 0}
+.ug-nd-building-summary>strong{font-size:.68rem}
+.ug-nd-building-summary+.ug-nd-building-summary{margin-top:12px;padding-top:12px;border-top:1px solid rgba(31,41,55,.1)}
+.ug-nd-building .ug-nd-evidence{grid-template-columns:minmax(100px,1fr) 1fr}
+.ug-nd-controls{font-size:.69rem}
+.ug-nd-controls h3{font-size:.78rem;font-weight:650}
+.ug-nd-controls .ug-nd-key,.ug-nd-controls [data-nd-map-status],.ug-nd-controls small{font-size:.62rem;color:var(--text-secondary,#6b7280)}
+.ug-nd-controls label{font-weight:500}
+.ug-nd-controls input[type=search],.ug-nd-controls select{color:var(--text-primary,#1f2937);border-color:rgba(31,41,55,.18);border-radius:9px}
+@media(max-width:520px){.ug-nd-report h2{font-size:1.05rem}.ug-nd-report .ug-nd-metrics strong{font-size:.88rem}.ug-nd-context-link{align-items:flex-start;flex-direction:column}}

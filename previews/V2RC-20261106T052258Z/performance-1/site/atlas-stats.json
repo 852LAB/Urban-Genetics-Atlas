@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "editorial-stats-v2",
+  "generatedAtUtc": "2026-11-06T23:46:04+00:00",
+  "atlas": {
+    "releaseId": "V2RC-20261106T052258Z"
+  },
+  "coverage": {},
+  "ugs": {},
+  "fabric": {},
+  "market": {},
+  "editorialNotes": {
+    "releaseStatus": "DEVELOPMENT_PREVIEW",
+    "coverage": "V1.6 editorial counts suppressed pending source-backed V2 calculation",
+    "sourceIndicators": "Live mapped values and module-specific source data remain unchanged",
+    "zeroIsValid": true,
+    "missingIsNotLow": true
+  }
+}
