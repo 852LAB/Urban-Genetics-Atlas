@@ -1902,11 +1902,11 @@ FABRIC BODY
 <script src="site/market-analysis/v0.1/analysis.js?v=stage7c-20261108"></script>
 <!-- UGA_MARKET_ANALYSIS_V01_JS_END -->
 <script>if(new URLSearchParams(location.search).get("check")==="market-navigation") import("./qa-market-navigation-20261119.mjs?v=hosted-overlays-20261119-v2");</script>
-<script>if(new URLSearchParams(location.search).get("check")==="mobility-market") import("./hosted-mobility-check.mjs");</script>
+<script>if(new URLSearchParams(location.search).get("check")==="mobility-market") import("./hosted-mobility-check.mjs?v=glass-1");</script>
 <style>
-#ug-path-progress{position:fixed;top:22%;left:50%;transform:translateX(-50%);z-index:10000;pointer-events:none;background:#173a42;color:white;padding:12px 19px;border-radius:8px;box-shadow:0 3px 16px #0004;font:600 15px/1.45 system-ui;white-space:nowrap}
-#ug-path-progress:not([hidden])::before{content:'';display:inline-block;width:12px;height:12px;margin-right:10px;border:2px solid #fff6;border-top-color:white;border-radius:50%;vertical-align:-2px;animation:ugSpin .8s linear infinite}
+#ug-path-progress{position:fixed;top:22%;left:50%;transform:translateX(-50%);z-index:10000;pointer-events:none;color:var(--text-primary);padding:12px 19px;font:600 15px/1.45 system-ui;white-space:nowrap}
+#ug-path-progress:not([hidden])::before{content:'';display:inline-block;width:12px;height:12px;margin-right:10px;border:2px solid #1f293733;border-top-color:var(--text-primary);border-radius:50%;vertical-align:-2px;animation:ugSpin .8s linear infinite}
 @keyframes ugSpin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){#ug-path-progress:not([hidden])::before{animation:none}}
-</style><div id="ug-path-progress" role="status" aria-live="polite" hidden></div></body>
+</style><div id="ug-path-progress" class="glass" role="status" aria-live="polite" hidden></div></body>
 
 </html>
