@@ -128,7 +128,9 @@
         }
 
         function ensureLayer(){
-            if(!map.isStyleLoaded?.() && !map.loaded?.()) return false;
+            // The Atlas adds its source during the first map load. Tile requests can
+            // make isStyleLoaded() false again while the style remains editable.
+            if(!map.getSource('atlas') && !map.isStyleLoaded?.()) return false;
             const cfg=sourceConfig();
             if(!map.getSource(SOURCE_ID)){
                 map.addSource(SOURCE_ID,{
@@ -200,10 +202,7 @@
                 if(map.getLayer(LAYER_ID)) map.setLayoutProperty(LAYER_ID,'visibility','none');
                 return;
             }
-            if(!ensureLayer()){
-                map.once('load',updateLayer);
-                return;
-            }
+            if(!ensureLayer()) return;
             map.setLayoutProperty(LAYER_ID,'visibility','visible');
             if(state.mode==='coastal'){
                 const field=state.scenario;
@@ -248,8 +247,9 @@
             updateLayer();
         });
 
-        renderLegend();
-        syncOpacityUi();
+        state.visible=!!toggle?.checked;
+        if(!map.getSource('atlas')) map.once('load',updateLayer);
+        updateLayer();
 
         root.UGAClimateMapState=()=>({
             version:VERSION,

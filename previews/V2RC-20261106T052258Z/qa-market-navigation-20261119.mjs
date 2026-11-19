@@ -230,12 +230,24 @@ async function checkOverlay(prefix, themeValue, layer, legendText) {
         toggle.checked=false;change(toggle);
         await waitFor(()=>map.getLayoutProperty(layer,'visibility')==='none',prefix+' layer stayed visible');
         return {theme:themeValue,source:src,header,layer_and_legend:true,off:true};
+    } catch (error) {
+        const src=map.getStyle()?.layers?.find(item=>item.id===layer)?.source;
+        error.overlay={
+            module_loaded:!!window[prefix==='climate'?'UGA_V2_CLIMATE_MAP':'UGA_V2_NATIVE_DEMOGRAPHICS'],
+            themes:Array.from(theme.options,option=>option.value),
+            selected:theme.value, enabled:toggle.checked,
+            style_loaded:map.isStyleLoaded(), atlas_source:!!map.getSource('atlas'),
+            layer_present:!!map.getLayer(layer), visibility:src?map.getLayoutProperty(layer,'visibility'):null,
+            source:src??null, source_loaded:src?map.isSourceLoaded(src):null,
+            legend:document.getElementById(prefix+'LegendHost')?.textContent.trim().slice(0,160)
+        };
+        throw error;
     } finally {
         theme.value=oldTheme;change(theme);toggle.checked=wasOn;change(toggle);
     }
 }
 async function check() {
-    const result = {release, status:'REVIEW_REQUIRED', user_agent:navigator.userAgent, tiles:{}};
+    const result = {release, check_version:2, status:'REVIEW_REQUIRED', user_agent:navigator.userAgent, tiles:{}};
     const config = window.UGA_V2_SITE_CONFIG;
     try { result.tiles.atlas=await tileHeader(config.map.pmtilesUrl); }
     catch(error) { result.tiles.atlas={error:String(error.message)}; }
@@ -244,7 +256,7 @@ async function check() {
         climate:['climate','heat','v2-climate-map-fill','Persistent Relative Surface Heat']
     })) {
         try { result.tiles[key]=await checkOverlay(...args); }
-        catch(error) { result.tiles[key]={error:String(error.message)}; }
+        catch(error) { result.tiles[key]={error:String(error.message),state:error.overlay}; }
     }
     result.navigation = await navigation();
     result.market = await market();

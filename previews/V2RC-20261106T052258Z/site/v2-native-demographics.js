@@ -24,7 +24,7 @@
     function colourExpression(theme){const field=['to-number',['get',theme.field]];const parts=['interpolate',['linear'],field];theme.stops.forEach((stop,index)=>parts.push(stop,theme.colours[index]));return ['case',['has',theme.field],parts,'rgba(0,0,0,0)'];}
 
     function ensureLayer(){
-        if(typeof map==='undefined'||!map) return false;
+        if(typeof map==='undefined'||!map?.getSource('atlas')) return false;
         if(!map.getSource(SOURCE)) map.addSource(SOURCE,{type:'vector',url:`pmtiles://${BASE}`,minzoom:8,maxzoom:14});
         if(!map.getLayer(SURFACE_LAYER)){
             const before=map.getLayer('hover')?'hover':undefined;
@@ -96,7 +96,14 @@
         update();
     }
 
-    const boot=()=>{try{ensureLayer();bind();}catch(error){console.error('[UGA V2] Native demographics initialisation failed.',error);}};
-    if(typeof map!=='undefined'&&map){if(map.loaded())boot();else map.on('load',boot);}
+    function boot(){
+        if(typeof map==='undefined'||!map) return;
+        // atlas.js creates the selector during DOMContentLoaded. Bind the UI
+        // independently of the first map load, which may already have fired.
+        bind();
+        if(!map.getSource('atlas')) map.once('load', update);
+    }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot,{once:true});
+    else boot();
     root.UGA_V2_NATIVE_DEMOGRAPHICS=Object.freeze({version:VERSION,themes:Object.keys(THEMES),layers:Object.freeze([SURFACE_LAYER,POINT_LAYER]),update});
 })(typeof globalThis!=='undefined'?globalThis:this);
