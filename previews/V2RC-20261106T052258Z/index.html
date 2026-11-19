@@ -1888,7 +1888,7 @@ FABRIC BODY
     <script src="site/market-data.js"></script>
 
 <!-- UGA_MOBILITY_REPORT_PROFILES_V01 -->
-<script src="site/mobility-reader/v0.4/report-profiles.js?v=stage7c-20261108"></script>
+<script src="site/mobility-reader/v0.4/report-profiles.js?v=mobility-host-20261119"></script>
 
 <!-- UGA_CENTALINE_CURRENT_V02_JS_START -->
 <script src="site/market-private-resale/v0.2/data.js?v=stage7c-20261108"></script>
@@ -1902,6 +1902,7 @@ FABRIC BODY
 <script src="site/market-analysis/v0.1/analysis.js?v=stage7c-20261108"></script>
 <!-- UGA_MARKET_ANALYSIS_V01_JS_END -->
 <script>if(new URLSearchParams(location.search).get("check")==="market-navigation") import("./qa-market-navigation-20261119.mjs?v=hosted-overlays-20261119-v2");</script>
+<script>if(new URLSearchParams(location.search).get("check")==="mobility-market") import("./hosted-mobility-check.mjs");</script>
 </body>
 
 </html>
