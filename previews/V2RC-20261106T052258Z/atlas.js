@@ -7528,6 +7528,7 @@ function applyV2SelectedPlaceHighlight(selection){
 }
 
 function hideV2PlaceReport(){
+    ++v2ReportRenderToken;
 
     if(!placeReportPanel){
         return;
@@ -7632,6 +7633,7 @@ async function renderV2PlaceReport(selection, focus=null, historyDepth=0){
 
     } catch(error){
 
+        if(renderToken !== v2ReportRenderToken) return;
         console.error(
             '[UGA V2] Failed to render place report.',
             error
@@ -7677,7 +7679,7 @@ function syncV2SelectionUi(state){
         return;
     }
 
-    renderV2PlaceReport(
+    window.UGA_NAVIGATION_RENDER = renderV2PlaceReport(
         selection,
         state?.focus || null,
         Number(state?.historyDepth) || 0
@@ -7845,7 +7847,7 @@ function renderV2AddressSearchResults(results){
                 type="button"
                 class="v2-address-result"
                 role="option"
-                data-v2-search-index="${index}"
+                data-v2-search-index="${index}" data-v2-search-entity="${esc(item.entityId || '')}"
             >
                 <span class="v2-address-result-main">
                     <strong>${esc(primaryLabel)}</strong>
