@@ -151,6 +151,10 @@ async function market(){
     performance.setResourceTimingBufferSize(Math.max(5000, performance.getEntriesByType('resource').length + 100));
     api.openSource(id, {forceDetail:true, tab:'snapshot'});
     const details = await waitFor(() => api.snapshotCache.get(id), 'Snapshot detail did not load for the selected source.');
+    // Current-area details are requested when the reader selects Recorded entries.
+    const recorded = await waitFor(() => document.querySelector('#placeReportBody [data-nd-kind="RECORDED"]'),
+      'Recorded entries tab did not appear.');
+    recorded.click();
     const area = await waitFor(() => api.registryCache.get(id), 'Current-area detail did not load for the selected source.');
     requireValue(details.run === snap.run && area.run === snap.run &&
       details.source_native_id === id && area.source_native_id === id &&

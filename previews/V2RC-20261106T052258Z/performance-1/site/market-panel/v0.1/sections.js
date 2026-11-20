@@ -5,25 +5,38 @@
  if(root.UGA_MARKET_LEGEND_SECTIONS)return;
  const definitions=[
   {key:'new-developments',selector:'.ug-nd-controls',title:'New Developments'},
-  {key:'public-housing',selector:'.ug-ph-controls',title:'Public Housing'},
-  {key:'private-residential',selector:'.ug-pr-controls',title:'Private Residential'}
+  {key:'public-housing',selector:'.ug-ph-controls',title:'Public and subsidised housing'},
+  {key:'private-residential',selector:'.ug-pr-controls',title:'Private resale and rentals'}
  ];
  const storageKey='uga.market.legend.sections.v1',preferences={};
  try{const saved=JSON.parse(root.localStorage.getItem(storageKey)||'{}');for(const d of definitions)if(typeof saved?.[d.key]==='boolean')preferences[d.key]=saved[d.key];}catch{}
  let host=null,observer=null,pending=false;
+ let sources=null;
  function save(){try{root.localStorage.setItem(storageKey,JSON.stringify(preferences));}catch{}}
  function reconcile(){
   if(!host)return;
   for(const d of definitions){
    const controls=host.querySelector(d.selector);
    if(!controls||controls.closest('[data-ug-market-section]'))continue;
+   if(!sources?.isConnected){
+    sources=root.document.createElement('section');
+    sources.className='atlas-market-sources';
+    const heading=root.document.createElement('h3');
+    heading.textContent='Browse source records';
+    sources.appendChild(heading);
+    const toggle=host.querySelector('#marketVisibilityControl');
+    if(toggle?.parentElement===host)toggle.after(sources);else host.prepend(sources);
+   }
    const group=root.document.createElement('details');group.className='ug-market-section';group.dataset.ugMarketSection=d.key;group.open=preferences[d.key]===true;
    const summary=root.document.createElement('summary'),text=root.document.createElement('span'),title=root.document.createElement('span');
    text.className='ug-market-section-heading';title.className='ug-market-section-title';title.textContent=d.title;text.appendChild(title);
    const caption=controls.querySelector('h3 small')?.textContent?.trim();
    if(caption){const small=root.document.createElement('small');small.textContent=caption;text.appendChild(small);}
    summary.appendChild(text);group.appendChild(summary);
-   controls.parentNode.insertBefore(group,controls);group.appendChild(controls);
+   const next=definitions.slice(definitions.indexOf(d)+1)
+    .map(item=>sources.querySelector('[data-ug-market-section="'+item.key+'"]')).find(Boolean);
+   sources.insertBefore(group,next||null);
+   group.appendChild(controls);
    group.addEventListener('toggle',()=>{preferences[d.key]=group.open;save();});
   }
  }
