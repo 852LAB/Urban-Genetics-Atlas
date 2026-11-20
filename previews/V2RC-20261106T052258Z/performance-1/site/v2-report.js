@@ -620,11 +620,11 @@
     function analysisBars(record){
         const items=[
             ['Development pressure',record.development_pressure_raw_01,'Lens · Diagnostic','Structural conditions combined with recorded development activity.'],
-            ['Renewal potential',record.renewal_observed_base_01,'Lens · Strategic screening','Established, connected and built-out renewal conditions.'],
-            ['Genesis potential',record.genesis_observed_base_01,'Lens · Strategic screening','Capacity and enabling conditions associated with emerging growth.'],
+            ['Renewal potential',record.renewal_observed_base_01,'Lens · Strategic screening','Relative building age, built intensity and baseline accessibility.'],
+            ['Genesis potential',record.genesis_observed_base_01,'Lens · Strategic screening','Lower built intensity and additional access from the planned MTR network.'],
             ['Capacity context',record.capacity_opportunity_mid_01,'Lens · Screening context','Observed form relative to the supported planning-envelope context.']
         ];
-        return `<div class="v2-analysis-intro">Derived interpretations from connected evidence; they are not direct observations or predictions.</div><div class="v2-analysis-bars">${items.map(([label,value,role,description])=>{
+        return `<div class="v2-analysis-intro">Each index answers a different question about the selected area. Read the evidence basis alongside its value.</div><div class="v2-analysis-bars">${items.map(([label,value,role,description])=>{
             const numericValue=numeric(value);
             const width=numericValue===null?0:Math.max(0,Math.min(100,numericValue*100));
             return `<div><span>${escapeHtml(label)}<small>${escapeHtml(role)}</small><em>${escapeHtml(description)}</em></span><i><b style="width:${width}%"></b></i><strong>${escapeHtml(lensBand(numericValue))}<small>${numericValue===null?'':`Index ${Math.round(numericValue*100)} / 100`}</small></strong></div>`;
@@ -787,9 +787,12 @@
         const record=model.record || {};
         const badge=model.entityType === 'hex' ? (record.signature_code || 'PLACE') : model.entityType.toUpperCase();
         const signature=model.entityType==='hex'?signaturePresentation(record):null;
+        const contextLabel = model.entityType !== 'hex' && record.signature_name
+            ? 'Primary area · ' + record.signature_name
+            : record.signature_name || record.had_name_en || '852LAB';
         return `<header class="v2-sheet-masthead${signature?' has-ugs-colour':''}"${signature?` style="${escapeHtml(signature.style)}"`:''}>
             <div><span>${escapeHtml(eyebrow)}</span><h1>${escapeHtml(model.title)}</h1><p>${escapeHtml(model.subtitle)}</p></div>
-            <div class="v2-sheet-id"><strong>${escapeHtml(badge)}</strong><span>${escapeHtml(record.signature_name || record.had_name_en || 'Urban Genetics Atlas')}</span></div>
+            <div class="v2-sheet-id"><strong>${escapeHtml(badge)}</strong><span>${escapeHtml(contextLabel)}</span></div>
         </header>`;
     }
 

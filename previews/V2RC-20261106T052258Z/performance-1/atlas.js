@@ -31,14 +31,6 @@ function perfMark(name){
 // PMTILES PROTOCOL
 // =====================================================
 
-const pmtilesProtocol =
-    new pmtiles.Protocol();
-
-maplibregl.addProtocol(
-    'pmtiles',
-    pmtilesProtocol.tile
-);
-
 // =====================================================
 // INITIAL VIEW
 // =====================================================
@@ -89,22 +81,29 @@ const atlasInitialZoom =
 // MAP INITIALISATION
 // =====================================================
 
-const map = new maplibregl.Map({
-
-    container:'map',
-
-    style:
-        'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-
-    center:
-        atlasInitialCenter,
-
-    zoom:
-        atlasInitialZoom,
-
-    attributionControl:false
-
-});
+function createAtlasMap(){
+    try{
+        maplibregl.addProtocol('pmtiles', new pmtiles.Protocol().tile);
+        return new maplibregl.Map({
+            container:'map',
+            style:'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+            center:atlasInitialCenter, zoom:atlasInitialZoom, attributionControl:false
+        });
+    }catch(error){
+        const loader = document.getElementById('atlasLoader');
+        loader.setAttribute('aria-label','Map unavailable');
+        const message = /webgl/i.test(String(error.message))
+            ? 'This map needs WebGL. Open it in a browser with graphics acceleration enabled.'
+            : 'The map could not start. Check your connection and reload.';
+        document.getElementById('atlasLoaderStatus').textContent = message;
+        document.getElementById('atlasLoaderDots').hidden = true;
+        const retry = document.getElementById('atlasRetry');
+        retry.hidden = false;
+        retry.addEventListener('click', () => window.location.reload());
+        throw error;
+    }
+}
+const map = createAtlasMap();
 
 // Stable runtime handle for independent V2 domain renderers. atlas.js retains
 // ownership of the map; extension modules may register sources/layers only.
@@ -797,14 +796,14 @@ function infoEsc(value){
 }
 
 function infoNumber(value){
-    const n = Number(value);
+    const n = value == null || value === '' ? NaN : Number(value);
     return Number.isFinite(n)
         ? n.toLocaleString()
         : '—';
 }
 
 function infoPct(value, digits=1){
-    const n = Number(value);
+    const n = value == null || value === '' ? NaN : Number(value);
     return Number.isFinite(n)
         ? `${n.toFixed(digits)}%`
         : '—';
@@ -899,11 +898,8 @@ function marketSnapshotHtml(){
 }
 
 function analysisInfoPanel(theme){
-    const ugs = atlasStats?.ugs || {};
     const coverage = atlasStats?.coverage || {};
     const total = Number(atlasStats?.atlas?.totalHexes);
-    const meaningful = Number(ugs.meaningfulUrbanCount);
-
     const cov = key => coverage?.[key] || {};
 
     const fullCoverage = key => {
@@ -913,177 +909,32 @@ function analysisInfoPanel(theme){
             : 'Coverage unavailable';
     };
 
-    const meaningfulCoverage = key => {
-        const row = cov(key);
-        const count = Number(row.count);
-        if(!Number.isFinite(count) || !Number.isFinite(meaningful) || meaningful <= 0){
-            return 'Coverage unavailable';
-        }
-        return `${infoNumber(count)} of ${infoNumber(meaningful)} meaningful urban cells (${infoPct((count/meaningful)*100,1)})`;
-    };
-
     const panels = {
 
         'Urban Genetic Signature':{
             title:'Urban Genetic Signature',
             html:
                 infoRole('Lens · Descriptive','lens')
-                +
-                infoSection(
-                    'THE QUESTION',
-                    `<p>
-                        <strong>What kind of urban place is this?</strong>
-                    </p>
-                    <p>
-                        The Signature connects evidence about intensity,
-                        accessibility, height and form, change and age to identify
-                        a recognisable urban profile.
-                    </p>
-                    <p>
-                        <strong>A Signature is a recognisable combination of
-                        those characteristics.</strong>
-                    </p>
-                    <p>
-                        The individual layers tell us what is there. The
-                        Signature helps show how those things fit together.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'WHAT IT CONNECTS',
-                    `<div class="atlas-info-profile">
-                        <div><strong>Intensity</strong> — how built-up the place is relative to other urban cells.</div>
-                        <div><strong>Accessibility</strong> — how strongly it connects to pedestrian, road and built MTR networks.</div>
-                        <div><strong>Height / Form</strong> — how tall and vertically built the recorded fabric is.</div>
-                        <div><strong>Change</strong> — how strong the Development Pressure signal is relative to other urban cells.</div>
-                        <div><strong>Age</strong> — how old the recorded building stock is.</div>
-                    </div>
-                    <p style="margin-top:8px;">
-                        The bars form a profile. They are <strong>not</strong>
-                        combined into a single overall score.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'HOW IT IS DERIVED',
-                    `<p>
-                        The classification is rule-based. A Signature is
-                        assigned when a particular combination crosses its
-                        defining thresholds. Not every characteristic is used
-                        to assign every Signature, and Stable Fabric simply means
-                        that no other Signature-defining combination stands out.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'WHAT IT SUGGESTS',
-                    `<p>
-                        Neighbouring places can share one strong characteristic
-                        but receive different Signatures because the rest of
-                        their profiles differ.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'EVIDENCE & COVERAGE',
-                    `<p>
-                        <strong>${infoNumber(ugs.meaningfulUrbanCount)}</strong>
-                        cells have meaningful urban context.
-                        <strong>${infoNumber(ugs.constrainedCount)}</strong>
-                        are treated as constrained / non-urban, and
-                        <strong>${infoNumber(ugs.unassessedCount)}</strong>
-                        remain unassessed.
-                    </p>
-                    <p>
-                        Stable Fabric accounts for
-                        <strong>${infoPct(ugs.stableShare,1)}</strong> of the
-                        meaningful urban set.
-                    </p>
-                    ${
-                        Number.isFinite(Number(ugs.recentApprovalCount))
-                        ? `<p>
-                            ${infoNumber(ugs.recentApprovalCount)} meaningful
-                            urban cells record a building approval from 2021
-                            onward; ${infoNumber(ugs.recentApprovalHighChangeCount)}
-                            of those also sit in the high Change group.
-                        </p>`
-                        : ''
-                    }`
-                )
-                +
-                infoSection(
-                    'LIMITS',
-                    `<p>
-                        A Signature describes a detected urban condition. It is
-                        not a judgement of quality and does not predict
-                        redevelopment.
-                    </p>`
-                )
+                + infoSection('What kind of place is this?',
+                    `<p>A Signature describes how five characteristics occur together in a 100 m cell.</p>`)
+                + infoSection('Read the profile',
+                    `<p><strong>Intensity</strong> compares how built up the cell is. <strong>Accessibility</strong> uses the baseline network indicator. <strong>Height and form</strong> describes the vertical profile. <strong>Change</strong> is the relative Development Pressure diagnostic. <strong>Age</strong> compares the building stock.</p>`)
+                + infoSection('How a class is assigned',
+                    `<p>Eligible cells need comparable evidence for all five traits. A value of 0.75 or above counts as high. Rules run in order, starting with high Change and high Intensity (Transforming Core), then high Change and high Age (Ageing Transition). Emerging Change covers the remaining high-Change cells. Stable Fabric is the remaining complete profile after all class rules.</p>`)
+                + infoSection('Read alongside',
+                    `<p>Market records and modelled Mobility journeys give a place further context. The five-axis classification uses its original inputs. Unassessed cells have insufficient comparable evidence.</p>`)
         },
 
         'Development Pressure':{
             title:'Development Pressure',
             html:
                 infoRole('Lens · Diagnostic','lens')
-                +
-                infoSection(
-                    'THE QUESTION',
-                    `<p>
-                        <strong>Where do structural conditions and recorded
-                        development activity combine most strongly?</strong>
-                    </p>
-                    <p>
-                        It brings together building age, remaining development
-                        opportunity, physical form and recorded building approvals.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'WHAT IT SUGGESTS',
-                    `<p>
-                        No single factor creates the result. Older fabric can
-                        remain relatively quiet, while places where several
-                        conditions overlap become more prominent.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'EVIDENCE & COVERAGE',
-                    `<p>
-                        ${meaningfulCoverage('developmentPressure')} have enough
-                        evidence to receive a Development Pressure score.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'LIMITS',
-                    `<p>
-                        Higher values mean the selected conditions combine more
-                        strongly. They do not mean redevelopment is planned,
-                        approved or imminent.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'METHOD',
-                    `<ul class="atlas-info-list">
-                        <li><strong>35% — Age Stress</strong></li>
-                        <li><strong>30% — Capacity Context input</strong></li>
-                        <li><strong>20% — Form Susceptibility</strong></li>
-                        <li><strong>15% — Approval Activity</strong></li>
-                    </ul>
-                    <p>
-                        Approval Activity gives more weight to recent approvals
-                        while also recognising repeated recorded events. Each
-                        recorded approval-year entry is treated as one event.
-                    </p>
-                    <p>
-                        Missing structural inputs are omitted and the available
-                        weights are rebalanced. A blank approval history is read
-                        as zero recorded approval events in that source history,
-                        not as missing coverage.
-                    </p>`
-                )
+                + infoSection('What does a higher value mean?',
+                    `<p>Building age, physical form and recorded approval activity combine more strongly in this cell. The map shows the raw diagnostic on a 0–1 scale.</p>`)
+                + infoSection('How it is calculated',
+                    `<p><strong>40% age stress + 30% form susceptibility + 30% approval activity.</strong> Every scored cell meets the eligibility and completeness rules. Capacity is reported separately.</p>`)
+                + infoSection('How to use it',
+                    `<p>Open a place report to compare its form and age with its recorded activity. Redevelopment timing and likelihood require independent evidence.</p>`)
         },
 
         'GFA - Saturation':{
@@ -1165,177 +1016,36 @@ function analysisInfoPanel(theme){
             title:'Renewal Potential',
             html:
                 infoRole('Lens · Strategic screening','lens')
-                +
-                infoSection(
-                    'THE QUESTION',
-                    `<p>
-                        Renewal Potential is a strategic lens for established
-                        urban fabric. It asks where age, existing intensity,
-                        built-out capacity, accessibility and policy relevance
-                        combine strongly enough to make renewal worth investigating.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'WHAT IT SUGGESTS',
-                    `<p>
-                        Renewal tends to favour established, relatively built-out
-                        and connected fabric. Compare it with Genesis, which asks
-                        a different question about room for new growth.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'EVIDENCE & COVERAGE',
-                    `<p>
-                        ${meaningfulCoverage('renewalPotential')} receive a
-                        Renewal score. Component coverage still varies, so score
-                        strength and data support are not the same thing.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'LIMITS',
-                    `<p>
-                        A higher value means a stronger combination of the
-                        selected renewal conditions. It does not mean
-                        redevelopment will occur.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'METHOD',
-                    `<ul class="atlas-info-list">
-                        <li><strong>30% — Age Stress</strong></li>
-                        <li><strong>25% — Existing Intensity</strong></li>
-                        <li><strong>20% — GFA Saturation</strong></li>
-                        <li><strong>15% — Existing Accessibility</strong></li>
-                        <li><strong>10% — Renewal Policy Alignment</strong></li>
-                    </ul>
-                    <p>
-                        Policy Alignment is an explicit analytical assumption,
-                        not an observed property of the site. Missing inputs are
-                        omitted and available weights are rebalanced.
-                    </p>`
-                )
+                + infoSection('Where is renewal worth investigating?',
+                    `<p>This Lens brings together older building stock, existing built intensity and established access. A higher score identifies a stronger combination of those conditions.</p>`)
+                + infoSection('How it is calculated',
+                    `<p><strong>(30 × relative building age + 25 × built intensity + 15 × baseline accessibility) / 70.</strong> All three inputs are required. Capacity and planning information provide separate context.</p>`)
+                + infoSection('How to use it',
+                    `<p>Compare the three traits with the evidence for the selected place. The score screens places for further investigation. It estimates neither timing nor probability.</p>`)
         },
 
         'Genesis Potential':{
             title:'Genesis Potential',
             html:
                 infoRole('Lens · Strategic screening','lens')
-                +
-                infoSection(
-                    'THE QUESTION',
-                    `<p>
-                        Genesis Potential is a strategic lens for under-used or
-                        more mutable urban conditions. It asks where remaining
-                        capacity, lower existing intensity, planning flexibility
-                        and new accessibility catalysts combine more strongly.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'WHAT IT SUGGESTS',
-                    `<p>
-                        Genesis is designed to highlight a different condition
-                        from Renewal: room to grow, comparatively less existing
-                        intensity and the presence of enabling conditions.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'EVIDENCE & COVERAGE',
-                    `<p>
-                        ${meaningfulCoverage('genesisPotential')} receive a
-                        Genesis score. Component coverage still varies, so the
-                        model also retains a separate data-support measure.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'LIMITS',
-                    `<p>
-                        A higher value means a stronger combination of the
-                        selected Genesis conditions. It does not identify a
-                        guaranteed development site or forecast what will be built.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'METHOD',
-                    `<ul class="atlas-info-list">
-                        <li><strong>35% — Capacity Context input</strong></li>
-                        <li><strong>25% — Low Existing Intensity</strong></li>
-                        <li><strong>20% — Policy Flexibility</strong></li>
-                        <li><strong>20% — Planned Accessibility Additionality</strong></li>
-                    </ul>
-                    <p>
-                        Planned Accessibility Additionality counts only positive
-                        accessibility added by the planned MTR network over the
-                        built network. Policy Flexibility is an explicit analytical
-                        assumption. Missing inputs are omitted and available
-                        weights are rebalanced.
-                    </p>`
-                )
+                + infoSection('Where could planned rail access make a difference?',
+                    `<p>This Lens combines lower existing built intensity with the additional access indicated by the planned MTR network.</p>`)
+                + infoSection('How it is calculated',
+                    `<p><strong>(25 × low intensity + 20 × normalised planned-access gain) / 45.</strong> Low intensity is one minus relative built intensity. The model keeps a genuine zero gain at zero and ranks positive gains within the complete cohort. Both inputs are required.</p>`)
+                + infoSection('How to use it',
+                    `<p>Inspect planning and capacity alongside the score. A stronger signal is conditional on the network assumptions. Project approval, delivery and timing require their own evidence.</p>`)
         },
 
         'Capacity Opportunity':{
             title:'Capacity Context',
             html:
                 infoRole('Lens · Screening context','lens')
-                +
-                infoSection(
-                    'THE QUESTION',
-                    `<p>
-                        <strong>How does observed urban form compare with the
-                        supported planning-envelope context?</strong>
-                    </p>
-                    <p>
-                        Capacity Context connects recorded built form, materially
-                        intersecting Lot evidence, dominant planning context and
-                        an accepted peer comparison where those inputs are supported.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'WHAT IT SUGGESTS',
-                    `<p>
-                        A stronger result means the model finds more proportional
-                        and absolute headroom relative to the supported comparison.
-                        It is useful for screening where further investigation may
-                        be warranted.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'EVIDENCE & COVERAGE',
-                    `<p>
-                        ${meaningfulCoverage('capacityOpportunity')} currently have
-                        the contracted Lot, zone and peer-cohort basis required for
-                        assessment. Unassessed places remain distinct from a genuine
-                        low or zero result.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'METHOD',
-                    `<p>
-                        The screening measure combines the proportion of supported
-                        capacity remaining with the absolute amount of remaining GFA.
-                        The planning-context filter can be used to inspect how each
-                        result sits within its accepted peer comparison.
-                    </p>`
-                )
-                +
-                infoSection(
-                    'LIMITS',
-                    `<p>
-                        This is not a parcel entitlement, statutory GFA statement,
-                        valuation, feasibility assessment, legal-compliance conclusion
-                        or prediction that development will occur.
-                    </p>`
-                )
+                + infoSection('How much headroom does the comparison indicate?',
+                    `<p>The map shows the midpoint of the supported capacity screening range for a cell. The evidence basis in the place report explains the comparison.</p>`)
+                + infoSection('Read the basis',
+                    `<p>The empirical route compares an observed physical ratio with the median and upper-quartile ratios of supported planning peers. Reviewed fixed-cap scopes can instead use a constructed range against the recorded cap. The midpoint lies halfway between the supported low and high estimates.</p>`)
+                + infoSection('How to use it',
+                    `<p>Read the applicable scope, assumptions and missing-evidence state before comparing places. Statutory entitlement, planning permission and feasibility each require separate evidence.</p>`)
         },
 
         'Dominant Use':{
@@ -1746,9 +1456,6 @@ function censusThemeInfoPanel(key){
 function getInfoPanel(key){
 
     if(key === 'about'){
-        const total = atlasStats?.atlas?.totalHexes;
-        const ugs = atlasStats?.ugs || {};
-
         return {
             title:'About 852LAB',
             html:
@@ -1780,13 +1487,8 @@ function getInfoPanel(key){
                 infoSection(
                     'COVERAGE & TRANSPARENCY',
                     `<p>
-                        The working Atlas currently contains
-                        <strong>${infoNumber(total)}</strong> 100 m cells.
-                        <strong>${infoNumber(ugs.meaningfulUrbanCount)}</strong>
-                        have meaningful urban planning context,
-                        <strong>${infoNumber(ugs.constrainedCount)}</strong> are
-                        treated as constrained / non-urban, and coverage of
-                        individual datasets varies.
+                        A 100 m grid connects evidence across the city. Each reading has
+                        its own coverage. Open a place report to inspect the evidence available there.
                     </p>
                     <p>
                         A blank value is not automatically treated as zero. Each
@@ -1825,9 +1527,6 @@ function getInfoPanel(key){
     }
 
     if(key === 'analysis'){
-        const total = atlasStats?.atlas?.totalHexes;
-        const ugs = atlasStats?.ugs || {};
-
         return {
             title:'Lenses',
             html:
@@ -1855,11 +1554,8 @@ function getInfoPanel(key){
                 infoSection(
                     'EVIDENCE & COVERAGE',
                     `<p>
-                        <strong>${infoNumber(total)}</strong> 100 m cells form
-                        the working spatial set. Within it,
-                        <strong>${infoNumber(ugs.meaningfulUrbanCount)}</strong>
-                        cells have meaningful urban context. The status bar shows
-                        coverage for the selected analysis.
+                        Each Lens has its own eligibility and evidence requirements.
+                        An unassessed cell has no comparable score for that reading.
                     </p>`
                 )
                 +
@@ -2506,17 +2202,29 @@ function showWelcome(){
         return;
     }
 
-    welcomeOverlay.classList.remove(
-        'hidden'
-    );
+    welcomeOverlay.classList.remove('hidden');
 
     welcomeOverlay.setAttribute(
         'aria-hidden',
         'false'
     );
+    requestAnimationFrame(() => {
+        if(!welcomeOverlay.classList.contains('hidden')){
+            document.querySelector('#welcomePanel [data-uga-start=search]')?.focus({preventScroll:true});
+        }
+    });
 
 }
 
+welcomeOverlay?.addEventListener('keydown', event => {
+    if(event.key === 'Escape'){ event.preventDefault(); closeWelcome(); return; }
+    if(event.key !== 'Tab') return;
+    const controls = Array.from(welcomeOverlay.querySelectorAll('button:not([hidden]):not([disabled]), input:not([disabled])'));
+    const end = event.shiftKey ? controls[0] : controls.at(-1);
+    if(document.activeElement !== end) return;
+    event.preventDefault();
+    (event.shiftKey ? controls.at(-1) : controls[0])?.focus();
+});
 
 // -----------------------------------------------------
 // Close welcome message
@@ -2550,7 +2258,8 @@ function closeWelcome(){
 
     }
 
-        armMobileBrandAfterWelcome();
+    if(welcomeOverlay.contains(document.activeElement)) document.getElementById('v2AddressSearchInput')?.focus({preventScroll:true});
+    armMobileBrandAfterWelcome();
 
 }
 
@@ -3424,7 +3133,7 @@ const UGS_SIGNATURES = {
         name:'EMERGING CHANGE',
         colour:'#D89A43',
         description:
-            'Lower-intensity urban fabric with a strong change signal.'
+            'High Change in a cell outside the Transforming Core and Ageing Transition classes.'
     },
 
     AT:{
@@ -3466,7 +3175,7 @@ const UGS_SIGNATURES = {
         name:'CONSTRAINED',
         colour:'#A8ADB2',
         description:
-            'A constrained or non-urban planning context, read separately from the urban Signatures.'
+            'Reserved for a future planning-constraint classification.'
     },
 
     U:{
@@ -3599,7 +3308,7 @@ const LEGENDS = {
         title: 'Renewal Potential',
 
         description:
-            'Where do established, connected and built-out conditions combine to make renewal worth investigating?',
+            'Where do older buildings, higher built intensity and established access coincide?',
 
         gradient:
             'linear-gradient(90deg,#E0E1DE,#C9C6BB,#E2D396,#CDA44B,#BE6E40,#9D3F3C,#5C252F)',
@@ -3628,7 +3337,7 @@ const LEGENDS = {
         title: 'Genesis Potential',
 
         description:
-            'Where do remaining capacity, lower intensity and enabling conditions combine to suggest emerging growth conditions?',
+            'Where do lower built intensity and potential gains from planned rail access coincide?',
 
         gradient:
             'linear-gradient(90deg,#E0E1DE,#C9CEC8,#B4DAB8,#60B280,#26937B,#087071,#00484C)',
@@ -3844,12 +3553,12 @@ const LEGENDS = {
 Object.assign(LEGENDS,{
     'Capacity Opportunity':{
         title:'Capacity Context',
-        description:'How does observed form compare with the supported planning-envelope context? This screening Lens is shown only where the contracted evidence basis is supported.',
+        description:'How much headroom does the supported peer or planning-scope comparison indicate?',
         gradient:'linear-gradient(90deg,#E0E1DE,#D6D4DA,#D6CCE8,#7655B6,#2D174F)',
         interpretation:`
             <div class='legend-item'><strong>Lower</strong> — Less modelled opportunity within the supported screening context.</div>
             <div class='legend-item'><strong>Higher</strong> — More modelled opportunity within the supported screening context.</div>
-            <div class='legend-item'><strong>Unassessed</strong> — The contracted Lot, zone or peer-cohort evidence basis is not sufficient.</div>
+            <div class='legend-item'><strong>Unassessed</strong> — The comparison lacks the required evidence.</div>
             <div class='legend-item'>This is not entitlement, permission, feasibility or a legal-compliance conclusion.</div>
         `
     },
@@ -5778,35 +5487,20 @@ function stopAtlasLoaderDots(){
 // Wait for MapLibre to settle
 // -----------------------------------------------------
 
-function waitForMapIdle(){
-
-    return new Promise(
-        resolve => {
-
-            if(
-                map.loaded() &&
-                map.areTilesLoaded()
-            ){
-
-                requestAnimationFrame(
-                    resolve
-                );
-
-                return;
-
-            }
-
-
-            map.once(
-                'idle',
-                resolve
-            );
-
-        }
-    );
-
+function waitForMapIdle(maxWaitMs){
+    if(map.loaded() && map.areTilesLoaded()) return Promise.resolve(true);
+    return new Promise(resolve => {
+        let timer;
+        const finish = settled => {
+            clearTimeout(timer);
+            map.off('idle', onIdle);
+            resolve(settled);
+        };
+        const onIdle = () => finish(true);
+        map.on('idle', onIdle);
+        if(maxWaitMs) timer = setTimeout(() => finish(false), maxWaitMs);
+    });
 }
-
 
 // -----------------------------------------------------
 // Warm individual zoom level
@@ -5887,83 +5581,18 @@ async function initialiseAtlas(){
 
 
     try {
-
-            // -------------------------------------------------
-        // Phase 1 — Initial map settlement
-        // -------------------------------------------------
-
-        setAtlasLoaderStatus(
-            'Loading core map'
-        );
-
-
-        await waitForMapIdle();
-
-
-        perfMark(
-            'Initial map settled'
-        );
-
-
-        // -------------------------------------------------
-        // Phase 2 — Warm immediately useful zoom levels
-        // -------------------------------------------------
-
-        await warmMapZoom(
-            11,
-            'Preparing urban analysis',
-            1200
-        );
-
-
-        await warmMapZoom(
-            12,
-            'Preparing urban fabric',
-            1200
-        );
-
-
-        perfMark(
-            'Blocking warm-up completed'
-        );
-
-
-        // -------------------------------------------------
-        // Restore opening view
-        // -------------------------------------------------
-
-        map.jumpTo({
-
-            center:
-                originalCenter,
-
-            zoom:
-                originalZoom
-
-        });
-
-
-        // -------------------------------------------------
-        // Wait for opening view to settle
-        // -------------------------------------------------
-
-        await waitForMapIdle();
-
-
-        perfMark(
-            'Opening view restored'
-        );
-
-
-    // -------------------------------------------------
-// Atlas is now interactive
-// -------------------------------------------------
-
-setAtlasLoaderStatus(
-    'Atlas ready'
-);
-
-
+        setAtlasLoaderStatus('Loading core map');
+        // Optional tile warming must not hold the search and reports behind an overlay.
+        let settled = await waitForMapIdle(6000);
+        if(settled){
+            perfMark('Initial map settled');
+            await warmMapZoom(11, 'Preparing urban analysis', 1200);
+            await warmMapZoom(12, 'Preparing urban fabric', 1200);
+            perfMark('Blocking warm-up completed');
+            map.jumpTo({center:originalCenter, zoom:originalZoom});
+            settled = await waitForMapIdle(3000);
+        }
+        setAtlasLoaderStatus(settled ? 'Atlas ready' : 'Opening Atlas controls');
 await new Promise(
     resolve =>
         setTimeout(
@@ -7493,7 +7122,7 @@ window.UGA_V2_REPORT_HOST = Object.freeze({
         placeReportPanel.dataset.externalReportKind=kind;
         placeReportPanel.hidden=false;
         placeReportPanel.setAttribute('aria-hidden','false');
-        if(placeReportBack){placeReportBack.textContent='← Back';placeReportBack.setAttribute('aria-label','Back from development report');}
+        if(placeReportBack){placeReportBack.textContent='← Back';placeReportBack.setAttribute('aria-label','Back from '+(title || 'source report'));}
         if(typeof hidePopup==='function') hidePopup();
     },
     close(){
@@ -8188,13 +7817,9 @@ function ugsNumber(
     field
 ){
 
-    const value =
-        Number(
-            ugsValue(
-                properties,
-                field
-            )
-        );
+    const raw = ugsValue(properties, field);
+    if(raw == null || (typeof raw === 'string' && !raw.trim())) return null;
+    const value = Number(raw);
 
     return Number.isFinite(value)
         ? value
@@ -8451,8 +8076,8 @@ function ugsInterpretation(
 
         case 'EMERGING CHANGE':
             return (
-                'This is a lower-intensity hex with a strong ' +
-                'modelled change signal.'
+                'This cell has high Change and falls outside the ' +
+                'Transforming Core and Ageing Transition classes.'
             );
 
         case 'AGEING TRANSITION':
@@ -11914,7 +11539,7 @@ updateStatus();
     const mq = window.matchMedia('(max-width:900px)');
     const entries = [
         {key:'fabric', label:'FABRIC', section:document.getElementById('fabricSection'), icon:'assets/Fabric_Icon.png'},
-        {key:'analysis', label:'ANALYSIS', section:document.getElementById('analysisSection'), icon:'assets/Analysis_Icon.png'},
+        {key:'analysis', label:'Lenses', section:document.getElementById('analysisSection'), icon:'assets/Analysis_Icon.png'},
         {key:'market', label:'MARKET', section:document.getElementById('marketSection'), icon:'assets/Market_Icon.png'}
     ].filter(x => x.section);
     if(entries.length !== 3) return;
@@ -11986,8 +11611,8 @@ updateStatus();
         panel.dataset.mobileSheetTab=key;
         panel.classList.toggle('mobile-sheet-map-active',key==='map');
 
-        for(const [tabKey,button] of tabButtons){
-            const active=tabKey===key;
+        for(const button of tabs.querySelectorAll('[data-mobile-sheet-tab]')){
+            const active=button.dataset.mobileSheetTab===key;
             button.classList.toggle('active',active);
             button.setAttribute('aria-selected',String(active));
             button.tabIndex=active ? 0 : -1;
@@ -12045,9 +11670,9 @@ updateStatus();
         panel.classList.remove('mobile-control-sheet-v2','mobile-sheet-tall','mobile-sheet-map-active');
         panel.removeAttribute('data-mobile-sheet-tab');
         launcher.classList.remove('mobile-sheet-launcher');
-        for(const entry of entries){
-            entry.section.classList.remove('mobile-sheet-active');
-            entry.section.removeAttribute('aria-hidden');
+        for(const section of panelScroll.querySelectorAll(':scope > .mode-panel')){
+            section.classList.remove('mobile-sheet-active');
+            section.removeAttribute('aria-hidden');
         }
         basemap.classList.remove('mobile-sheet-active');
         panelScroll.classList.remove('mobile-sheet-active');
@@ -12070,13 +11695,17 @@ updateStatus();
     }
 
     tabs.addEventListener('keydown',event => {
-        if(!['ArrowLeft','ArrowRight'].includes(event.key)) return;
-        const keys=tabSpecs.map(x => x.key);
-        const index=keys.indexOf(activeKey);
-        const delta=event.key==='ArrowRight' ? 1 : -1;
-        const next=keys[(index+delta+keys.length)%keys.length];
+        const buttons = Array.from(tabs.querySelectorAll('[role="tab"]:not([disabled])'));
+        const index = buttons.indexOf(event.target);
+        if(index < 0) return;
+        const last = buttons.length - 1;
+        const next = event.key === 'Home' ? 0 : event.key === 'End' ? last :
+            event.key === 'ArrowLeft' ? (index + last) % buttons.length :
+            event.key === 'ArrowRight' ? (index + 1) % buttons.length : null;
+        if(next === null) return;
         event.preventDefault();
-        setActive(next,true);
+        buttons[next].click();
+        buttons[next].focus();
     });
 
     grip.addEventListener('click',()=>setTall(!panel.classList.contains('mobile-sheet-tall')));
@@ -12368,8 +11997,8 @@ updateStatus();
         const options = Array.from(select.options).filter(allowedAnalysisOption);
         const lensGroup = document.createElement('optgroup');
         const evidenceGroup = document.createElement('optgroup');
-        lensGroup.label = 'LENSES — derived interpretations';
-        evidenceGroup.label = 'EVIDENCE & INDICATORS — inspect the basis';
+        lensGroup.label = 'Urban Genetics Lenses';
+        evidenceGroup.label = 'Evidence and supporting indicators';
         select.innerHTML = '';
         options.forEach(option => {
             if(option.value === 'Capacity Opportunity') option.textContent = 'Capacity Context';
@@ -12378,16 +12007,9 @@ updateStatus();
         });
         select.append(lensGroup,evidenceGroup);
         const label = $('#analysisSelectorControl .section-label');
-        if(label) label.textContent = 'Choose a Lens or inspect its evidence:';
-        if(!$('#ugaOutputRoleGuide')){
-            const guide = document.createElement('div');
-            guide.id = 'ugaOutputRoleGuide';
-            guide.className = 'uga-output-role-guide';
-            guide.innerHTML = '<span data-role="lens"><strong>Lens</strong> creates a question-led interpretation.</span><span data-role="evidence"><strong>Evidence</strong> shows a source or supporting condition.</span>';
-            select.after(guide);
-        }
+        if(label) label.textContent = 'Map reading';
         const desc = $('#analysisSection .mode-description');
-        if(desc) desc.textContent = 'Questions explored through connected evidence — with the supporting basis kept visible.';
+        if(desc) desc.textContent = 'Compare urban character, development pressure and strategic conditions.';
         const title = $('#analysisSection .mode-title');
         if(title) title.textContent = 'Lenses';
         const info = $('#analysisSection .info-trigger[data-info-key="analysis"]');
@@ -12396,7 +12018,7 @@ updateStatus();
             info.setAttribute('title','About Lenses');
         }
         const master = $('#analysisSection .analysis-toggle span');
-        if(master) master.textContent = 'Show selected Lens or evidence';
+        if(master) master.textContent = 'Show this reading on the map';
         $('#analysisSelectorControl')?.classList.add('uga-selector-block');
         $('#analysisControls')?.classList.add('uga-selector-block','uga-planning-selector-block');
         select.classList.add('uga-domain-select');
@@ -13359,6 +12981,7 @@ updateStatus();
         b.dataset.mobileSheetTab = key;
         b.setAttribute('role','tab');
         b.setAttribute('aria-selected','false');
+        b.tabIndex = -1;
         b.innerHTML = `<img class="uga-mobile-domain-icon" src="${iconSrc}" alt="" aria-hidden="true"><span>${label}</span>`;
         return b;
     }
@@ -13389,6 +13012,7 @@ updateStatus();
             const active = tab.dataset.mobileSheetTab === key;
             tab.classList.toggle('active', active);
             tab.setAttribute('aria-selected', String(active));
+            tab.tabIndex = active ? 0 : -1;
         });
         $$('#panelScroll > .mode-panel').forEach(section => {
             const active = section === target;
@@ -13491,6 +13115,17 @@ updateStatus();
             activateTheme(ugs,'analysis');
             if(MOBILE_QUERY.matches) mobileSelect('analysis');
             else collapseOtherDesktopSections($('#analysisSection'));
+        } else if(key === 'mobility'){
+            const section = $('#ugMobilityCitywideSection');
+            if(MOBILE_QUERY.matches) mobileSelect('mobility');
+            else if(section){
+                const toggle = section.querySelector('[data-expand]');
+                if(toggle?.getAttribute('aria-expanded') !== 'true') toggle?.click();
+                revealRailPanel(section);
+            }
+        } else if(key === 'market-sources'){
+            if(MOBILE_QUERY.matches) mobileSelect('market');
+            else activateDesktopSection($('#marketSection'));
         } else if(key === 'market'){
             setChecked(analysisToggle(), false);
             chooseMarketDefault();
@@ -13519,34 +13154,23 @@ updateStatus();
         }
     }
 
-    function rebuildWelcome(){
+    function bindWelcomeRoutes(){
         const content = $('#welcomePanel .welcome-content');
-        const footer = $('#welcomePanel .welcome-footer');
-        const subtitle = $('#welcomePanel .welcome-subtitle');
-        const closeButton = $('#welcomeCloseButton');
-        if(!content || content.dataset.ugaIaWelcome === 'true') return;
-        content.dataset.ugaIaWelcome = 'true';
-        const title = $('#welcomeTitle');
-        if(title) title.textContent = 'See the city through a different lens.';
-        if(subtitle) subtitle.textContent = '852LAB · Powered by Urban Genetics';
-        content.innerHTML = `
-            <p class="uga-welcome-lead"><strong>852LAB connects evidence about how Hong Kong is built, inhabited, connected and changing — then uses Urban Genetics to reveal relationships that no single dataset shows.</strong></p>
-            <p class="uga-welcome-prompt">Start with a place, a Lens or the evidence behind it. You can move between them at any time.</p>
-            <div class="uga-welcome-choices" role="group" aria-label="Choose where to start">
-                <button type="button" class="uga-welcome-choice" data-uga-start="search"><span class="uga-choice-title"><span class="uga-choice-heading">Find a place</span></span><span class="uga-choice-copy">Search an address, Building or Lot and follow its connections.</span></button>
-                <button type="button" class="uga-welcome-choice" data-uga-start="analysis"><span class="uga-choice-title"><span class="uga-choice-heading"><img class="uga-choice-icon" src="assets/Analysis_Icon.png" alt="">Explore a Lens</span></span><span class="uga-choice-copy">Ask what connected evidence allows 852LAB to learn about a place.</span></button>
-                <button type="button" class="uga-welcome-choice" data-uga-start="fabric"><span class="uga-choice-title"><span class="uga-choice-heading"><img class="uga-choice-icon" src="assets/Fabric_Icon.png" alt="">Inspect evidence</span></span><span class="uga-choice-copy">Explore the physical, demographic, planning and market basis behind the analyses.</span></button>
-            </div>
-            <p class="uga-welcome-caveat"><strong>Evidence</strong> shows what the sources tell us. <strong>Lenses</strong> create question-led interpretations from relationships between sources. Dates, scales and coverage vary, so use the Atlas to investigate rather than as a precise determination about an individual property.</p>
-        `;
-        if(closeButton) closeButton.textContent = 'Explore map';
-        footer?.classList.add('uga-welcome-footer');
-        $$('.uga-welcome-choice[data-uga-start]', content).forEach(button => {
-            button.addEventListener('click', () => {
-                const key = button.dataset.ugaStart;
-                // Let the existing close handler persist "Do not show again".
-                $('#welcomeCloseButton')?.click();
-                requestAnimationFrame(() => activateStart(key));
+        content?.addEventListener('click', event => {
+            const choice = event.target.closest('[data-uga-start]');
+            if(!choice) return;
+            closeWelcome();
+            requestAnimationFrame(() => {
+                const key = choice.dataset.ugaStart;
+                activateStart(key);
+                if(key === 'search') return;
+                if(MOBILE_QUERY.matches){
+                    $('.mobile-sheet-tab[aria-selected="true"]')?.focus({preventScroll:true});
+                }else{
+                    const sections = {analysis:'analysisSection', fabric:'fabricSection', 'market-sources':'marketSection', mobility:'ugMobilityCitywideSection'};
+                    const section = document.getElementById(sections[key]);
+                    nativePanelToggle(section)?.focus({preventScroll:true});
+                }
             });
         });
     }
@@ -13646,7 +13270,7 @@ updateStatus();
         initialiseDemographicsRenderer();
         setTimeout(() => { initialiseDomainOpacity(); normaliseDomainIconScale(); ensureMarketVisibilityControl(); normaliseMarketOpacityRange(); syncMarketVisibilityToggle(); initialiseMarketViewPresentation(); }, 0);
         watchMarketControls();
-        rebuildWelcome();
+        bindWelcomeRoutes();
         exposeDebugState();
 
         returningVisitorDefault();

@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.9.0/dist/maplibre-gl.css" rel="stylesheet">
-    <link href="styles.css" rel="stylesheet">
+    <link href="styles.css?v=experience-20261120" rel="stylesheet">
     <link href="site/market-data.css" rel="stylesheet">
 <!-- UGA_SRPE_CSS_V01 -->
 <link rel="stylesheet" href="site/market-srpe/v0.1/srpe-registers.css?v=stage7c-20261108">
@@ -36,7 +36,7 @@
 <link rel="stylesheet" href="site/market-report/v0.1/report.css?v=stage7c-20261108">
 
 <!-- UGA_CENTALINE_CURRENT_V02_CSS_START -->
-<link rel="stylesheet" href="site/market-private-resale/v0.2/private-resale.css?v=stage7c-20261108">
+<link rel="stylesheet" href="site/market-private-resale/v0.2/private-resale.css?v=experience-20261120">
 <!-- UGA_CENTALINE_CURRENT_V02_CSS_END -->
 <!-- UGA_MARKET_LEGEND_SECTIONS_V01_CSS_START -->
 <link rel="stylesheet" href="site/market-panel/v0.1/sections.css?v=stage7c-20261108">
@@ -85,6 +85,7 @@
         >
             ···
         </div>
+        <button type="button" id="atlasRetry" class="welcome-close-button" hidden>Reload map</button>
 
     </div>
 
@@ -125,7 +126,7 @@
                         id="welcomeTitle"
                         class="welcome-title"
                     >
-                        See the city through a different lens.
+                        Explore Hong Kong
                     </div>
 
                     <div class="welcome-subtitle">
@@ -140,7 +141,7 @@
                 type="button"
                 id="welcomeClose"
                 class="welcome-close"
-                aria-label="Start exploring 852LAB"
+                aria-label="Close welcome and explore the map"
             >
                 ×
             </button>
@@ -151,31 +152,34 @@
         <!-- Welcome message -->
 
         <div class="welcome-content">
-
-            <p>
-                Explore connected evidence about how Hong Kong is built,
-                inhabited, connected and changing. Find a place, choose a
-                Lens or inspect the evidence supporting it.
-            </p>
-
-            <p>
-                Lenses use Urban Genetics to ask questions that no single
-                source dataset answers. Select a place to move between its
-                local context, Buildings and Lots.
-            </p>
-
-            <p class="welcome-secondary-note">
-                Source geography, date and coverage vary. Patterns support
-                investigation; they are not precise property determinations,
-                predictions or recommendations.
-            </p>
-
+            <p class="uga-welcome-lead">Search for a place or follow a question about the city. Select a place on the map to see its evidence and explore nearby Buildings and Lots.</p>
+            <div class="uga-welcome-choices" role="group" aria-label="Choose where to start">
+                <button type="button" class="uga-welcome-choice" data-uga-start="search">
+                    <span class="uga-choice-title">Find a place</span>
+                    <span class="uga-choice-copy">Search by address, building name or lot number.</span>
+                </button>
+                <button type="button" class="uga-welcome-choice" data-uga-start="analysis">
+                    <span class="uga-choice-title">Compare urban patterns</span>
+                    <span class="uga-choice-copy">Explore the five traits behind the Urban Genetic Signature.</span>
+                </button>
+                <button type="button" class="uga-welcome-choice" data-uga-start="fabric">
+                    <span class="uga-choice-title">Explore the built city</span>
+                    <span class="uga-choice-copy">Start with reclaimed land, then explore buildings and infrastructure.</span>
+                </button>
+                <button type="button" class="uga-welcome-choice" data-uga-start="market-sources">
+                    <span class="uga-choice-title">Explore Market</span>
+                    <span class="uga-choice-copy">Read estate records or compare activity across market areas.</span>
+                </button>
+                <button type="button" class="uga-welcome-choice" data-uga-start="mobility" hidden>
+                    <span class="uga-choice-title">Explore Mobility</span>
+                    <span class="uga-choice-copy">Compare citywide connections or explore modelled journeys from a place.</span>
+                </button>
+            </div>
         </div>
-
 
         <!-- Welcome footer -->
 
-        <div class="welcome-footer">
+        <div class="welcome-footer uga-welcome-footer">
 
             <label class="welcome-preference">
 
@@ -194,9 +198,9 @@
                 type="button"
                 id="welcomeCloseButton"
                 class="welcome-close-button"
-                aria-label="Start exploring 852LAB"
+                aria-label="Explore the map"
             >
-                Start exploring
+                Explore map
             </button>
 
         </div>
@@ -1852,7 +1856,7 @@ FABRIC BODY
     src="https://unpkg.com/pmtiles@4.2.1/dist/pmtiles.js">
     </script>
 
-    <script src="site/v2-site-config.js"></script>
+    <script src="site/v2-site-config.js?v=experience-20261120"></script>
     <script src="site/v2-hex-provider.js"></script>
     <script src="site/v2-climate-provider.js"></script>
     <script src="site/v2-field-adapter.js"></script>
@@ -1861,7 +1865,7 @@ FABRIC BODY
     <script src="site/v2-hex-report-binding.js"></script>
     <script src="site/v2-report-benchmarks.js"></script>
     <script src="site/v2-mobility-context.js"></script>
-    <script src="site/v2-report.js"></script>
+    <script src="site/v2-report.js?v=experience-20261120"></script>
 <!-- UGA_SRPE_DEV_V01 -->
 <script src="site/market-srpe/v0.1/srpe-register-data.js?v=stage7c-20261108"></script>
 <script src="site/market-srpe/v0.1/srpe-registers.js?v=stage7c-20261108"></script>
@@ -1871,7 +1875,7 @@ FABRIC BODY
 <!-- UGA_NEW_DEVELOPMENTS_AREA_V01 -->
 <script src="site/market-new-developments/v0.4/new-developments-area-data.js?v=stage7c-20261108"></script>
 <script src="site/market-new-developments/v0.6/building-links.js?v=stage7c-20261108"></script>
-<script src="site/market-new-developments/v0.6/new-developments.js?v=market-source-links-20261119"></script>
+<script src="site/market-new-developments/v0.6/new-developments.js?v=experience-20261120"></script>
 <!-- UGA Market report experience v0.1 -->
 <script src="site/market-report/v0.1/hkha-context.js?v=stage7c-20261108"></script>
 <script src="site/market-report/v0.1/hkha-secondary.js?v=stage7c-20261108"></script>
@@ -1882,26 +1886,26 @@ FABRIC BODY
     <script src="site/v2-address-search.js"></script>
     <script src="site/v2-entity-provider.js"></script>
     <script src="site/v2-entity-binding.js"></script>
-    <script src="atlas.js?v=qa-market-navigation-20261119"></script>
+    <script src="atlas.js?v=experience-20261120"></script>
     <script src="site/v2-climate-map.js?v=hosted-overlays-20261119-v2"></script>
     <script src="site/v2-native-demographics.js?v=hosted-overlays-20261119-v2"></script>
     <script src="site/market-data.js"></script>
 
 <!-- UGA_MOBILITY_REPORT_PROFILES_V01 -->
-<script src="site/mobility-reader/v0.4/report-profiles.js?v=mobility-host-20261119"></script>
+<script src="site/mobility-reader/v0.4/report-profiles.js?v=experience-20261120"></script>
 
 <!-- UGA_CENTALINE_CURRENT_V02_JS_START -->
-<script src="site/market-private-resale/v0.2/data.js?v=stage7c-20261108"></script>
-<script src="site/market-private-resale/v0.2/private-resale.js?v=stage7c-20261108"></script>
+<script src="site/market-private-resale/v0.2/data.js?v=experience-20261120"></script>
+<script src="site/market-private-resale/v0.2/private-resale.js?v=experience-20261120"></script>
 <!-- UGA_CENTALINE_CURRENT_V02_JS_END -->
 <!-- UGA_MARKET_LEGEND_SECTIONS_V01_JS_START -->
-<script src="site/market-panel/v0.1/sections.js?v=stage7c-20261108"></script>
+<script src="site/market-panel/v0.1/sections.js?v=experience-20261120"></script>
 <!-- UGA_MARKET_LEGEND_SECTIONS_V01_JS_END -->
 <!-- UGA_MARKET_ANALYSIS_V01_JS_START -->
 <script src="site/market-analysis/v0.1/data.js?v=stage7c-20261108"></script>
 <script src="site/market-analysis/v0.1/analysis.js?v=stage7c-20261108"></script>
 <!-- UGA_MARKET_ANALYSIS_V01_JS_END -->
-<script>if(new URLSearchParams(location.search).get("check")==="market-navigation") import("./qa-market-navigation-20261119.mjs?v=hosted-overlays-20261119-v2");</script>
+<script>if(new URLSearchParams(location.search).get("check")==="market-navigation") import("./qa-market-navigation-20261119.mjs?v=experience-20261120");</script>
 <script>if(new URLSearchParams(location.search).get("check")==="mobility-market") import("./hosted-mobility-check.mjs?v=glass-1");</script>
 <style>
 #ug-path-progress{position:fixed;top:22%;left:50%;transform:translateX(-50%);z-index:10000;pointer-events:none;color:var(--text-primary);padding:12px 19px;font:600 15px/1.45 system-ui;white-space:nowrap}

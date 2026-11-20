@@ -2558,8 +2558,7 @@ and (orientation:landscape){
     visibility:visible;
 
     transition:
-        opacity 220ms ease,
-        visibility 220ms ease;
+        opacity 220ms ease;
 
 }
 
@@ -11173,3 +11172,122 @@ and (orientation:landscape){
     }
 }
 
+
+/* Shared public controls and report hierarchy. Map and chart colours belong to their readings. */
+:root{
+    --atlas-ink:#29383e;
+    --atlas-muted:#475961;
+    --atlas-focus:#17645f;
+    --atlas-line:#bdcaca;
+}
+#welcomePanel .uga-welcome-lead{
+    color:var(--atlas-ink);
+    font-size:.95rem;
+    line-height:1.5;
+}
+#welcomePanel .uga-welcome-choice{
+    display:block;
+    min-height:0;
+    padding:11px 14px;
+    border:1px solid var(--atlas-line);
+    background:#fbfcfa;
+    border-radius:8px;
+}
+#welcomePanel .uga-welcome-choice[hidden], #atlasLoader [hidden]{display:none}
+#welcomePanel [data-uga-start="search"]{
+    grid-column:1/-1;
+    background:#edf4f2;
+    border-color:#92aca8;
+}
+#welcomePanel .uga-choice-title{
+    color:var(--atlas-ink);
+    font-size:.9rem;
+    letter-spacing:normal;
+    text-transform:none;
+}
+#welcomePanel .uga-choice-copy{
+    font-size:.8rem;
+    line-height:1.4;
+    color:var(--atlas-muted);
+}
+#welcomePanel button:focus-visible, #panel :is(button,summary,select,input):focus-visible,
+#placeReportPanel :is(button,a,summary,select,input):focus-visible{
+    outline:2px solid var(--atlas-focus);
+    outline-offset:2px;
+}
+#atlasLoader #atlasRetry{margin:12px auto 0}
+#panel :is(.uga-domain-select,.ug-market-section select),
+#placeReportBody :is(.ug-pr-toolbar,.unet-controls) select{
+    font-family:inherit;
+    color:var(--atlas-ink);
+    min-height:2rem;
+}
+#placeReportPanel .v2-report-subtitle,
+#placeReportBody :is(.ug-pr-scope,.ug-ph-scope,.ug-nd-scope,.ugmp-note){
+    color:var(--atlas-muted);
+}
+#placeReportBody :is(.ugmp-card,.unet,.ug-market-view){font-family:inherit}
+#placeReportBody [data-ug-report-tabs]{
+    display:flex;
+    flex-wrap:wrap;
+    gap:4px;
+    overflow:visible;
+}
+#placeReportBody [data-ug-report-tabs] button{
+    flex:0 0 auto;
+    min-height:2rem;
+    padding:5px 9px;
+    font-family:inherit;
+    font-size:.8rem;
+    line-height:1.25;
+    white-space:normal;
+    border-radius:6px;
+}
+#placeReportBody [data-ug-report-tabs] button[aria-selected="true"],
+#placeReportBody .ugmp-reading-tabs button[aria-selected="true"]{
+    color:#fff;
+    border-color:var(--atlas-ink);
+    background:var(--atlas-ink);
+}
+#placeReportBody .ugmp-reading-tabs button[aria-selected="true"] span{color:inherit}
+@media screen and (max-width:900px){
+    #welcomePanel .uga-welcome-lead{font-size:.87rem!important}
+    #welcomePanel .uga-welcome-choices{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+    #welcomePanel .uga-choice-title{font-size:.84rem!important;line-height:1.2}
+    #welcomePanel .uga-choice-copy{font-size:.77rem!important}
+    #welcomePanel .welcome-preference{font-size:.75rem}
+    #placeReportPanel .v2-report-subtitle{line-height:1.35}
+}
+@media screen and (max-width:355px){
+    #welcomePanel .uga-welcome-choices{grid-template-columns:1fr!important}
+}
+@media print{
+    html:has(#placeReportPanel:not([hidden])),
+    body:has(>#placeReportPanel:not([hidden])){
+        width:auto!important;
+        height:auto!important;
+        min-height:0!important;
+        overflow:visible!important;
+    }
+    body:has(>#placeReportPanel:not([hidden]))>:not(#placeReportPanel){display:none!important}
+    #placeReportPanel:not([hidden]){
+        position:static!important;
+        width:auto!important;
+        max-height:none!important;
+        transform:none!important;
+    }
+    #placeReportPanel:not([hidden])::before{
+        content:"852LAB  /  Hong Kong Atlas";
+        display:block;
+        margin:0 7mm 2mm;
+        padding:0 0 2mm;
+        border-bottom:1px solid #8a9b9c;
+        color:#32464b;
+        font:600 10pt/1.3 Inter,Arial,sans-serif;
+    }
+    #placeReportBody [data-ug-report-tabs]{display:none!important}
+    #placeReportBody :is(h1,h2,h3,h4,.v2-sheet-section-title){break-after:avoid}
+}
+
+.atlas-market-sources>h3{font-size:.9rem;color:var(--atlas-ink);margin:12px 0 6px}
+.atlas-market-sources .ug-market-section-title{font-size:.84rem;text-transform:none;letter-spacing:normal}
