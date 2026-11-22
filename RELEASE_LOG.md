@@ -1,5 +1,9 @@
 # Urban Genetics Atlas — Live Release Log
 
+## 22 November 2026 · 852LAB publications and sharing
+
+[Release notes](release-notes/20261122-publications-and-sharing.md) · [Application file manifest](release-manifest.json)
+
 
 # Urban Genetics Atlas — V1.4-20260903-170848
 

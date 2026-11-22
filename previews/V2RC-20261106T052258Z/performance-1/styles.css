@@ -9705,7 +9705,7 @@ and (orientation:landscape){
 
 .v2-sheet-summary{
     margin:12px 0;
-    font-size:.68rem;
+    font-size:var(--sheet-body,.68rem);
     line-height:1.55;
     color:#4b5563;
 }
@@ -9713,7 +9713,7 @@ and (orientation:landscape){
 .v2-sheet-metric-grid{
     display:grid;
     grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:7px;
+    gap:var(--sheet-gap,7px);
 }
 
 .v2-sheet-metric-grid--hero{
@@ -9744,7 +9744,7 @@ and (orientation:landscape){
 
 .v2-sheet-metric strong{
     margin-top:4px;
-    font-size:.69rem;
+    font-size:var(--sheet-value,.69rem);
     font-weight:680;
     line-height:1.25;
 }
@@ -9772,7 +9772,7 @@ and (orientation:landscape){
 
 .v2-sheet-section-title h2{
     margin:0;
-    font-size:.76rem;
+    font-size:var(--sheet-heading,.76rem);
     line-height:1.2;
 }
 
@@ -11291,3 +11291,145 @@ and (orientation:landscape){
 
 .atlas-market-sources>h3{font-size:.9rem;color:var(--atlas-ink);margin:12px 0 6px}
 .atlas-market-sources .ug-market-section-title{font-size:.84rem;text-transform:none;letter-spacing:normal}
+
+/* Fabric range controls */
+.building-height-slider input[type="range"]::-moz-range-thumb { pointer-events:auto; }
+/* Keep closely spaced handles distinguishable, including a single-year selection. */
+.building-height-slider { container-type:inline-size; --handle-offset:clamp(0px,calc((16px - var(--selected-span,100cqi)) / 2),8px); }
+.building-height-slider input:first-of-type::-webkit-slider-thumb { transform:translateX(calc(-1 * var(--handle-offset))); }
+.building-height-slider input:last-of-type::-webkit-slider-thumb { transform:translateX(var(--handle-offset)); }
+.building-height-slider input:first-of-type::-moz-range-thumb { transform:translateX(calc(-1 * var(--handle-offset))); }
+.building-height-slider input:last-of-type::-moz-range-thumb { transform:translateX(var(--handle-offset)); }
+#panel .building-height-slider input[type="range"]:focus-visible { outline:none !important; }
+.building-height-slider input:focus-visible::-webkit-slider-thumb { outline:2px solid var(--atlas-ink); }
+.building-height-slider input:focus-visible::-moz-range-thumb { outline:2px solid var(--atlas-ink); }
+#heightRangeStatus {
+    position:fixed;
+    z-index:10000;
+    top:22%;
+    left:50%;
+    transform:translateX(-50%);
+    width:max-content;
+    max-width:calc(100vw - 24px);
+    padding:8px 14px;
+    pointer-events:none;
+    line-height:1.4;
+    font-family:inherit;
+    font-size:.8rem;
+    font-weight:600;
+    color:var(--atlas-ink);
+}
+
+/* Share the sheet's type scale with report modules, including source-native reports. */
+#placeReportBody {
+    --sheet-body:.68rem;
+    --sheet-heading:.76rem;
+    --sheet-value:.69rem;
+    --sheet-caption:.56rem;
+    --sheet-gap:7px;
+}
+#placeReportBody :is(.ugmp-card,.unet,.ug-market-view,.ug-pr-context,.ug-nd-report,.ug-nd-current-summary,.ug-ma-hex-report) {
+    font-family:inherit;
+    font-size:var(--sheet-body);
+    line-height:1.45;
+}
+#placeReportBody :is(.ugmp-card,.ug-market-view,.ug-nd-report) :is(h3,h4),
+#placeReportBody .ugmp-network-evidence > summary {
+    font-size:var(--sheet-heading);
+    line-height:1.25;
+    font-weight:650;
+    margin:7px 0 5px;
+}
+#placeReportBody .ugmp-card h2 { font-size:var(--sheet-heading); margin:4px 0 7px; }
+#placeReportBody :is(.ug-market-view,.ug-nd-report).v2-report-sheet h2 {
+    font-size:1.15rem;
+    line-height:1.2;
+    margin:4px 0 8px;
+}
+#placeReportBody :is(.ugmp-card,.ugsp-overview,.ug-market-scale,.ug-market-peer,.ug-ma-hex-report,.ug-ph-price) {
+    margin:8px 0;
+    padding:9px 10px;
+}
+#placeReportBody :is(.ugmp-card,.ug-market-view,.ug-nd-report) p { margin:5px 0; }
+#placeReportBody :is(.ugsp-controls,.ugmp-reading-tabs,.ug-pr-toolbar,.ug-nd-tabs,.ug-market-actions) {
+    margin:7px 0;
+    gap:5px;
+}
+#placeReportBody :is(.ugmp-card,.ug-nd-report,.ug-market-view) :is(button,select) {
+    font-family:inherit;
+    font-size:var(--sheet-body);
+    line-height:1.35;
+}
+#placeReportBody .ugmp-card label { margin:4px 0; font-size:var(--sheet-caption); }
+#placeReportBody .ugmp-card select { padding:4px 6px; }
+#placeReportBody :is(.ugmp-graphic-grid,.ug-market-context-grid,.ug-pr-metrics,.ug-nd-metrics,.ug-ma-hex-scores,.ugsp-radials) {
+    gap:var(--sheet-gap);
+}
+#placeReportBody :is(.ug-nd-metrics,.ug-pr-metrics,.ug-ma-hex-scores) > div { padding:7px 9px; }
+#placeReportBody :is(.ug-pr-metrics,.ug-nd-metrics,.ug-ma-hex-scores) :is(strong,b),
+#placeReportBody :is(.ug-market-view,.ug-nd-current-summary) .v2-sheet-metric strong,
+#placeReportBody :is(.ugmp-evidence-value,.ug-nd-rate-bar > strong) {
+    font-size:var(--sheet-value);
+    line-height:1.25;
+}
+#placeReportBody :is(.ug-market-view,.ug-nd-current-summary) .v2-sheet-metric span { font-size:.50rem; }
+#placeReportBody :is(.ug-market-view,.ug-nd-current-summary) .v2-sheet-metric small { font-size:.47rem; }
+#placeReportBody :is(.ug-nd-note,.ug-pr-scope,.ug-market-meta,.ugsp-status,.ugmp-reading-tabs span,.ugmp-note),
+#placeReportBody :is(.ug-nd-metrics,.ug-pr-metrics) :is(span,small),
+#placeReportBody .ugmp-graphic figcaption { font-size:var(--sheet-caption); }
+#placeReportBody :is(.ugmp-mode-row,.ugmp-mode-row b,.ugmp-graphic figcaption strong,.ugsp-radials figcaption,.ug-market-view summary) {
+    font-size:var(--sheet-body);
+}
+#placeReportBody .ugmp-graphic { margin:6px 0; padding:7px; }
+#placeReportBody .ugmp-graphic-grid > .ugmp-graphic { margin:0; }
+#placeReportBody .ugmp-strength-value { font-size:1.15rem; }
+#placeReportBody .ugmp-strength-value small { font-size:var(--sheet-body); }
+#placeReportBody :is(.ugsp-spider,.ugsp-radials figure,.ugsp-detail) { margin:4px 0; }
+#placeReportBody :is(.ugsp-spider svg,.ugsp-circles,.ugmp-radial svg) {
+    max-height:155px;
+    width:auto;
+    max-width:100%;
+    margin:0 auto;
+}
+#placeReportBody .ugmp-graphic svg { max-height:155px; }
+#placeReportBody .ugmp-radial svg { max-height:210px; }
+#placeReportBody .ugmp-gap svg { max-width:min(100%,330px); }
+#placeReportBody .ug-market-chart svg { max-height:75px; }
+#placeReportBody :is(.ug-market-table,.ug-nd-table,.ug-pr-table) :is(th,td) {
+    padding:4px 6px;
+    font-size:var(--sheet-body);
+}
+@media print {
+    #heightRangeStatus { display:none; }
+    #placeReportBody :is(.ugmp-card,.ug-market-scale,.v2-sheet-card:has(.ug-market-view)) { break-inside:auto; }
+    #placeReportBody .ug-market-context-grid { display:block; }
+    #placeReportBody :is(.ug-market-peer,.ug-market-chart,.v2-sheet-metric) { break-inside:avoid; }
+    #placeReportBody .ugmp-network-evidence::details-content { display:block; content-visibility:visible; }
+    #placeReportBody .ugmp-network-evidence > summary { list-style:none; break-after:avoid; }
+    #placeReportBody .ugmp-network-evidence > summary::marker { content:""; }
+    #placeReportBody .ugmp-graphic-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+
+#ugConnectivityCitywide [data-place] .ugc-row > i {
+    height: 4px;
+    border-radius: 999px;
+    background-color: #708798;
+}
+
+/* Share controls follow the existing header and report toolbar. */
+.atlas-share-icon {appearance:none;display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:transparent;color:#465762;border:1px solid transparent;cursor:pointer;}
+.atlas-share-icon:hover,.atlas-share-icon:focus-visible {background:#e8eff0;border-color:#a7b9bc;}
+.atlas-share-icon svg {width:16px;height:16px;}
+#shareMap {position:absolute;right:4px;bottom:3px;width:27px;height:27px;}
+#brand {padding-right:19px;}
+#shareReport {flex:none;}
+#atlasShareDialog {width:min(345px,calc(100vw - 32px));border:1px solid #b0babb;border-radius:10px;padding:18px;background:white;color:#23373b;box-shadow:0 14px 55px #152a342a;font:14px/1.5 Arial,sans-serif;}
+#atlasShareDialog::backdrop {background:#14252c38;}
+.share-heading,.share-choices {display:flex;align-items:center;gap:7px;}
+.share-heading h2 {font-size:18px;margin:0;}
+#shareClose {margin-left:auto;border:0;background:transparent;font-size:24px;cursor:pointer;}
+.share-choices button {border:1px solid #b5c2c4;border-radius:5px;background:#f4f7f7;padding:7px 10px;cursor:pointer;}
+#shareFeedback {display:block;margin-top:6px;}
+#shareLinkText {width:100%;margin-top:10px;}
+#shareStatus:not([hidden]) {position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#23353d;color:white;padding:6px 12px;border-radius:4px;z-index:2500;font:13px/1.4 Arial,sans-serif;}
+@media(max-width:600px){#shareMap{right:1px;bottom:0;}#shareReport{width:28px;height:28px;}}

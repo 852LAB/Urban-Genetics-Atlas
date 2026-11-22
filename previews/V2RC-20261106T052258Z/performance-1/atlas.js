@@ -506,9 +506,6 @@ const reclamationLegend =
 const reclamationLegendGradient =
     document.getElementById('reclamationLegendGradient');
 
-const reclamationSlider =
-    document.getElementById('reclamation-year');
-
 const reclamationYearValue =
     document.getElementById('reclamation-year-value');
 
@@ -522,9 +519,6 @@ const reclamationAreaValue =
 
 const buildingAgeControls =
     document.getElementById('buildingAgeControls');
-
-const buildingAgeYear =
-    document.getElementById('building-age-year');
 
 const buildingAgeYearValue =
     document.getElementById('building-age-year-value');
@@ -593,11 +587,6 @@ const buildingHeightMax =
 const buildingHeightValue =
     document.getElementById(
         'building-height-value'
-    );
-
-const buildingHeightSliderFill =
-    document.getElementById(
-        'building-height-slider-fill'
     );
 
 
@@ -2284,7 +2273,7 @@ welcomeCloseButton?.addEventListener(
 // Show on first visit
 // -----------------------------------------------------
 
-const welcomeDismissed =
+const welcomeDismissed = window.UGA_SHARED_VIEW?.incoming ||
     localStorage.getItem(
         WELCOME_STORAGE_KEY
     );
@@ -2391,11 +2380,15 @@ function armMobileBrandAfterWelcome(){
 // First interaction removes emphasis
 // -----------------------------------------------------
 
+// Keep the share control under the pointer until its activation completes.
 document.addEventListener(
     'pointerdown',
-    shrinkMobileBrand,
+    event => {
+        if (!event.target.closest?.('#shareMap')) shrinkMobileBrand();
+    },
     { passive:true }
 );
+document.getElementById('shareMap')?.addEventListener('click', shrinkMobileBrand);
 
 document.addEventListener(
     'wheel',
@@ -5927,7 +5920,6 @@ function ensureBuildingAgeHeritageData(){
             }
 
             buildingAgeHeritageSummary = data;
-            buildingAgeYearsCache = null;
 
             perfMark('Building Age / Heritage summary loaded');
 
@@ -6922,7 +6914,10 @@ perfMark('All map layers created');
     updateFabricOpacity();
 
     
-perfMark('Initial UI state applied');
+    updateReclamation();
+    updateBuildingAgeFilter();
+    if(buildingHeightToggle.checked) scheduleHeightRange(true);
+    perfMark('Initial UI state applied');
 
 // -----------------------------------------------------
 // Begin deliberate Atlas initialisation
@@ -7109,7 +7104,7 @@ let v2ReportRenderToken = 0;
 let ugaReturnToNativeReport = false;
 window.UGA_V2_REPORT_HOST = Object.freeze({
     version:'V2_EXTERNAL_REPORT_HOST_V0_1',
-    show({title,subtitle,html,kind='new-development'}){
+    show({title,subtitle,html,kind='new-development',publication={}}){
         if(!placeReportPanel || !placeReportBody) throw new Error('Report panel is unavailable.');
         if(!placeReportPanel.dataset.externalReportKind){
             ugaReturnToNativeReport = !placeReportPanel.hidden && !!window.UGA_V2_SELECTION?.getSelection();
@@ -7120,6 +7115,10 @@ window.UGA_V2_REPORT_HOST = Object.freeze({
         placeReportBody.innerHTML=html;
         placeReportBody.scrollTop=0;
         placeReportPanel.dataset.externalReportKind=kind;
+        placeReportBody.dataset.publicationType=publication.type || 'Market';
+        placeReportBody.dataset.publicationId=publication.id || '';
+        placeReportBody.dataset.publicationLocation=publication.location || '';
+        placeReportBody.dataset.publicationTitle=publication.title || '';
         placeReportPanel.hidden=false;
         placeReportPanel.setAttribute('aria-hidden','false');
         if(placeReportBack){placeReportBack.textContent='← Back';placeReportBack.setAttribute('aria-label','Back from '+(title || 'source report'));}
@@ -7251,6 +7250,9 @@ async function renderV2PlaceReport(selection, focus=null, historyDepth=0){
             v2ReportApi.renderReportHtml(
                 reportModel
             );
+        placeReportBody.dataset.publicationId = reportModel.focus.id;
+        placeReportBody.dataset.publicationName = window.UGA_V2_PLAN_AREA_NAMES?.[reportModel.record?.planning_dominant_plan_no] || reportModel.record?.census_hma_name || '';
+        placeReportBody.dataset.publicationLocation = reportModel.entityType === 'hex' ? reportModel.subtitle : (reportModel.record?.had_name_en || 'Hong Kong');
 
         placeReportPanel.hidden = false;
         placeReportPanel.setAttribute(
@@ -7415,7 +7417,7 @@ placeReportClose?.addEventListener(
 
 placeReportPrint?.addEventListener(
     'click',
-    () => window.print()
+    () => window.UGA_PUBLICATION.open()
 );
 
 // -----------------------------------------------------
@@ -8951,6 +8953,29 @@ function showPopup(
 
 }
 
+function showMobilityPlacePopup(hit, point, lngLat){
+    ++v2PopupRenderToken;
+    const selection=v2SelectionApi.createHexSelection({
+        identity:{hexId:hit.hexId},
+        activeLayer:{label:hit.label}
+    }, lngLat);
+    const reportWasOpen=v2SelectionApi.isReportOpen();
+    v2SelectionApi.setSelection(selection);
+    if(reportWasOpen){
+        hidePopup();
+        return;
+    }
+    const esc=v2ReportApi.escapeHtml;
+    popup.scrollTop=0;
+    popup.innerHTML=`
+        <section class="v2-popup" data-hex-id="${esc(hit.hexId)}">
+            <header><small>Mobility</small><h3>LAB-ID-${esc(hit.hexId)}</h3></header>
+            <div class="v2-popup-active"><span>${esc(hit.label)}</span>${hit.detail?`<strong>${esc(hit.detail)}</strong>`:''}</div>
+            <button type="button" data-v2-action="view-hex-report">View place details</button>
+        </section>`;
+    positionPopup(point);
+}
+
 // =====================================================
 // UNIFIED MAP CLICK HANDLER
 // =====================================================
@@ -9013,6 +9038,8 @@ map.on(
                 )
                 : null;
 
+        const mobilityHit=window.UGA_MOBILITY_CITYWIDE?.inspectAt?.(e.point);
+
         if(climateFeature){
             showClimateLayerPopup(
                 climateFeature,
@@ -9024,9 +9051,10 @@ map.on(
         }
 
 
-// -----------------------------------------------------
-// Nothing clicked
-// -----------------------------------------------------
+        if(mobilityHit && !atlasFeature && v2SelectionApi && v2ReportApi){
+            showMobilityPlacePopup(mobilityHit,e.point,e.lngLat);
+            return;
+        }
 
         if(
             !atlasFeature &&
@@ -9662,258 +9690,123 @@ document
 // URBAN FABRIC — BUILDING HEIGHT
 // =====================================================
 
-let buildingHeightFilterFrame = null;
-
-function updateBuildingHeightLabels(){
-
-    if(!buildingHeightMin || !buildingHeightMax){
-        return;
-    }
-
-    const minValue =
-        Number(buildingHeightMin.value);
-
-    const maxValue =
-        Number(buildingHeightMax.value);
-
-    if(buildingHeightValue){
-
-        buildingHeightValue.textContent =
-            `${minValue}–${maxValue >= 500 ? '500+' : maxValue} m`;
-
-    }
-
-    if(buildingHeightSliderFill){
-
-        const rangeMin =
-            Number(buildingHeightMin.min || 0);
-
-        const rangeMax =
-            Number(buildingHeightMin.max || 500);
-
-        const span =
-            rangeMax - rangeMin;
-
-        const left =
-            span > 0
-                ? ((minValue - rangeMin) / span) * 100
-                : 0;
-
-        const right =
-            span > 0
-                ? ((maxValue - rangeMin) / span) * 100
-                : 100;
-
-        buildingHeightSliderFill.style.left =
-            `${Math.max(0, Math.min(100, left))}%`;
-
-        buildingHeightSliderFill.style.width =
-            `${Math.max(0, Math.min(100, right - left))}%`;
-
-    }
-
-}
-
-function normaliseBuildingHeightRange(changed){
-
-    if(!buildingHeightMin || !buildingHeightMax){
-        return;
-    }
-
-    const minValue =
-        Number(buildingHeightMin.value);
-
-    const maxValue =
-        Number(buildingHeightMax.value);
-
-    if(minValue > maxValue){
-
-        if(changed === 'min'){
-
-            buildingHeightMin.value =
-                buildingHeightMax.value;
-
-        } else {
-
-            buildingHeightMax.value =
-                buildingHeightMin.value;
-
+// Each control keeps the native keyboard/touch handles and one inclusive range.
+function bindFabricRange(min, max, label, format, changed){
+    const fill = min.parentElement.querySelector('.building-height-slider-fill');
+    function draw(){
+        const low = min.valueAsNumber, high = max.valueAsNumber;
+        const span = Number(max.max) - Number(min.min);
+        fill.style.left = (low - Number(min.min)) * 100 / span + '%';
+        fill.style.width = (high - low) * 100 / span + '%';
+        label.textContent = format(low, high);
+        min.parentElement.style.setProperty('--selected-span', (high - low) * 100 / span + 'cqi');
+        // At a shared endpoint put the handle that can move away on top.
+        if(low === high && (low === Number(min.min) || high === Number(max.max))){
+            min.style.zIndex = low === Number(min.min) ? '2' : '4';
+            max.style.zIndex = low === Number(min.min) ? '4' : '2';
         }
-
     }
-
-}
-
-function activateBuildingHeightHandle(handle){
-
-    if(!buildingHeightMin || !buildingHeightMax){
-        return;
-    }
-
-    buildingHeightMin.style.zIndex =
-        handle === buildingHeightMin
-            ? '5'
-            : '3';
-
-    buildingHeightMax.style.zIndex =
-        handle === buildingHeightMax
-            ? '5'
-            : '2';
-
-}
-
-function updateBuildingHeightFilter(){
-
-    if(!map.getLayer('buildingHeight')){
-        return;
-    }
-
-    normaliseBuildingHeightRange();
-
-    const minValue = Math.min(
-        Number(buildingHeightMin?.value ?? 0),
-        Number(buildingHeightMax?.value ?? 500)
-    );
-
-    const maxValue = Math.max(
-        Number(buildingHeightMin?.value ?? 50),
-        Number(buildingHeightMax?.value ?? 500)
-    );
-
-    updateBuildingHeightLabels();
-
-    const heightExpression = [
-        'coalesce',
-        [
-            'to-number',
-            [
-                'get',
-                'baseline_building_height'
-            ]
-        ],
-        0
-    ];
-
-    const filterClauses = [
-        [
-            '>=',
-            heightExpression,
-            minValue
-        ]
-    ];
-
-    if(maxValue < 500){
-
-        filterClauses.push([
-            '<=',
-            heightExpression,
-            maxValue
-        ]);
-
-    }
-
-    map.setFilter(
-        'buildingHeight',
-        ['all', ...filterClauses]
-    );
-
-}
-
-function scheduleBuildingHeightUpdate(changed){
-
-    normaliseBuildingHeightRange();
-    updateBuildingHeightLabels();
-
-    if(buildingHeightFilterFrame){
-
-        cancelAnimationFrame(
-            buildingHeightFilterFrame
-        );
-
-    }
-
-    buildingHeightFilterFrame =
-        requestAnimationFrame(() => {
-
-            buildingHeightFilterFrame =
-                null;
-
-            updateBuildingHeightFilter();
-
+    for(const handle of [min, max]){
+        handle.addEventListener('focus', () => {
+            min.style.zIndex = handle === min ? '4' : '2';
+            max.style.zIndex = handle === max ? '4' : '2';
         });
-
-}
-
-buildingHeightToggle.addEventListener(
-    'change',
-    () => {
-
-        setLayerVisibility(
-            'buildingHeight',
-            buildingHeightToggle.checked &&
-            fabricToggle.checked
-        );
-
-        if(buildingHeightToggle.checked){
-
-            expandFabricModule(
-                buildingHeightModule
-            );
-
-        } else {
-
-            collapseFabricModule(
-                buildingHeightModule
-            );
-
-        }
-
-        updateBuildingHeightFilter();
-
+        handle.addEventListener('input', () => {
+            if(min.valueAsNumber > max.valueAsNumber) handle.value = handle === min ? max.value : min.value;
+            draw();
+            changed();
+        });
     }
-);
-
-buildingHeightMin?.addEventListener(
-    'input',
-    () => scheduleBuildingHeightUpdate('min')
-);
-
-buildingHeightMax?.addEventListener(
-    'input',
-    () => scheduleBuildingHeightUpdate('max')
-);
-
-buildingHeightMin?.addEventListener(
-    'pointerdown',
-    () => activateBuildingHeightHandle(buildingHeightMin),
-    { passive:true }
-);
-
-buildingHeightMax?.addEventListener(
-    'pointerdown',
-    () => activateBuildingHeightHandle(buildingHeightMax),
-    { passive:true }
-);
-
-buildingHeightMin?.addEventListener(
-    'focus',
-    () => activateBuildingHeightHandle(buildingHeightMin)
-);
-
-buildingHeightMax?.addEventListener(
-    'focus',
-    () => activateBuildingHeightHandle(buildingHeightMax)
-);
-
-if(buildingHeightMin){
-    buildingHeightMin.value = 0;
+    draw();
+    return () => [min.valueAsNumber, max.valueAsNumber];
 }
 
-if(buildingHeightMax){
-    buildingHeightMax.value = 500;
+const heightStatus = document.getElementById('heightRangeStatus');
+let heightTimer, heightNoticeTimer, heightPending = false;
+let heightApplied = '';
+const heightLoadErrors = new Set();
+const heightRange = bindFabricRange(buildingHeightMin, buildingHeightMax, buildingHeightValue,
+    (lo, hi) => `${lo}–${hi === 500 ? '500+' : hi} m`, scheduleHeightRange);
+
+function clearHeightStatus(){
+    clearTimeout(heightTimer);
+    clearTimeout(heightNoticeTimer);
+    heightPending = false;
+    heightStatus.hidden = true;
+    heightStatus.textContent = '';
 }
 
-updateBuildingHeightLabels();
+function showHeightStatus(text){
+    if(heightStatus.textContent !== text) heightStatus.textContent = text;
+    heightStatus.hidden = false;
+}
+
+function applyHeightRange(){
+    clearTimeout(heightTimer);
+    heightTimer = null;
+    if(!heightPending || !map.getLayer('buildingHeight')) return;
+    const [lo, hi] = heightRange();
+    const key = lo + ':' + hi;
+    if(key !== heightApplied){
+        const value = ['to-number', ['get', 'baseline_building_height'], 0];
+        const clauses = [['>', value, 0], ['>=', value, lo]];
+        if(hi < 500) clauses.push(['<=', value, hi]);
+        map.setFilter('buildingHeight', ['all', ...clauses]);
+        heightApplied = key;
+    }
+    map.triggerRepaint();
+}
+
+function scheduleHeightRange(immediate = false){
+    clearHeightStatus();
+    if(!buildingHeightToggle.checked || !fabricToggle.checked) return;
+    heightPending = true;
+    showHeightStatus('Updating building heights · ' + buildingHeightValue.textContent);
+    heightNoticeTimer = setTimeout(() => {
+        if(heightPending){
+            const message = heightLoadErrors.size ? 'Some height tiles could not load' : 'Still loading height tiles';
+            showHeightStatus(message + ' · ' + buildingHeightValue.textContent);
+        }
+    }, 6000);
+    if(immediate) applyHeightRange();
+    else heightTimer = setTimeout(applyHeightRange, 180);
+}
+
+// A render after style evaluation includes the tile state for this viewport.
+map.on('render', () => {
+    if(!heightPending || heightTimer || !map.getLayer('buildingHeight') ||
+       !map.isSourceLoaded('atlas') || heightApplied !== heightRange().join(':')) return;
+    clearHeightStatus();
+    if(heightLoadErrors.size){
+        showHeightStatus('Some height tiles could not load · ' + buildingHeightValue.textContent);
+        heightNoticeTimer = setTimeout(clearHeightStatus, 6000);
+    }
+});
+// A successful sibling tile must not clear the notice for a failed request.
+function heightRequestKey(event){
+    return event.tile?.tileID?.key ?? 'source';
+}
+map.on('error', event => {
+    if(event.sourceId !== 'atlas') return;
+    heightLoadErrors.add(heightRequestKey(event));
+    if(heightPending) showHeightStatus('Some height tiles could not load · ' + buildingHeightValue.textContent);
+});
+map.on('sourcedata', event => {
+    if(event.sourceId === 'atlas' && (event.sourceDataType === 'metadata' || ['loaded','unloaded'].includes(event.tile?.state))){
+        heightLoadErrors.delete(heightRequestKey(event));
+    }
+});
+
+buildingHeightToggle.addEventListener('change', () => {
+    setLayerVisibility('buildingHeight', buildingHeightToggle.checked && fabricToggle.checked);
+    if(buildingHeightToggle.checked) expandFabricModule(buildingHeightModule);
+    else collapseFabricModule(buildingHeightModule);
+    scheduleHeightRange(true);
+});
+fabricToggle.addEventListener('change', () => scheduleHeightRange(true));
+for(const handle of [buildingHeightMin, buildingHeightMax]){
+    handle.addEventListener('change', applyHeightRange);
+}
 
 // =====================================================
 // URBAN FABRIC — ROADS
@@ -9983,169 +9876,44 @@ roadSecondaryToggle.addEventListener(
 // URBAN FABRIC — BUILDING AGE
 // =====================================================
 
-let buildingAgeFilterFrame = null;
-let buildingAgeYearsCache = null;
-
-function getBuildingAgeYears(){
-
-    if(buildingAgeYearsCache){
-        return buildingAgeYearsCache;
-    }
-
-    if(!buildingAgeHeritageSummary?.year_counts){
-        return [];
-    }
-
-    const years = [];
-
-    Object.entries(
-        buildingAgeHeritageSummary.year_counts
-    ).forEach(([year,count]) => {
-
-        const y = Number(year);
-        const n = Number(count);
-
-        if(
-            !Number.isFinite(y) ||
-            !Number.isFinite(n) ||
-            y <= 0 ||
-            n <= 0
-        ){
-            return;
-        }
-
-        for(let i = 0; i < n; i++){
-            years.push(y);
-        }
-    });
-
-    buildingAgeYearsCache =
-        years.sort((a,b) => a - b);
-
-    return buildingAgeYearsCache;
+function yearFilter(field, range){
+    const year = ['to-number', ['get', field], 0];
+    const [lo, hi] = range();
+    return ['all', ['>=', year, lo], ['<=', year, hi]];
 }
 
-function countYearsUpTo(
-    sortedYears,
-    target
-){
-
-    let low = 0;
-    let high = sortedYears.length;
-
-    while(low < high){
-
-        const mid =
-            Math.floor((low + high) / 2);
-
-        if(sortedYears[mid] <= target){
-            low = mid + 1;
-        } else {
-            high = mid;
-        }
-
-    }
-
-    return low;
-
+function bindYearRange(prefix, label, apply){
+    let frame;
+    return bindFabricRange(document.getElementById(prefix + '-min'), document.getElementById(prefix + '-max'),
+        label, (lo, hi) => lo === hi ? String(lo) : lo + '–' + hi, () => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(apply);
+        });
 }
+
+const constructionRange = bindYearRange('building-age', buildingAgeYearValue, () => {
+    updateBuildingAgeFilter();
+    updateBuildingAgeCount();
+});
 
 function updateBuildingAgeFilter(){
+    if(map.getLayer('buildingAge')) map.setFilter('buildingAge', yearFilter('Year', constructionRange));
+}
 
-    if(!map.getLayer('buildingAge')){
-        return;
+function sumYearRange(entries, range){
+    const [lo, hi] = range();
+    let total = 0;
+    for(const [year, amount] of entries){
+        if(Number(year) >= lo && Number(year) <= hi && Number.isFinite(Number(amount))) total += Number(amount);
     }
-
-    const selectedYear =
-        Number(buildingAgeYear.value);
-
-    map.setFilter(
-        'buildingAge',
-        [
-            'all',
-            [
-                '>',
-                [
-                    'to-number',
-                    [
-                        'get',
-                        'Year'
-                    ]
-                ],
-                0
-            ],
-            [
-                '<=',
-                [
-                    'to-number',
-                    [
-                        'get',
-                        'Year'
-                    ]
-                ],
-                selectedYear
-            ]
-        ]
-    );
-
+    return total;
 }
 
 function updateBuildingAgeCount(){
-
-    if(!buildingAgeHeritageSummary){
-        buildingAgeCountValue.textContent =
-            '—';
-        return;
-    }
-
-    const selectedYear =
-        Number(buildingAgeYear.value);
-
-    buildingAgeCountValue.textContent =
-        countYearsUpTo(
-            getBuildingAgeYears(),
-            selectedYear
-        ).toLocaleString();
-
+    const counts = buildingAgeHeritageSummary?.year_counts;
+    buildingAgeCountValue.textContent = counts ?
+        sumYearRange(Object.entries(counts), constructionRange).toLocaleString() : '—';
 }
-
-function scheduleBuildingAgeUpdate(){
-
-    if(buildingAgeFilterFrame){
-
-        cancelAnimationFrame(
-            buildingAgeFilterFrame
-        );
-
-    }
-
-    buildingAgeFilterFrame =
-        requestAnimationFrame(() => {
-
-            buildingAgeFilterFrame =
-                null;
-
-            updateBuildingAgeFilter();
-            updateBuildingAgeCount();
-
-        });
-
-}
-
-buildingAgeYear.addEventListener(
-    'input',
-    (e) => {
-
-        const selectedYear =
-            Number(e.target.value);
-
-        buildingAgeYearValue.textContent =
-            selectedYear;
-
-        scheduleBuildingAgeUpdate();
-
-    }
-);
 
 // =====================================================
 // URBAN FABRIC — HERITAGE
@@ -10358,157 +10126,33 @@ grade3Toggle.addEventListener(
 // Reclaimed Slider
 // -----------------------------------------------------
 
-function updateReclamation(){
+const reclamationRange = bindYearRange('reclamation', reclamationYearValue, updateReclamation);
+let reclamationAreas, reclamationRead;
 
-    const selectedYear =
-        Number(
-            reclamationSlider.value
-        );
-
-
-    // Update displayed year
-
-    reclamationYearValue.textContent =
-        selectedYear;
-
-
-// -----------------------------------------------------
-// Update reclaimed fill
-// -----------------------------------------------------
-
-    if(
-        map.getLayer(
-            'reclaimed'
-        )
-    ){
-
-        map.setFilter(
-            'reclaimed',
-
-            [
-                '<=',
-
-                [
-                    'to-number',
-                    [
-                        'get',
-                        'year'
-                    ]
-                ],
-
-                selectedYear
-            ]
-
-        );
-
-    }
-
-
-// -----------------------------------------------------
-// Update reclaimed outline
-// -----------------------------------------------------
-
-    if(
-        map.getLayer(
-            'reclaimed-outline'
-        )
-    ){
-
-        map.setFilter(
-            'reclaimed-outline',
-
-            [
-                '<=',
-
-                [
-                    'to-number',
-                    [
-                        'get',
-                        'year'
-                    ]
-                ],
-
-                selectedYear
-            ]
-
-        );
-
-    }
-
-
-// -----------------------------------------------------
-// Reclaimed Area Calculation
-// -----------------------------------------------------
-
-    const features =
-        map.querySourceFeatures(
-            'reclaimed'
-        );
-
-
-    let totalArea = 0;
-
-
-    features.forEach(
-        feature => {
-
-            const year =
-                Number(
-                    feature.properties.year
-                );
-
-
-            const area =
-                Number(
-                    feature
-                        .properties
-                        .reclamation_area_sqm
-                );
-
-
-            if(
-
-                year <= selectedYear &&
-
-                Number.isFinite(area)
-
-            ){
-
-                totalArea += area;
-
-            }
-
-        }
-    );
-
-
-    reclamationAreaValue.textContent =
-        (
-            totalArea / 1000000
-        ).toFixed(1) +
-        ' km²';
-
+function updateReclamationArea(){
+    reclamationAreaValue.textContent = reclamationAreas ?
+        (sumYearRange(reclamationAreas, reclamationRange) / 1e6).toFixed(1) + ' km²' : '—';
 }
 
-
-// -----------------------------------------------------
-// Slider interaction
-// -----------------------------------------------------
-
-reclamationSlider.addEventListener(
-    'input',
-    updateReclamation
-);
-
-
-// -----------------------------------------------------
-// Initialise once map is idle
-// -----------------------------------------------------
-
-map.once(
-    'idle',
-    updateReclamation
-);
+function updateReclamation(){
+    const filter = yearFilter('year', reclamationRange);
+    for(const id of ['reclaimed', 'reclaimed-outline']){
+        if(map.getLayer(id)) map.setFilter(id, filter);
+    }
+    updateReclamationArea();
+    const source = map.getSource('reclaimed');
+    if(!source || !reclaimedToggle.checked || reclamationAreas || reclamationRead) return;
+    // Use each original feature once. Render tiles can duplicate or clip a polygon.
+    reclamationRead = source.getData().then(data => {
+        if(!Array.isArray(data?.features)) return;
+        reclamationAreas = new Map();
+        for(const {properties} of data.features){
+            const year = Number(properties?.year), area = Number(properties?.reclamation_area_sqm);
+            if(Number.isFinite(area)) reclamationAreas.set(year, (reclamationAreas.get(year) || 0) + area);
+        }
+        updateReclamationArea();
+    }).catch(() => { reclamationAreaValue.textContent = '—'; }).finally(() => { reclamationRead = null; });
+}
 
 
 // =====================================================

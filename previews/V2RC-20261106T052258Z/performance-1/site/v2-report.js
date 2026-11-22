@@ -138,6 +138,22 @@
         return `${title}${card('Internal QA context · three-building pilot',metrics+note(`${network.recorded_stair_links} recorded stair links and ${network.recorded_mechanical_links} recorded mechanical links occur in this evidence window. The QA selection labels do not establish building use or representativeness.`)+note('Proximity and source-link gradients do not assign an entrance, establish physical or permitted access, or measure reach from this Building.','caution')+access+evidence)}`;
     }
 
+    function placeLocation(record, district){
+        const names=[];
+        const seen=new Set();
+        const planArea=root?.UGA_V2_PLAN_AREA_NAMES?.[record?.planning_dominant_plan_no];
+        for(const value of [record?.had_name_en || district, planArea, record?.census_hma_name]){
+            const name=clean(value);
+            if(!name || /^(?:unknown|not available|not assessed|unassigned|other buildings|n\/a|[-—])$/i.test(name)) continue;
+            const key=name.replace(/\s+/g,' ').toLowerCase();
+            if(!seen.has(key)){
+                seen.add(key);
+                names.push(name);
+            }
+        }
+        return names.join(' · ') || 'Location details unavailable';
+    }
+
     function buildReportViewModel(selection,focus=null){
         if(!selection || typeof selection !== 'object') throw new Error('A V2 selection is required to build the report.');
         const activeFocus=focus || selection.initialFocus || {type:'hex',id:selection.hexId || selection.primaryHexId};
@@ -156,7 +172,7 @@
             ? `LAB-ID-${hexId}`
             : activeFocus.label || entity?.label || `${activeFocus.type === 'building' ? 'Building' : 'Lot'} ${activeFocus.id}`;
         const subtitle=activeFocus.type === 'hex'
-            ? 'Place overview · Lenses and supporting evidence'
+            ? placeLocation(record,selection.place?.geography?.hadDistrict)
             : activeFocus.type === 'building'
                 ? 'Property evidence with immediate, neighbourhood and city context'
                 : 'Lot evidence with local analytical context';
@@ -791,7 +807,7 @@
             ? 'Primary area · ' + record.signature_name
             : record.signature_name || record.had_name_en || '852LAB';
         return `<header class="v2-sheet-masthead${signature?' has-ugs-colour':''}"${signature?` style="${escapeHtml(signature.style)}"`:''}>
-            <div><span>${escapeHtml(eyebrow)}</span><h1>${escapeHtml(model.title)}</h1><p>${escapeHtml(model.subtitle)}</p></div>
+            <div><span>${escapeHtml(eyebrow)}</span><h1>${escapeHtml(model.title)}</h1><p${model.entityType==='hex'?' title="District, outline zoning plan area and Census housing market area, where available."':''}>${escapeHtml(model.subtitle)}</p></div>
             <div class="v2-sheet-id"><strong>${escapeHtml(badge)}</strong><span>${escapeHtml(contextLabel)}</span></div>
         </header>`;
     }
@@ -1020,7 +1036,13 @@
     }
 
     function relationshipEvidence(model){
-        return `<details class="v2-report-technical v2-report-relationships" open><summary>Buildings and Lots connected to this place</summary><div class="v2-sheet-columns"><div>${card('Connected Buildings',relationList(model.relationships.buildings,'No Building intersection is recorded.'))}</div><div>${card('Connected Lots',relationList(model.relationships.lots,'No Lot intersection is recorded.'))}</div></div>${note('Shares are calculated from polygon intersections with the underlying analytical area. Select any row to reopen the report from that Building or Lot viewpoint.')}</details>`;
+        const emptyBuildings=Number(model.record?.building_intersection_count)>0
+            ? 'The place record reports Building intersections. Their individual records are unavailable here.'
+            : 'No Building intersection is recorded.';
+        const emptyLots=Number(model.record?.lot_intersection_count)>0
+            ? 'The place record reports Lot intersections. Their individual records are unavailable here.'
+            : 'No Lot intersection is recorded.';
+        return `<details class="v2-report-technical v2-report-relationships" open><summary>Buildings and Lots connected to this place</summary><div class="v2-sheet-columns"><div>${card('Connected Buildings',relationList(model.relationships.buildings,emptyBuildings))}</div><div>${card('Connected Lots',relationList(model.relationships.lots,emptyLots))}</div></div>${note('Shares are calculated from polygon intersections with the underlying analytical area. Select any row to reopen the report from that Building or Lot viewpoint.')}</details>`;
     }
 
     function renderReportHtml(model){

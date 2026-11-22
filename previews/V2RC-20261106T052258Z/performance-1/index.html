@@ -6,13 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#f5f5f5">
 
-    <title>852LAB · Urban Genetics V2 — Development Preview</title>
+    <title>852LAB · Hong Kong Atlas</title>
     <meta name="description" content="Explore connected evidence about Hong Kong and the Urban Genetics lenses that reveal relationships no single dataset shows.">
     <meta property="og:title" content="852LAB · Hong Kong Urban Atlas">
     <meta property="og:description" content="See the city through a different lens. Explore evidence, relationships and Urban Genetics analyses across Hong Kong.">
     <meta name="twitter:title" content="852LAB · Hong Kong Urban Atlas">
     <meta name="twitter:description" content="See the city through a different lens. Explore evidence, relationships and Urban Genetics analyses across Hong Kong.">
-    <meta name="atlas-release" content="V2 Development Preview · V2RC-20261106T052258Z">
+    <meta name="atlas-release" content="V2 Atlas · V2RC-20261106T052258Z">
 
     <link rel="icon" type="image/png" href="assets/Favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.9.0/dist/maplibre-gl.css" rel="stylesheet">
-    <link href="styles.css?v=experience-20261120" rel="stylesheet">
+    <link href="styles.css?v=publication-share-1" rel="stylesheet">
     <link href="site/market-data.css" rel="stylesheet">
 <!-- UGA_SRPE_CSS_V01 -->
 <link rel="stylesheet" href="site/market-srpe/v0.1/srpe-registers.css?v=stage7c-20261108">
@@ -49,6 +49,7 @@
 <body>
 
     <div id="map"></div>
+    <div id="heightRangeStatus" class="glass" role="status" aria-live="polite" aria-atomic="true" hidden></div>
 
     <!-- =====================================================
      ATLAS INITIALISATION / WARM-UP
@@ -219,6 +220,7 @@
             <div class="version">Hong Kong Atlas · V2</div>
         </div>
     </div>
+    <button type="button" id="shareMap" class="atlas-share-icon" aria-label="Share current map view" title="Share current map view" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 10.5 16 6M8.5 13.5 16 18"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="5" r="2.6"/><circle cx="18" cy="19" r="2.6"/></svg></button>
 </header>
 
 <!-- =====================================================
@@ -826,28 +828,26 @@ FABRIC BODY
                         <div class="reclamation-year">
 
                             <span>
-                                Show reclamation up to:
+                                Reclamation years
                             </span>
 
                             <strong id="reclamation-year-value">
-                                2025
+                                1800–2025
                             </strong>
 
                         </div>
 
-                        <input
-                            type="range"
-                            id="reclamation-year"
-                            min="1800"
-                            max="2025"
-                            step="1"
-                            value="2025"
-                        >
+                        <div class="building-height-slider" role="group" aria-label="Reclamation years">
+                            <div class="building-height-slider-track"></div>
+                            <div class="building-height-slider-fill"></div>
+                            <input type="range" id="reclamation-min" min="1800" max="2025" step="1" value="1800" aria-label="First reclamation year">
+                            <input type="range" id="reclamation-max" min="1800" max="2025" step="1" value="2025" aria-label="Last reclamation year">
+                        </div>
 
                         <div class="reclamation-area">
 
                             <span>
-                                Total reclaimed land:
+                                Dated area in range:
                             </span>
 
                             <strong id="reclamation-area-value">
@@ -908,8 +908,7 @@ FABRIC BODY
                                 Slider
                             </strong>
 
-                            — Move the year to see how reclamation has
-                            progressively redrawn Hong Kong's coastline.
+                            — Choose the first and last year to see which areas were reclaimed during that period.
 
                         </div>
 
@@ -978,23 +977,21 @@ FABRIC BODY
                         <div class="building-age-year">
 
                             <span>
-                                Buildings up to:
+                                Construction years
                             </span>
 
                             <strong id="building-age-year-value">
-                                2025
+                                1945–2025
                             </strong>
 
                         </div>
 
-                        <input
-                            type="range"
-                            id="building-age-year"
-                            min="1945"
-                            max="2025"
-                            step="5"
-                            value="2025"
-                        >
+                        <div class="building-height-slider" role="group" aria-label="Construction years">
+                            <div class="building-height-slider-track"></div>
+                            <div class="building-height-slider-fill"></div>
+                            <input type="range" id="building-age-min" min="1945" max="2025" step="1" value="1945" aria-label="First construction year">
+                            <input type="range" id="building-age-max" min="1945" max="2025" step="1" value="2025" aria-label="Last construction year">
+                        </div>
 
                         <div class="building-age-count">
 
@@ -1505,14 +1502,14 @@ FABRIC BODY
                             min="0"
                             max="500"
                             step="10"
-                            value="50"
+                            value="0"
                             aria-label="Minimum mean building height"
                         >
 
                         <input
                             type="range"
                             id="building-height-max"
-                            min="10"
+                            min="0"
                             max="500"
                             step="10"
                             value="500"
@@ -1524,11 +1521,11 @@ FABRIC BODY
                     <div class="building-height-range">
 
                         <span>
-                            Showing:
+                            Selected:
                         </span>
 
                         <strong id="building-height-value">
-                            50–500+ m
+                            0–500+ m
                         </strong>
 
                     </div>
@@ -1788,6 +1785,7 @@ FABRIC BODY
                 <div id="placeReportSubtitle" class="v2-report-subtitle">Place overview · Lenses and supporting evidence</div>
             </div>
 
+            <button type="button" id="shareReport" class="atlas-share-icon" aria-label="Share report" title="Share report" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 10.5 16 6M8.5 13.5 16 18"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="5" r="2.6"/><circle cx="18" cy="19" r="2.6"/></svg></button>
             <button
                 type="button"
                 id="placeReportPrint"
@@ -1865,7 +1863,8 @@ FABRIC BODY
     <script src="site/v2-hex-report-binding.js"></script>
     <script src="site/v2-report-benchmarks.js"></script>
     <script src="site/v2-mobility-context.js"></script>
-    <script src="site/v2-report.js?v=experience-20261120"></script>
+    <script src="site/v2-plan-area-names.js?v=place-review-20261121"></script>
+    <script src="site/v2-report.js?v=publication-1"></script>
 <!-- UGA_SRPE_DEV_V01 -->
 <script src="site/market-srpe/v0.1/srpe-register-data.js?v=stage7c-20261108"></script>
 <script src="site/market-srpe/v0.1/srpe-registers.js?v=stage7c-20261108"></script>
@@ -1875,28 +1874,30 @@ FABRIC BODY
 <!-- UGA_NEW_DEVELOPMENTS_AREA_V01 -->
 <script src="site/market-new-developments/v0.4/new-developments-area-data.js?v=stage7c-20261108"></script>
 <script src="site/market-new-developments/v0.6/building-links.js?v=stage7c-20261108"></script>
-<script src="site/market-new-developments/v0.6/new-developments.js?v=experience-20261120"></script>
+<script src="site/market-new-developments/v0.6/new-developments.js?v=publication-share-1"></script>
 <!-- UGA Market report experience v0.1 -->
 <script src="site/market-report/v0.1/hkha-context.js?v=stage7c-20261108"></script>
 <script src="site/market-report/v0.1/hkha-secondary.js?v=stage7c-20261108"></script>
 <script src="site/market-report/v0.1/public-housing-data.js?v=stage7c-20261108"></script>
-<script src="site/market-report/v0.1/public-housing.js?v=stage7c-20261108"></script>
+<script src="site/market-report/v0.1/public-housing.js?v=publication-share-1"></script>
 <script src="site/market-report/v0.1/context.js?v=stage7c-20261108"></script>
 <script src="site/market-report/v0.1/report.js?v=stage7c-20261108"></script>
     <script src="site/v2-address-search.js"></script>
     <script src="site/v2-entity-provider.js"></script>
     <script src="site/v2-entity-binding.js"></script>
-    <script src="atlas.js?v=experience-20261120"></script>
+    <script src="site/shared-view.js?v=1"></script>
+    <script src="site/publication/report.js?v=2"></script>
+    <script src="atlas.js?v=publication-share-1"></script>
     <script src="site/v2-climate-map.js?v=hosted-overlays-20261119-v2"></script>
     <script src="site/v2-native-demographics.js?v=hosted-overlays-20261119-v2"></script>
     <script src="site/market-data.js"></script>
 
 <!-- UGA_MOBILITY_REPORT_PROFILES_V01 -->
-<script src="site/mobility-reader/v0.4/report-profiles.js?v=experience-20261120"></script>
+<script src="site/mobility-reader/v0.4/report-profiles.js?v=publication-share-1"></script>
 
 <!-- UGA_CENTALINE_CURRENT_V02_JS_START -->
 <script src="site/market-private-resale/v0.2/data.js?v=experience-20261120"></script>
-<script src="site/market-private-resale/v0.2/private-resale.js?v=experience-20261120"></script>
+<script src="site/market-private-resale/v0.2/private-resale.js?v=publication-share-1"></script>
 <!-- UGA_CENTALINE_CURRENT_V02_JS_END -->
 <!-- UGA_MARKET_LEGEND_SECTIONS_V01_JS_START -->
 <script src="site/market-panel/v0.1/sections.js?v=experience-20261120"></script>
@@ -1911,6 +1912,13 @@ FABRIC BODY
 #ug-path-progress{position:fixed;top:22%;left:50%;transform:translateX(-50%);z-index:10000;pointer-events:none;color:var(--text-primary);padding:12px 19px;font:600 15px/1.45 system-ui;white-space:nowrap}
 #ug-path-progress:not([hidden])::before{content:'';display:inline-block;width:12px;height:12px;margin-right:10px;border:2px solid #1f293733;border-top-color:var(--text-primary);border-radius:50%;vertical-align:-2px;animation:ugSpin .8s linear infinite}
 @keyframes ugSpin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){#ug-path-progress:not([hidden])::before{animation:none}}
-</style><div id="ug-path-progress" class="glass" role="status" aria-live="polite" hidden></div></body>
+</style><div id="ug-path-progress" class="glass" role="status" aria-live="polite" hidden></div><dialog id="atlasShareDialog" aria-labelledby="shareTitle">
+ <div class="share-heading"><h2 id="shareTitle">Share</h2><button id="shareClose" type="button" aria-label="Close sharing options">×</button></div>
+ <p>Links reopen this configuration using the available Atlas data.</p>
+ <div class="share-choices"><button id="shareCopy" type="button">Copy link</button><button id="shareNative" type="button">Share link…</button><button id="sharePDF" type="button">Get PDF…</button></div>
+ <input id="shareLinkText" type="text" readonly hidden aria-label="Link to copy"><span id="shareFeedback" role="status"></span>
+</dialog>
+<div id="shareStatus" role="status" hidden></div>
+</body>
 
 </html>

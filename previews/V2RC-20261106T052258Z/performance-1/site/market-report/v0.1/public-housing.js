@@ -74,6 +74,13 @@
   renderLegend();let instance;try{instance=root.UGA_V2_MAP||(typeof map!=='undefined'?map:null);}catch{}if(instance)attachMap(instance);else status('Map unavailable; browse the source catalogue.');
  }
  function diagnostics(){return {map_connected:!!map,source_present:!!map?.getSource(SOURCE),layers:LAYERS.filter(x=>map?.getLayer(x)),enabled:state.enabled,filtered_points:geojson().features.length,catalogue_entries:data()?.records.length,last_error:lastError};}
- root.UGA_PUBLIC_HOUSING=Object.freeze({data,state,METRICS,select,measure,scale,color,legendModel,legendHtml,geojson,estate,catalogue,comparison,recordTable,openEstate,openCatalogue,attachMap,mapClick,refreshMap,diagnostics,boot});
+ root.UGA_PUBLIC_HOUSING=Object.freeze({async restoreRecords(kind,period,page){
+  const record=find(state.selected);
+  if(!record)return false;
+  await showRecords(record,kind);
+  const host=root.document.querySelector('#placeReportBody [data-ph-records]');
+  if(!host?.querySelector('table'))return false;
+  host.dataset.period=period;host.dataset.page=String(page);paintRecords(host);return true;
+ },renderSharedReport:render,data,state,METRICS,select,measure,scale,color,legendModel,legendHtml,geojson,estate,catalogue,comparison,recordTable,openEstate,openCatalogue,attachMap,mapClick,refreshMap,diagnostics,boot});
  if(root.document){if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();}
 })(globalThis);
