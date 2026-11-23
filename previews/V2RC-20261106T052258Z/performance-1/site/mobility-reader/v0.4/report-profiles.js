@@ -357,7 +357,7 @@ const SIGNATURE = (() => {
    if (!current()||!data) return;
    render();
    for (const mode of selections().slice(0,2)) {
-    if (needs(mode)&&!errors.has(mode)) void loadMode(mode);
+    if (needs(mode)&&!errors.has(mode)&&!loading.has(mode)) trackReportTask(loadMode(mode));
    }
   }
 
@@ -372,7 +372,7 @@ const SIGNATURE = (() => {
   const siteStatus=sitePanel.querySelector('[role="status"]');
   sitesButton.addEventListener('click',()=>{
    for (const mode of selections().slice(0,2)) {
-    if (data&&!Object.hasOwn(sites,mode)) void loadMode(mode);
+    if (data&&!Object.hasOwn(sites,mode)) trackReportTask(loadMode(mode));
    }
   });
   overview.ugspJourneyChanged=(minutes,mode)=>{
@@ -390,10 +390,10 @@ const SIGNATURE = (() => {
   });
   find('retry').addEventListener('click',()=>{
    for (const mode of selections().slice(0,2)) {
-    if (needs(mode)&&errors.has(mode)) void loadMode(mode);
+    if (needs(mode)&&errors.has(mode)) trackReportTask(loadMode(mode));
    }
   });
-  Promise.all([loadReferences(),loadRecords()]).then(async ([r,d])=>{
+  trackReportTask(Promise.all([loadReferences(),loadRecords()]).then(async ([r,d])=>{
    if (!current()) return;
    ref=r;data=d;
    try { await root.UGA_MOBILITY_CITYWIDE?.loadRoadData?.(); } catch {}
@@ -409,7 +409,7 @@ const SIGNATURE = (() => {
    render();
   }).catch(error=>{
    if (current()) overview.querySelector('.ugsp-status').textContent=error.message;
-  });
+  }));
  }
 
  function syncJourney(minutes,mode) {

@@ -2,8 +2,8 @@
 (() => {
   'use strict';
   const directory = new URL('.', document.currentScript.src);
-  const css = new URL('publication.css?v=1', directory);
-  const logo = new URL('../../assets/Logo-Mark.png', directory);
+  const css = new URL('publication.css?v=3', directory);
+  const logo = new URL('../../assets/Logo.png', directory);
   const clean = value => String(value || '').replace(/\s+/g, ' ').trim();
   const read = node => clean(node?.textContent);
   const make = (tag, value, cls) => {
@@ -15,6 +15,8 @@
   const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
   const native = () => document.querySelector('#placeReportBody');
   const host = () => document.querySelector('#placeReportPanel');
+  const bindings = new WeakMap();
+  function bind(article, vm, mapStyle) { if(article) bindings.set(article,{vm,mapStyle}); }
   function identity() {
     const state = window.UGA_V2_SELECTION?.snapshot?.();
     const external = host().dataset.externalReportKind;
@@ -29,13 +31,21 @@
       !/unavailable|failed|could not/i.test(read(n)));
   }
   async function capture() {
-    const id = identity(), body = native(), end = Date.now() + 35000;
+    const id = identity(), body = native(), end = Date.now() + 150000;
     const current = () => {
       if (host().hidden || identity() !== id) throw Error('The selected report changed. Open the publication from the place you want to print.');
       if (Date.now() >= end) throw Error('The report is still waiting for evidence. Return to the Atlas and try Print again once it has settled.');
     };
     current();
-    while (!body.querySelector('article') && !body.querySelector('.v2-report-failure')) { current(); await wait(100); }
+    // An entity transition may briefly leave the previous article in the host.
+    const matchesFocus=()=>{
+      const article=body.querySelector('article'),focus=window.UGA_V2_SELECTION?.snapshot?.()?.focus;
+      if(!article)return false;
+      if(host().dataset.externalReportKind||!focus)return true;
+      const vm=bindings.get(article)?.vm;
+      return vm && vm.focus.type===focus.type && String(vm.focus.id)===String(focus.id);
+    };
+    while (!matchesFocus() && !body.querySelector('.v2-report-failure')) { current(); await wait(100); }
     if (!host().dataset.externalReportKind) {
       let timer;
       try {
@@ -49,7 +59,16 @@
     try {
       while (loading(body) || Date.now() - changed < 180) { current(); await wait(70); }
       current();
-      return collect(body);
+      const bound=bindings.get(body.querySelector('article'));
+      if(bound?.vm.record){
+        const manifest=await bound.mapStyle.publicFrame().catch(()=>null);
+        bound.mapStyle.publicCells=manifest?.records;
+      }
+      current();
+      const model=collect(body);
+      if (model.mapSpec) model.locator=await window.UGA_PUBLICATION_LOCATOR.render(model.mapSpec);
+      if(host().hidden || identity()!==id) throw Error('The selected report changed while its publication was being prepared.');
+      return model;
     } finally { watch.disconnect(); }
   }
 
@@ -328,16 +347,19 @@
         const url=new URL(s.url), a=make('a',s.name);a.href=s.url;return [a,url.hostname];
       }));
     }
+    const binding=bindings.get(article);
+    if(binding && !sourceKind) Object.assign(model,window.UGA_PUBLICATION_EDITION.build(model,article,binding,{make,read,vector}));
     return model;
   }
-  function paginate(doc,model,imageData) {
+  function paginate(doc,model,imageData,full) {
     const main=doc.querySelector('main'), date=new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Hong_Kong'}).format(model.date);
-    let flow, active='', subheading='', deferred=[],folio,used=0;
+    main.replaceChildren();
+    let chapter='', flow, active='', subheading='', deferred=[],folio,used=0;
     function page(continued=false) {
       folio=make('section','','sheet');
       const head=make('header','','running'), brand=make('div','','brand'), mark=make('img');
       mark.src=imageData;mark.alt='';brand.append(mark,make('b','852LAB'));
-      head.append(brand,make('span','Hong Kong Atlas'),make('span',model.type+' report'));
+      head.append(brand,make('span',model.type+' intelligence  /  '+(model.placeTitle||model.location||model.title)));
       flow=make('div','','flow');const foot=make('footer');
       foot.append(make('span','Powered by Urban Genetics'),make('span',model.type==='Place'?model.title:model.id||model.title),make('b','','folio'));
       folio.append(head,flow,foot);main.append(folio);used=0;
@@ -409,6 +431,11 @@
       const foot=template.tFoot;foot?.remove();
       let current,body;
       function start(row){current=template.cloneNode(true);body=current.createTBody();body.append(row);place(current);current=flow.lastElementChild;body=current.tBodies[0];}
+      if(rows.length<=6 && used){
+        queueTitle();flow.append(t);
+        const move=!fits() && t.getBoundingClientRect().height<flow.clientHeight*.65;
+        t.remove();deferred.forEach(h=>h.remove());if(move)page(!deferred.length);
+      }
       start(rows[0]);
       for(const row of rows.slice(1)) {
         body.append(row);
@@ -417,19 +444,33 @@
       if(foot){current.append(foot);if(!fits()){foot.remove();place(foot.cloneNode(true));}}
     }
     page();
-    const intro=make('div','','opening');
-
-    intro.append(make('h1',model.placeTitle||model.title),make('p',model.location,'location'));
-    if(model.description && model.description!==model.location)intro.append(make('p',model.description,'descriptor'));
-    const meta=make('div','','edition');meta.append(make('span','Generated '+date+' · Hong Kong'));
-    if(model.placeTitle)meta.append(make('span',model.title));
-    else if(model.id && !model.title.includes(model.id))meta.append(make('span',model.id));
-    if(model.signature && !['852LAB','Hong Kong'].includes(model.signature)) {
-      const sign=make('b',[model.code,model.signature].filter(Boolean).join(' · '),'signature');
-      if(model.accent)sign.style.borderColor=model.accent;meta.append(sign);
+    const intro=make('div','','opening'), crest=make('img');
+    crest.src=imageData;crest.alt='852LAB';const identity=make('div');
+    identity.append(make('small','Hong Kong  /  '+model.type+' intelligence'),make('h1',model.placeTitle||model.title),
+      make('p',model.location,'location'),make('p',[model.type==='Place'?model.title:model.id||model.title,date].filter(Boolean).join('   /   '),'edition'));
+    intro.append(crest,identity);place(intro);
+    if(model.executive){
+      const guide=make('div','','cover-index');
+      guide.append(make('b',model.type==='Place'?'A place, through five lenses':model.type==='Building'?'Building and neighbourhood':'Lot and land context'),
+        make('span','City fabric   /   Mobility   /   Market   /   Demographics   /   Climate'));
+      place(guide);
+      const locator=window.UGA_PUBLICATION_EDITION.mapFigure(model.locator,make);
+      if(locator)place(locator);
     }
-    intro.append(meta);place(intro);
-    for(const {kind,element} of model.units) {
+    const archive=full||!model.executive;
+    const units=model.executive ? [...model.executive] : [];
+    if(archive){
+      if(model.executive)units.push({kind:'chapter',element:make('h2','Evidence and source records'),label:'Appendix',turn:true});
+      units.push(...model.units);
+    }
+    for(const entry of units) {
+      const {kind}=entry,element=entry.element.cloneNode(true);
+      if(kind==='chapter'){
+        if(entry.turn && used && flow.lastElementChild) page();
+        active=read(element);subheading='';chapter=entry.label;
+        const tag=make('div',chapter,'section-id');element.classList.add('chapter-title');
+        deferred.push(tag,element);continue;
+      }
       if(kind==='heading'){
         if(element.tagName==='H2'){active=element.firstChild?.textContent||read(element);subheading='';}
         else subheading=read(element);
@@ -473,12 +514,12 @@
     const png=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Page encoding failed.')),'image/png'));
     canvas.width=canvas.height=0;return png.arrayBuffer();
   }
-  async function prepareFile(win,model,toolbar,action){
+  async function prepareFile(win,model,toolbar,action,full){
     action.disabled=true;
     const d=win.document,sheets=[...d.querySelectorAll('.sheet')],style=d.querySelector('head style').textContent;
     try{
       const lib=await loadEncoder(),pdf=await lib.PDFDocument.create();
-      pdf.setTitle(model.title+' — 852LAB');pdf.setAuthor('852LAB · Urban Genetics');pdf.setSubject(model.location||model.type);
+      pdf.setTitle((model.placeTitle||model.title)+' — 852LAB '+model.type+(full?' · full evidence':''));pdf.setAuthor('852LAB · Urban Genetics');pdf.setSubject(model.location||model.type);
       for(const [i,sheet] of sheets.entries()){
         if(win.closed)return;
         action.textContent='Preparing '+(i+1)+' / '+sheets.length;
@@ -493,12 +534,12 @@
           }
         }
       }
-      const name='852LAB-'+[model.type,model.placeTitle||model.title].join('-').replace(/[^\p{L}\p{N}.-]+/gu,'-').slice(0,112)+'.pdf';
+      const name='852LAB-'+[model.type,model.placeTitle||model.title,...(full?['Full-evidence']:[])].join('-').replace(/[^\p{L}\p{N}.-]+/gu,'-').slice(0,112)+'.pdf';
       const file=new File([await pdf.save()],name,{type:'application/pdf'}),url=URL.createObjectURL(file);
-      const download=make('a','Download PDF');download.href=url;download.download=name;action.replaceWith(download);
+      const download=make('a','Download PDF');download.dataset.export='';download.href=url;download.download=name;action.replaceWith(download);
       win.addEventListener('pagehide',()=>URL.revokeObjectURL(url),{once:true});
       if(win.navigator.canShare?.({files:[file]})){
-        const send=make('button','Share PDF');send.onclick=async()=>{
+        const send=make('button','Share PDF');send.dataset.export='';send.onclick=async()=>{
           try{await win.navigator.share({title:model.title,files:[file]});}
           catch(error){if(error.name!=='AbortError')send.textContent='Use Download PDF';}
         };toolbar.append(send);
@@ -527,7 +568,24 @@
     const main=d.createElement('main');const toolbar=make('div','','toolbar'),label=make('span',model.title),button=make('button','Print / Save PDF');button.type='button';button.disabled=true;
     button.addEventListener('click',()=>win.print());toolbar.append(label,button);
     d.body.replaceChildren(toolbar,main);
-    paginate(d,model,imageData);
+    let full=false,file;
+    const paint=()=>{
+      d.title=(model.placeTitle||model.title)+' — 852LAB '+model.type+' report'+(full?' · full evidence':'');
+      return paginate(d,model,imageData,full);
+    };
+    paint();
+    if(model.executive){
+      const edition=make('select');edition.setAttribute('aria-label','Publication edition');
+      for(const [value,title] of [['brief','Executive report'],['full','Executive report + full evidence']]){
+        const opt=make('option',title);opt.value=value;edition.append(opt);
+      }
+      toolbar.insertBefore(edition,button);
+      edition.onchange=()=>{
+        full=edition.value==='full';paint();fitPreview();win.scrollTo(0,0);
+        toolbar.querySelectorAll('[data-export]').forEach(el=>el.remove());
+        delete d.documentElement.dataset.pdfFile;addFileAction();
+      };
+    }
     function fitPreview(){
       const width=Number.parseFloat(win.getComputedStyle(main.firstElementChild).width);
       if(width>0)main.style.setProperty('--page-zoom',Math.min(1,d.documentElement.clientWidth/width));
@@ -535,7 +593,14 @@
     fitPreview();win.addEventListener('resize',fitPreview);
     await Promise.all([...main.querySelectorAll('img')].map(img=>img.decode()));
     button.disabled=false;
-    const file=make('button','Prepare PDF');file.onclick=()=>prepareFile(win,model,toolbar,file);toolbar.append(file);
+    function addFileAction(){
+      file=make('button','Prepare PDF');file.dataset.export='';
+      file.onclick=async()=>{
+        const selector=toolbar.querySelector('select');if(selector)selector.disabled=true;
+        try {await prepareFile(win,model,toolbar,file,full);} finally {if(selector)selector.disabled=false;}
+      };toolbar.append(file);
+    }
+    addFileAction();
     d.documentElement.dataset.publication='ready';if(prepare===true)file.click();return d;
   }
   async function open(prepare=false) {
@@ -548,7 +613,7 @@
     try{const data=await capture();if(!win.closed)await display(win,data,prepare);}
     catch(e){if(!win.closed){d.documentElement.dataset.publication='error';d.body.replaceChildren(make('h1','Publication unavailable'),make('p',e.message));}}
   }
-  window.UGA_PUBLICATION=Object.freeze({open});
+  window.UGA_PUBLICATION=Object.freeze({open,bind});
   window.addEventListener('keydown',e=>{
     if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='p' && host() && !host().hidden){
       e.preventDefault();open();

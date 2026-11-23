@@ -81,12 +81,14 @@ const atlasInitialZoom =
 // MAP INITIALISATION
 // =====================================================
 
+const atlasBasemapStyle = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+
 function createAtlasMap(){
     try{
         maplibregl.addProtocol('pmtiles', new pmtiles.Protocol().tile);
         return new maplibregl.Map({
             container:'map',
-            style:'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+            style:atlasBasemapStyle,
             center:atlasInitialCenter, zoom:atlasInitialZoom, attributionControl:false
         });
     }catch(error){
@@ -7250,6 +7252,10 @@ async function renderV2PlaceReport(selection, focus=null, historyDepth=0){
             v2ReportApi.renderReportHtml(
                 reportModel
             );
+        window.UGA_PUBLICATION?.bind(placeReportBody.querySelector('article'),reportModel,{
+            palette:UGS_SIGNATURES,basemap:atlasBasemapStyle,tile:v2SiteConfig.map,
+            publicFrame:()=>v2HexProvider.loadManifest()
+        });
         placeReportBody.dataset.publicationId = reportModel.focus.id;
         placeReportBody.dataset.publicationName = window.UGA_V2_PLAN_AREA_NAMES?.[reportModel.record?.planning_dominant_plan_no] || reportModel.record?.census_hma_name || '';
         placeReportBody.dataset.publicationLocation = reportModel.entityType === 'hex' ? reportModel.subtitle : (reportModel.record?.had_name_en || 'Hong Kong');
