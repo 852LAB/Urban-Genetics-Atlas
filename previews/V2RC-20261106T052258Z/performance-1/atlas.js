@@ -7200,6 +7200,11 @@ async function renderV2PlaceReport(selection, focus=null, historyDepth=0){
     try{
 
         const activeFocus = focus || selection?.initialFocus || null;
+        const printStyle={
+            palette:UGS_SIGNATURES,basemap:atlasBasemapStyle,tile:v2SiteConfig.map,
+            publicFrame:()=>v2HexProvider.loadManifest()
+        };
+        window.UGA_V2_MOBILITY_PROFILES?.warmReportEvidence?.(activeFocus);
         let reportSelection = selection;
         if(v2EntityBindingApi){
             reportSelection = await v2EntityBindingApi.hydrate(
@@ -7210,7 +7215,12 @@ async function renderV2PlaceReport(selection, focus=null, historyDepth=0){
                     hexProvider:v2HexProvider,
                     climateProvider:v2ClimateProvider,
                     hexBinding:v2HexReportBindingApi,
-                    fieldAdapter:v2FieldAdapterApi
+                    fieldAdapter:v2FieldAdapterApi,
+                    onAreaRecord:(record,entity,hexId)=>{
+                        if(renderToken!==v2ReportRenderToken || placeReportPanel.hidden)return;
+                        window.UGA_PUBLICATION?.warmLocator({record,entity,hexId,entityType:activeFocus.type},printStyle);
+                        if(activeFocus.type!=='hex' && hexId)window.UGA_V2_MOBILITY_PROFILES?.warmReportEvidence?.(activeFocus,hexId);
+                    }
                 }
             );
         }
@@ -7255,10 +7265,7 @@ async function renderV2PlaceReport(selection, focus=null, historyDepth=0){
         const reportArticle=placeReportBody.querySelector('article');
         reportArticle.dataset.primaryHexId=reportModel.hexId;
         v2ReportApi.markSignature(placeReportBody,reportModel.record);
-        window.UGA_PUBLICATION?.bind(reportArticle,reportModel,{
-            palette:UGS_SIGNATURES,basemap:atlasBasemapStyle,tile:v2SiteConfig.map,
-            publicFrame:()=>v2HexProvider.loadManifest()
-        });
+        window.UGA_PUBLICATION?.bind(reportArticle,reportModel,printStyle);
         placeReportBody.dataset.publicationId = reportModel.focus.id;
         placeReportBody.dataset.publicationName = window.UGA_V2_PLAN_AREA_NAMES?.[reportModel.record?.planning_dominant_plan_no] || reportModel.record?.census_hma_name || '';
         placeReportBody.dataset.publicationLocation = reportModel.entityType === 'hex' ? reportModel.subtitle : (reportModel.record?.had_name_en || 'Hong Kong');

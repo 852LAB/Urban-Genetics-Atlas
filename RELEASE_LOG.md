@@ -1,5 +1,9 @@
 # Urban Genetics Atlas — Live Release Log
 
+## Report map and preparation
+
+Print shows preparation progress in the Atlas. The publication tab opens after the evidence, images and pages are ready. The report locator draws the base map and Signature tiles independently, with coordinates and a source note if a layer is unavailable. Report readers begin fetching the relevant Mobility evidence as the selection opens. [Application file manifest](release-manifest.json)
+
 ## 23 November 2026 · Revision 04 publications
 
 Place, Building and Lot reports carry the revised 852LAB executive and full-evidence layouts. Building and Lot accessibility readings use their largest intersecting analytical cell. The Share control now sits on the branding panel’s information row. [Application file manifest](release-manifest.json)

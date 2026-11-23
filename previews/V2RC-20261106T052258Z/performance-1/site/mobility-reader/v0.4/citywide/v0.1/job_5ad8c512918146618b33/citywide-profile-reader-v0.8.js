@@ -218,16 +218,28 @@ function loadRoadData() {
   const api=trialAPI();
   roadLoad=api.loadReferences().then(async ref=>{
    trialReference=ref;
-   roadPreview=validRoadProgress(await json(new URL('road-citywide-expanded.json',roadPath),roadPreviewSHA));
+   const preview=json(new URL('road-citywide-expanded.json',roadPath),roadPreviewSHA).then(validRoadProgress);
+   const progress=refreshProgress().catch(()=>false);
+   roadPreview=await preview;
+   await progress;
    mergeRoadCoverage();
-   try { await refreshProgress(); } catch {}
   }).catch(error=>{roadLoad=null;throw error});
  }
  return roadLoad;
 }
 
+// A complete road pair in the newer replay already has final precedence.
+async function loadRoadCell(id) {
+ if(roadData)return;
+ trialReference=await trialAPI().loadReferences();
+ await refreshProgress().catch(()=>false);
+ const row=roadProgress?.records[id];
+ if(row?.car!=null && row?.taxi!=null)return;
+ await loadRoadData();
+}
+
 function savedRoad(id,mode) {
- return roadData?.records[id]?.[mode];
+ return roadData ? roadData.records[id]?.[mode] : roadProgress?.records[id]?.[mode] ?? undefined;
 }
 
 function validRoadProgress(next) {
@@ -283,7 +295,7 @@ async function refreshProgress() {
    next.completed[mode]!==roadProgress.completed[mode]||next.assessed[mode]!==roadProgress.assessed[mode]);
   if (changed) {
    roadProgress=next;
-   mergeRoadCoverage();
+   if(roadPreview)mergeRoadCoverage();
   }
   roadValidator=validator;
   return changed;
@@ -1000,6 +1012,6 @@ function mount(){
 doc.addEventListener('click',event=>{let tab=event.target.closest?.('.mobile-sheet-tab');if(!tab)return;if(tab.hasAttribute('data-ug-mobility-tab')){event.preventDefault();event.stopImmediatePropagation();boot();mobileSection()}else if(section){section.classList.remove('mobile-sheet-active');section.setAttribute('aria-hidden','true');let own=doc.querySelector('[data-ug-mobility-tab]');own?.classList.remove('active');own?.setAttribute('aria-selected','false');if(own)own.tabIndex=-1}},true);
 doc.addEventListener('keydown',event=>{let tab=event.target.closest?.('.mobile-sheet-tab'),tabs=tab?.closest('[data-ug-mobility-nav]');if(!tabs||!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;let buttons=[...tabs.querySelectorAll('.mobile-sheet-tab')].filter(b=>!b.disabled),index=buttons.indexOf(tab),next=event.key==='Home'?0:event.key==='End'?buttons.length-1:(index+(event.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;event.preventDefault();event.stopImmediatePropagation();buttons[next]?.click();buttons[next]?.focus()},true);
 root.matchMedia?.('(max-width:900px)').addEventListener?.('change',event=>{if(!event.matches&&section){section.classList.remove('mobile-sheet-active');section.removeAttribute('aria-hidden')}});
-root.UGA_MOBILITY_CITYWIDE=Object.freeze({VERSION,open,close,inspectAt,refreshRoad,loadRoadData,savedRoad});if(doc.readyState==='loading')doc.addEventListener('DOMContentLoaded',mount,{once:true});else mount();root.addEventListener('load',mount,{once:true});if(root.MutationObserver&&doc.body&&!doc.querySelector('[data-ug-mobility-tab]')){observer=new root.MutationObserver(mount);observer.observe(doc.body,{childList:true,subtree:true})}
+root.UGA_MOBILITY_CITYWIDE=Object.freeze({VERSION,open,close,inspectAt,refreshRoad,loadRoadData,loadRoadCell,savedRoad});if(doc.readyState==='loading')doc.addEventListener('DOMContentLoaded',mount,{once:true});else mount();root.addEventListener('load',mount,{once:true});if(root.MutationObserver&&doc.body&&!doc.querySelector('[data-ug-mobility-tab]')){observer=new root.MutationObserver(mount);observer.observe(doc.body,{childList:true,subtree:true})}
 if(typeof module==='object'&&module.exports)module.exports={value,colour,expression,information,rows,set:(b,v,f)=>{band=b;view=v;family=f},state:()=>({opened,opacity,band,view,family,needsPaint})};
 })(globalThis);

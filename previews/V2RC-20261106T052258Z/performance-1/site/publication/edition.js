@@ -12,13 +12,24 @@
     if(!map)return make('p','Location reference unavailable for this record.','map-note');
     const fig=make('figure','','locator'), cap=make('figcaption');
     if(map.image){
-      const frame=make('div','','map-frame'),img=make('img');img.src=map.image;img.alt='Signature Analysis over the Hong Kong basemap';
+      const frame=make('div','','map-frame'),img=make('img');img.src=map.image;img.alt=map.hasBase?(map.hasSignature?'Signature Analysis over the Hong Kong basemap':'Hong Kong basemap'):'Public Signature cell locations';
       const bar=make('span','250 m','map-scale');bar.style.width=map.scale+'%';
       frame.append(img,make('i','','pin'),bar,make('b','N ↑','north'));fig.append(frame);
     }
     cap.append(make('b',map.basis),make('span',map.lat.toFixed(4)+'° N  /  '+map.lng.toFixed(4)+'° E'));
-    fig.append(cap,make('small',map.image?'© OpenStreetMap contributors · © CARTO':'Cartographic layers unavailable. Coordinates identify the location reference.'));
+    const credit=map.hasBase?(map.hasSignature?'':'Signature coverage unavailable · ')+'© OpenStreetMap contributors · © CARTO':
+      map.hasSignature?'852LAB Signature cells · basemap unavailable':'Cartographic layers unavailable. Coordinates identify the location reference.';
+    fig.append(cap,make('small',credit));
     return fig;
+  }
+  function locatorSpec(vm,mapStyle){
+    const r=vm.record||{},place=vm.entityType==='hex',type=vm.entityType==='building'?'Building':'Lot';
+    const coordinates=o=>o && finite(o.longitude??o.lng)&&finite(o.latitude??o.lat) ? [Number(o.longitude??o.lng),Number(o.latitude??o.lat)] : null;
+    let point=place?null:coordinates(vm.entity?.coordinates)||coordinates(vm.entity);
+    let basis=point?type+' location reference':'Analytical area centre';
+    if(!point)point=coordinates(r);
+    if(!place && point && basis==='Analytical area centre')basis='Primary area centre · LAB-ID-'+vm.hexId;
+    return point && Math.abs(point[0])<=180 && Math.abs(point[1])<=85 ? {...mapStyle,point,basis}:null;
   }
   function build(model,article,{vm,mapStyle},{make,read}) {
     const units=[],r=vm.record||{},type=model.type,place=type==='Place',building=type==='Building';
@@ -55,12 +66,7 @@
     function graphic(title,value,detail){
       const el=make('div','',title==='Urban Genetic Signature'?'callout signature-callout':'callout');el.append(make('small',title),make('b',value),make('p',detail));put(el);
     }
-    const coordinates=o=>o && finite(o.longitude??o.lng)&&finite(o.latitude??o.lat) ? [Number(o.longitude??o.lng),Number(o.latitude??o.lat)] : null;
-    let point=place?null:coordinates(vm.entity?.coordinates)||coordinates(vm.entity);
-    let basis=point?type+' location reference':'Analytical area centre';
-    if(!point)point=coordinates(r);
-    if(!place && point && basis==='Analytical area centre')basis='Primary area centre · LAB-ID-'+vm.hexId;
-    const mapSpec=point && Math.abs(point[0])<=180 && Math.abs(point[1])<=85 ? {...mapStyle,point,basis}:null;
+    const mapSpec=locatorSpec(vm,mapStyle);
     const coverGrid=place?article.querySelector('.v2-sheet-metric-grid--hero'):Array.from(article.querySelectorAll('.v2-sheet-card')).find(c=>/^(Building|Lot) snapshot$/i.test(read(c.querySelector('h3'))))?.querySelector('.v2-sheet-metric-grid');
     const measures=rowValues(coverGrid);
     label(place?'At a glance':building?'The building record':'The lot record');
@@ -271,5 +277,5 @@
     }
     return {executive:units,mapSpec};
   }
-  window.UGA_PUBLICATION_EDITION=Object.freeze({build,mapFigure});
+  window.UGA_PUBLICATION_EDITION=Object.freeze({build,mapFigure,locatorSpec});
 })();

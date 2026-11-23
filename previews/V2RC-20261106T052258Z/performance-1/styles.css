@@ -11447,3 +11447,7 @@ and (orientation:landscape){
 }
 
 .v2-sheet-metric strong {word-break:normal;overflow-wrap:normal;hyphens:none}
+
+#publicationProgress:not([hidden]) {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 14px;background:#eaf2f0;color:#274a44;font:600 .84rem/1.4 system-ui;}
+#publicationProgress button {font:inherit;color:inherit;cursor:pointer;background:white;border:1px solid #9db3ad;border-radius:5px;padding:3px 8px;}
+.publication-stage {position:fixed;left:-2400px;top:0;width:1024px;height:900px;border:0;visibility:hidden;pointer-events:none;}

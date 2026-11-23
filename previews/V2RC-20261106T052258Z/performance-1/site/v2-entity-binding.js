@@ -39,7 +39,11 @@
         const related = !provider ? null : active.type==='hex'
             ? provider.resolveHex(active.id) : provider.resolveEntity(active.type,active.id);
         function context(id){
-            return Promise.all([hexRecord(id,services.hexProvider,services.hexBinding,services.fieldAdapter),
+            const area=hexRecord(id,services.hexProvider,services.hexBinding,services.fieldAdapter).then(record=>{
+                services.onAreaRecord?.(record,relation?.entity,id);
+                return record;
+            });
+            return Promise.all([area,
                 climateRecord(id,services.climateProvider)]);
         }
         let relation, primaryHexId, record, climate;

@@ -16,7 +16,24 @@
   const native = () => document.querySelector('#placeReportBody');
   const host = () => document.querySelector('#placeReportPanel');
   const bindings = new WeakMap();
-  function bind(article, vm, mapStyle) { if(article) bindings.set(article,{vm,mapStyle}); }
+  let lastMap;
+  function locatorFor(spec){
+    if(!spec)return null;
+    const key=JSON.stringify([spec.point,spec.basis,spec.basemap,spec.tile.pmtilesUrl,spec.tile.sourceLayer]);
+    if(lastMap?.key===key && (!lastMap.retryAfter || Date.now()<lastMap.retryAfter))return lastMap.promise;
+    const entry={key,retryAfter:0,promise:window.UGA_PUBLICATION_LOCATOR.render(spec)};
+    lastMap=entry;
+    entry.promise.then(map=>{
+      if(!(map?.hasBase&&map?.hasSignature))entry.retryAfter=Date.now()+6000;
+    });
+    return entry.promise;
+  }
+  function warmLocator(vm,mapStyle){locatorFor(window.UGA_PUBLICATION_EDITION.locatorSpec(vm,mapStyle));}
+  function bind(article,vm,mapStyle){
+    if(!article)return;
+    warmLocator(vm,mapStyle);
+    bindings.set(article,{vm,mapStyle});
+  }
   function identity() {
     const state = window.UGA_V2_SELECTION?.snapshot?.();
     const external = host().dataset.externalReportKind;
@@ -30,10 +47,10 @@
       !n.children.length && /^(?:loading|calculating|searching|preparing)\b/i.test(read(n)) &&
       !/unavailable|failed|could not/i.test(read(n)));
   }
-  async function capture() {
+  async function capture(job) {
     const id = identity(), body = native(), end = Date.now() + 150000;
     const current = () => {
-      if (host().hidden || identity() !== id) throw Error('The selected report changed. Open the publication from the place you want to print.');
+      if (job!==active || host().hidden || identity() !== id) throw Error('The selected report changed. Open the publication from the place you want to print.');
       if (Date.now() >= end) throw Error('The report is still waiting for evidence. Return to the Atlas and try Print again once it has settled.');
     };
     current();
@@ -46,27 +63,33 @@
       return vm && vm.focus.type===focus.type && String(vm.focus.id)===String(focus.id);
     };
     while (!matchesFocus() && !body.querySelector('.v2-report-failure')) { current(); await wait(100); }
+    const article=body.querySelector('article'),bound=bindings.get(article);
+    const locator=bound?locatorFor(window.UGA_PUBLICATION_EDITION.locatorSpec(bound.vm,bound.mapStyle)):null;
+    const stage=message=>{if(job===active)document.querySelector('#publicationProgress [role=status]').textContent=message;};
+    const frame=bound?.vm.record?bound.mapStyle.publicFrame().catch(()=>null):null;
     if (!host().dataset.externalReportKind) {
       let timer;
+      const statusTimer=setTimeout(()=>stage('Preparing Report… Waiting for Mobility and Accessibility evidence.'),700);
       try {
-        await Promise.race([window.UGA_V2_MOBILITY_PROFILES?.settleForPublication?.(),
+        await Promise.race([window.UGA_V2_MOBILITY_PROFILES?.settleForPublication?.(article),
           new Promise((_, reject) => { timer = setTimeout(() => reject(Error('Mobility evidence is still being prepared. Please retry from the report.')), Math.max(1,end-Date.now())); })]);
-      } finally { clearTimeout(timer); }
+      } finally {clearTimeout(timer);clearTimeout(statusTimer);}
     }
+    current();
+    stage('Preparing Report… Composing pages.');
     let changed = Date.now();
     const watch = new MutationObserver(() => { changed = Date.now(); });
     watch.observe(body, {subtree:true, childList:true, characterData:true});
     try {
       while (loading(body) || Date.now() - changed < 180) { current(); await wait(70); }
       current();
-      const bound=bindings.get(body.querySelector('article'));
       if(bound?.vm.record){
-        const manifest=await bound.mapStyle.publicFrame().catch(()=>null);
+        const manifest=await frame;
         bound.mapStyle.publicCells=manifest?.records;
       }
       current();
       const model=collect(body);
-      if (model.mapSpec) model.locator=await window.UGA_PUBLICATION_LOCATOR.render(model.mapSpec);
+      if (model.mapSpec) model.locator=await (locator||locatorFor(model.mapSpec));
       if(host().hidden || identity()!==id) throw Error('The selected report changed while its publication was being prepared.');
       return model;
     } finally { watch.disconnect(); }
@@ -556,8 +579,12 @@
       note.textContent='File export unavailable. Use Print / Save PDF.';d.documentElement.dataset.pdfFile='error';
     }
   }
-  async function display(win,model,prepare) {
-    const d=win.document;d.title=model.title+' — 852LAB '+model.type+' report';
+  let assets;
+  function publicationAssets(){
+    if(!assets)assets=loadAssets().catch(error=>{assets=null;throw error;});
+    return assets;
+  }
+  async function loadAssets(){
     const controller=new AbortController(), deadline=setTimeout(()=>controller.abort(),15000);
     let imageData;
     try {
@@ -567,9 +594,14 @@
         return response;
       };
       const [styles,mark]=await Promise.all([load(css).then(r=>r.text()),load(logo).then(r=>r.blob())]);
-      const style=d.createElement('style');style.textContent=styles;d.head.append(style);
+
       imageData=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(mark);});
+      return {styles,imageData};
     } finally {clearTimeout(deadline);}
+  }
+  async function display(win,model,{styles,imageData}){
+    let d=win.document;
+    const style=d.createElement('style');style.textContent=styles;d.head.append(style);
     const main=d.createElement('main');const toolbar=make('div','','toolbar'),label=make('span',model.title),button=make('button','Print / Save PDF');button.type='button';button.disabled=true;
     button.addEventListener('click',()=>win.print());toolbar.append(label,button);
     d.body.replaceChildren(toolbar,main);
@@ -595,7 +627,7 @@
       const width=Number.parseFloat(win.getComputedStyle(main.firstElementChild).width);
       if(width>0)main.style.setProperty('--page-zoom',Math.min(1,d.documentElement.clientWidth/width));
     }
-    fitPreview();win.addEventListener('resize',fitPreview);
+    fitPreview();
     await Promise.all([...main.querySelectorAll('img')].map(img=>img.decode()));
     button.disabled=false;
     function addFileAction(){
@@ -606,19 +638,62 @@
       };toolbar.append(file);
     }
     addFileAction();
-    d.documentElement.dataset.publication='ready';if(prepare===true)file.click();return d;
+    return function present(tab,prepare){
+      const title=d.title;win=tab;d=tab.document;d.title=title;d.documentElement.lang='en';
+      const viewport=d.createElement('meta');viewport.name='viewport';viewport.content='width=device-width, initial-scale=1';
+      d.head.append(viewport,style);d.body.replaceChildren(toolbar,main);
+      fitPreview();win.addEventListener('resize',fitPreview);
+      d.documentElement.dataset.publication='ready';if(prepare)file.click();
+    };
   }
-  async function open(prepare=false) {
-    const win=window.open('','_blank');
-    if(!win){window.alert('Allow the Atlas to open the publication in a new tab, then choose Print again.');return;}
-    win.opener=null;
-    const d=win.document;d.documentElement.lang='en';
-    const viewport=d.createElement('meta');viewport.name='viewport';viewport.content='width=device-width, initial-scale=1';d.head.append(viewport);
-    d.title='Preparing 852LAB publication';d.body.append(make('p','Preparing the selected report…'));
-    try{const data=await capture();if(!win.closed)await display(win,data,prepare);}
-    catch(e){if(!win.closed){d.documentElement.dataset.publication='error';d.body.replaceChildren(make('h1','Publication unavailable'),make('p',e.message));}}
+  let active;
+  function reset(job){
+    if(!job || job!==active)return;
+    active=null;job.watch.disconnect();job.frame?.remove();
+    const bar=document.getElementById('publicationProgress');
+    bar.hidden=true;bar.querySelector('button').onclick=null;
+    document.getElementById('placeReportPrint').disabled=false;
   }
-  window.UGA_PUBLICATION=Object.freeze({open,bind});
+  async function open(prepare=false){
+    if(active?.id===identity() && active.running)return;
+    reset(active);
+    const bar=document.getElementById('publicationProgress'),text=bar.querySelector('[role=status]'),action=bar.querySelector('button');
+    const job={id:identity(),running:true};
+    active=job;
+    const valid=()=>active===job && !host().hidden && job.id===identity();
+    job.watch=new MutationObserver(()=>{if(!valid())reset(job);});
+    job.watch.observe(host(),{attributes:true,subtree:true,childList:true,attributeFilter:['hidden','data-external-report-kind']});
+    function cancel(){reset(job);}
+    action.textContent='Cancel';action.onclick=cancel;
+    text.textContent='Preparing Report…';bar.hidden=false;
+    document.getElementById('placeReportPrint').disabled=true;
+    try{
+      await wait(0);
+      const [model,resources]=await Promise.all([capture(job),publicationAssets()]);
+      if(!valid())return cancel();
+      const frame=make('iframe');frame.className='publication-stage';frame.tabIndex=-1;
+      frame.setAttribute('aria-hidden','true');frame.title='Report layout';job.frame=frame;
+      document.body.append(frame);
+      const present=await display(frame.contentWindow,model,resources);
+      if(!valid())return cancel();
+      function launch(){
+        if(!valid())return cancel();
+        const tab=window.open('','_blank');
+        if(!tab){
+          text.textContent='Report ready.';action.textContent='Open report';action.onclick=launch;
+          return;
+        }
+        tab.opener=null;present(tab,prepare);reset(job);
+      }
+      launch();
+    }catch(error){
+      if(!valid())return cancel();
+      job.running=false;job.frame?.remove();text.textContent=error.message;
+      document.getElementById('placeReportPrint').disabled=false;
+      action.textContent='Retry';action.onclick=()=>open(prepare);
+    }
+  }
+  window.UGA_PUBLICATION=Object.freeze({open,bind,warmLocator});
   window.addEventListener('keydown',e=>{
     if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='p' && host() && !host().hidden){
       e.preventDefault();open();
