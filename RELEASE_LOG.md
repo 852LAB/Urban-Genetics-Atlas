@@ -1,5 +1,9 @@
 # Urban Genetics Atlas — Live Release Log
 
+## 23 November 2026 · Revision 04 publications
+
+Place, Building and Lot reports carry the revised 852LAB executive and full-evidence layouts. Building and Lot accessibility readings use their largest intersecting analytical cell. The Share control now sits on the branding panel’s information row. [Application file manifest](release-manifest.json)
+
 ## 22 November 2026 · 852LAB publications and sharing
 
 [Release notes](release-notes/20261122-publications-and-sharing.md) · [Application file manifest](release-manifest.json)
