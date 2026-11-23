@@ -7252,7 +7252,10 @@ async function renderV2PlaceReport(selection, focus=null, historyDepth=0){
             v2ReportApi.renderReportHtml(
                 reportModel
             );
-        window.UGA_PUBLICATION?.bind(placeReportBody.querySelector('article'),reportModel,{
+        const reportArticle=placeReportBody.querySelector('article');
+        reportArticle.dataset.primaryHexId=reportModel.hexId;
+        v2ReportApi.markSignature(placeReportBody,reportModel.record);
+        window.UGA_PUBLICATION?.bind(reportArticle,reportModel,{
             palette:UGS_SIGNATURES,basemap:atlasBasemapStyle,tile:v2SiteConfig.map,
             publicFrame:()=>v2HexProvider.loadManifest()
         });

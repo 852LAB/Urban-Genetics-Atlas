@@ -260,6 +260,38 @@
         return {r:(value>>16)&255,g:(value>>8)&255,b:value&255};
     }
 
+    function markSignature(container,record){
+        const code=String(record?.signature_code||(!record?.signature_name?'U':'')).toUpperCase();
+        const category=UGS_SIGNATURES[code];
+        if(!container || !category)return;
+        const doc=container.ownerDocument,walker=doc.createTreeWalker(container,4),nodes=[];
+        while(walker.nextNode())nodes.push(walker.currentNode);
+        const {r,g,b}=hexToRgb(category.colour);
+        const linear=v=>v/255<=.04045?v/255/12.92:((v/255+.055)/1.055)**2.4;
+        const light=.2126*linear(r)+.7152*linear(g)+.0722*linear(b);
+        for(const node of nodes){
+            const parent=node.parentElement,value=node.textContent;
+            if(value.trim()!==code && !value.toUpperCase().includes(category.name))continue;
+            if(!parent || parent.closest('svg,option,button,.ugs-category,script,style'))continue;
+            const cell=parent.closest('td,dd'),row=cell?.closest('tr');
+            const field=(row?.cells[0]?.textContent||cell?.previousElementSibling?.textContent||parent.closest('.v2-technical-section p')?.firstElementChild?.textContent||'').trim();
+            const scope=parent.closest('.v2-sheet-id,.v2-sheet-section-title,.signature-callout,.axis-profile h3') ||
+                /^signature[ _](code|name|popup[ _]label)$/i.test(field) ||
+                (/^Urban character and derived conditions/i.test(parent.parentElement?.textContent||'')&&parent.matches('small')) ||
+                /urban signature/i.test(parent.parentElement?.querySelector(':scope > small,:scope > span')?.textContent||'');
+            const isCode=value.trim()===code && scope;
+            const at=isCode?value.indexOf(code):value.toUpperCase().indexOf(category.name);
+            if(at<0 || (!isCode && !category.name.includes(' ') && !scope))continue;
+            const length=isCode?code.length:category.name.length;
+            if(/[a-z0-9_]/i.test(value[at-1]||'')||/[a-z0-9_]/i.test(value[at+length]||''))continue;
+            const badge=doc.createElement('span');
+            badge.className='ugs-category';badge.dataset.signatureCode=code;
+            badge.style.backgroundColor=category.colour;badge.style.color=light>.179?'#000':'#fff';
+            badge.textContent=value.slice(at,at+length);
+            node.replaceWith(value.slice(0,at),badge,value.slice(at+length));
+        }
+    }
+
     function signaturePresentation(record){
         const signature=UGS_SIGNATURES[String(record?.signature_code||'').toUpperCase()]||null;
         if(!signature) return null;
@@ -560,7 +592,8 @@
                         const [x,y]=
                             point(index,1.27);
 
-                        return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}">${escapeHtml(axis.axis)}</text>`;
+                        const anchor=index===1?'start':index===4?'end':'middle';
+                        return `<text style="text-anchor:${anchor}" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${escapeHtml(axis.axis)}</text>`;
                     }
                 )
                 .join('');
@@ -599,7 +632,7 @@
 
                 <svg
                     class="v2-radar"
-                    viewBox="0 0 180 160"
+                    viewBox="-16 -4 212 164"
                     role="img"
                     aria-label="Five-axis urban profile"
                 >
@@ -1052,5 +1085,5 @@
         return renderLot(model);
     }
 
-    return Object.freeze({version:VERSION,buildReportViewModel,renderReportHtml,escapeHtml,contextPosition,signaturePresentation,mtrAccessibility});
+    return Object.freeze({version:VERSION,buildReportViewModel,renderReportHtml,escapeHtml,contextPosition,markSignature,signaturePresentation,mtrAccessibility});
 });

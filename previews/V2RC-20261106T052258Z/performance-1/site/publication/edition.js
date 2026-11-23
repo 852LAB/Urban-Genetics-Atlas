@@ -17,7 +17,7 @@
       frame.append(img,make('i','','pin'),bar,make('b','N ↑','north'));fig.append(frame);
     }
     cap.append(make('b',map.basis),make('span',map.lat.toFixed(4)+'° N  /  '+map.lng.toFixed(4)+'° E'));
-    fig.append(cap,make('small',map.image?'Signature Analysis · 60% opacity   /   © OpenStreetMap contributors · © CARTO':'Cartographic layers unavailable. Coordinates identify the location reference.'));
+    fig.append(cap,make('small',map.image?'© OpenStreetMap contributors · © CARTO':'Cartographic layers unavailable. Coordinates identify the location reference.'));
     return fig;
   }
   function build(model,article,{vm,mapStyle},{make,read}) {
@@ -31,7 +31,11 @@
       if(!rows.length)return;
       const grid=make('div','','readings '+cls);grid.style.setProperty('--n',Math.min(4,rows.length));
       for(const [name,value,basis] of rows){
-        const cell=make('div');cell.append(make('small',name),make('b',value||'Unassessed'));
+        const cell=make('div'),reading=make('b');
+        const text=String(value||'Unassessed');
+        if(text.includes('/')){cell.className='text-reading';text.split('/').forEach((word,i)=>{if(i)reading.append('/',document.createElement('wbr'));reading.append(word);});}
+        else reading.textContent=text;
+        cell.append(make('small',name),reading);
         if(basis)cell.append(make('span',basis));grid.append(cell);
       }
       put(grid);
@@ -49,7 +53,7 @@
       units.push({kind:'table',element:t});
     }
     function graphic(title,value,detail){
-      const el=make('div','','callout');el.append(make('small',title),make('b',value),make('p',detail));put(el);
+      const el=make('div','',title==='Urban Genetic Signature'?'callout signature-callout':'callout');el.append(make('small',title),make('b',value),make('p',detail));put(el);
     }
     const coordinates=o=>o && finite(o.longitude??o.lng)&&finite(o.latitude??o.lat) ? [Number(o.longitude??o.lng),Number(o.latitude??o.lat)] : null;
     let point=place?null:coordinates(vm.entity?.coordinates)||coordinates(vm.entity);
@@ -63,7 +67,7 @@
     if(!place){const address=read(article.querySelector('.v2-sheet-address'));if(address)note(address);}
     const keyMeasures=['Use','Storeys above ground','Building height','Footprint'];
     const lead=building?measures.filter(row=>keyMeasures.includes(row[0])):type==='Lot'?measures.filter(row=>!['Lot ID','Recorded Lot IDs'].includes(row[0])):measures;
-    strip(lead,'cover-readings');
+    strip(lead,building && lead.length===4?'cover-readings building-readings':'cover-readings');
     if(place)graphic('Urban Genetic Signature',r.signature_name||'Unassessed',r.signature_plain_language_summary||'No descriptive reading is available.');
     else {
       const rel=vm.relationships;
@@ -89,10 +93,10 @@
     axes.forEach(([key],i)=>{const [x,y]=xy(i,1);radar.append(svg('line',{x1:cx,y1:cy,x2:x,y2:y,stroke:'#d5d3d8'}));});
     const tint=mapStyle.palette[r.signature_code]?.colour||'#807788';
     if(score.every(v=>v!==null))radar.append(svg('polygon',{points:score.map((v,i)=>xy(i,v).join(',')).join(' '),fill:tint,'fill-opacity':.25,stroke:tint,'stroke-width':2.2}));
-    const positions=[[140,20],[221,88],[198,191],[80,191],[55,88]];
+    const positions=[[140,20],[222,88],[198,191],[80,191],[58,88]];
     axes.forEach(([key],i)=>{
       if(score[i]!==null){const [x,y]=xy(i,score[i]);radar.append(svg('circle',{cx:x,cy:y,r:3.3,fill:tint}));}
-      radar.append(svg('text',{x:positions[i][0],y:positions[i][1],'text-anchor':'middle','font-family':'Arial','font-size':12,fill:'#31383c'},key));
+      radar.append(svg('text',{x:positions[i][0],y:positions[i][1],'text-anchor':i===1?'start':i===4?'end':'middle','font-family':'Arial','font-size':12,fill:'#31383c'},key));
     });
     axbox.append(make('small','Five-axis Signature'),radar);
     list.append(make('h3',r.signature_name||'Unassessed'));
@@ -116,13 +120,14 @@
       }
     }
     const mob=article.querySelector('[data-ugmp-card]')||article.querySelector('[data-ug-report-panel="mobility"]');
-    const groups=Array.from(article.querySelectorAll('.ugsp-radials figure')), reach=Array.from(article.querySelectorAll('.ugsp-reach-row'));
-    const modes=['public','road'].map(k=>read(article.querySelector('[data-ugsp-'+k+']')?.selectedOptions?.[0])||(k==='public'?'Public transport':'Vehicle'));
+    const groups=Array.from(mob?.querySelectorAll('.ugsp-radials figure')||[]), reach=Array.from(mob?.querySelectorAll('.ugsp-reach-row')||[]);
+    const modes=['public','road'].map(k=>read(mob?.querySelector('[data-ugsp-'+k+']')?.selectedOptions?.[0])||(k==='public'?'Public transport':'Vehicle'));
     const hasMob=groups.length||reach.length;
-    chapter('02  /  Mobility',place?'What connects this place?':building?'Access from the building':'Access to the lot',!!hasMob);
+    chapter('02  /  Mobility',place?'What connects this place?':'Accessibility in the vicinity',!!hasMob);
+    if(!place && vm.hexId)note('LAB-ID-'+vm.hexId+' · largest recorded intersection with this '+type.toLowerCase()+'. Travel and destinations use the cell’s network starts. Direct '+type.toLowerCase()+' access is unassessed.');
     if(groups.length){
       const duo=make('div','','paired');
-      const refGroups=Array.from(article.querySelectorAll('.ugmp-mode-bars'));
+      const refGroups=Array.from(mob?.querySelectorAll('.ugmp-mode-bars')||[]);
       const reached=refGroups.find(g=>/network reach/i.test(g.getAttribute('aria-label')||''));
       const inside=refGroups.find(g=>/inside the cell/i.test(g.getAttribute('aria-label')||''));
       if(reached){
@@ -145,12 +150,12 @@
         duo.append(el);
       }
       put(duo);
-      const origin=article.querySelector('.ugmp-network-evidence >h4 + p');
+      const origin=mob?.querySelector('.ugmp-network-evidence >h4 + p');
       if(origin)note(read(origin));
       if(reached)note('Reference counts follow each source feed. Legacy and provider rail can overlap. Road times indicate the first matched link completed in each class.');
     }
     const reachAvailable=reach.some(row=>Array.from(row.querySelectorAll('.ugsp-bar-value'),read).some(v=>numeric(v)!==null));
-    const modeStatus=read(article.querySelector('.ugsp-status'));
+    const modeStatus=read(mob?.querySelector('.ugsp-status'));
     if(reach.length && !reachAvailable){
       label('Network-supported reach');
       note('Travel-time reach is unavailable for the selected origin and modes.'+(modeStatus?' '+modeStatus+'.':''));
@@ -167,19 +172,15 @@
       }
       const fig=make('figure','','reach-plot'),legend=make('figcaption');modes.forEach((v,i)=>{const k=make('b',v);k.style.setProperty('--ink',colours[i]);legend.append(k);});fig.append(legend,chart);put(fig);
       if(modeStatus)note(modeStatus);
-      const selected=article.querySelector('.ugsp-reach-row.ugsp-selected')||reach[0];
+      const selected=mob?.querySelector('.ugsp-reach-row.ugsp-selected')||reach[0];
       strip(Array.from(selected.querySelectorAll('.ugsp-bar-value'),(n,i)=>[modes[i],read(n),read(selected.firstElementChild)+' · supported cells']));
       note('Reach counts modelled analytical cells within each time band.'+(finite(mapStyle.publicCells)?' The public release contains '+number(mapStyle.publicCells)+' mapped report cells.':'')+' A cell count measures network-supported potential and gives no guarantee of a trip to a particular entrance.');
     }
     if(!hasMob){
       const status=read(mob?.querySelector('.ugmp-empty,.ugsp-status,.ugmp-note'))||read(mob?.querySelector('p'))||'No assessed origin is available for this record.';
       note(status);
-    }else if(building){
-      const gap=article.querySelector('.ugmp-network-gap');
-      const gapTitle=read(gap?.querySelector('h4,strong'));
-      note([gapTitle,'The Building network profile describes potential from retained paths. Entrance accessibility, the approach gap and step-free travel require separate evidence.'].filter(Boolean).join(' · '));
     }
-    const stationDetail=Array.from(article.querySelectorAll('details')).find(d=>read(d.querySelector(':scope >summary'))==='Destinations and assumptions');
+    const stationDetail=Array.from(mob?.querySelectorAll('details')||[]).find(d=>read(d.querySelector(':scope >summary'))==='Destinations and assumptions');
     const stations=Array.from(stationDetail?.querySelectorAll(':scope >div:has(>b)')||[],d=>{
       const n=d.querySelector('span'),first=n?.firstChild?.textContent?.trim();
       return [first||'',read(n?.querySelector('small')),read(d.querySelector('b'))];
@@ -195,7 +196,7 @@
       }
       put(grid);note('Nominal weekday-morning station arrival, including the modelled platform allowance. Final exit, onward walk and step-free access are outside this estimate.');
     }
-    const amen=article.querySelector('.ugsp-amenities');
+    const amen=mob?.querySelector('.ugsp-amenities');
     const amenAvailable=Array.from(amen?.children||[]).some(row=>Array.from(row.children).slice(1).some(n=>numeric(read(n))!==null));
     if(amen && !amenAvailable)note('Everyday destination counts are unavailable for the selected time band.');
     if(amenAvailable){
@@ -212,8 +213,7 @@
     }
     market();people();climate();endnotes();
     function market(){
-      const sect=article.querySelector('.ug-market-entity')?.parentElement;
-      chapter('03  /  Market','Movement and context',!!(hasMob||sect));
+      chapter('03  /  Market','Movement and context',stations.length>0 || !amenAvailable);
       const regional=[...article.querySelectorAll('.ug-market-scale table')].find(t=>/region/i.test(read(t.tHead))&&/rent/i.test(read(t.tHead)));
       if(regional){
         label('Regional price and rent movement');
@@ -237,7 +237,7 @@
     }
     function people(){
       const el=article.querySelector('.v2-age-legend'),items=Array.from(el?.children||[],read);
-      chapter('04  /  Demographics','People and households',Boolean(items.length));
+      chapter('04  /  Demographics','People and households',Boolean(items.length) && (stations.length>0 || !amenAvailable));
       if(items.length){
         const fig=make('div','','age-strip'),bands=make('div');for(const [i,span] of Array.from(article.querySelector('.v2-age-bar')?.children||[]).entries()){const part=make('i');part.style.width=span.style.width;part.style.background=[colours[2],colours[0],colours[3]][i];bands.append(part);}
         fig.append(bands,make('small',items.join('     /     ')));put(fig);

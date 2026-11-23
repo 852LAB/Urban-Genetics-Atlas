@@ -214,7 +214,11 @@
     }
     async function enrichEntity(entity,options={}){
         const previews=await compactRecords(relatedKeys(entity),options);
-        const hexes=(entity.hexes||[]).map((row,index)=>({
+        const hexRows=[...(entity.hexes||[])];
+        const measured=key=>hexRows.every(row=>row[key]!=null && Number.isFinite(Number(row[key])));
+        const rank=measured('overlap_m2')?'overlap_m2':measured('share')?'share':null;
+        if(rank) hexRows.sort((a,b)=>Number(b[rank])-Number(a[rank]));
+        const hexes=hexRows.map((row,index)=>({
             ...row,hexId:String(row.id),id:String(row.id),type:'hex',primary:index===0,
             relationshipRole:'POLYGON_INTERSECTION',relationshipShare:row.share,
             relationshipShareRelated:row.share_related??row.share_entity??null,

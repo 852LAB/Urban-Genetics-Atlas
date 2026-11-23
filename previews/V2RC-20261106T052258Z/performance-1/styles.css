@@ -11433,3 +11433,13 @@ and (orientation:landscape){
 #shareLinkText {width:100%;margin-top:10px;}
 #shareStatus:not([hidden]) {position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#23353d;color:white;padding:6px 12px;border-radius:4px;z-index:2500;font:13px/1.4 Arial,sans-serif;}
 @media(max-width:600px){#shareMap{right:1px;bottom:0;}#shareReport{width:28px;height:28px;}}
+
+/* The category rectangle uses the palette's actual fill and contrast-selected ink. */
+.ugs-category,.v2-sheet-id .ugs-category,.axis-profile .ugs-category,.metrics .ugs-category {
+ display:inline-block;max-width:100%;padding:.15em .48em;border-radius:2px;
+ font-family:Arial,sans-serif;font-size:.86em;font-weight:700;line-height:1.22;
+ letter-spacing:.015em;white-space:normal;word-break:normal;overflow-wrap:normal;
+ -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+
+.v2-sheet-metric strong {word-break:normal;overflow-wrap:normal;hyphens:none}

@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const directory = new URL('.', document.currentScript.src);
-  const css = new URL('publication.css?v=3', directory);
+  const css = new URL('publication.css?v=4', directory);
   const logo = new URL('../../assets/Logo.png', directory);
   const clean = value => String(value || '').replace(/\s+/g, ' ').trim();
   const read = node => clean(node?.textContent);
@@ -142,7 +142,9 @@
           const cell=make('div'), label=item.querySelector('span'), value=item.querySelector('strong,b');
           if (!label || !value) {cell.append(rich(item));}
           else {
-            cell.append(make('span',read(label)),make('strong',read(value)));
+            const text=make('strong'),parts=read(value).split('/');
+            parts.forEach((part,index)=>{if(index)text.append('/',document.createElement('wbr'));text.append(part);});
+            cell.append(make('span',read(label)),text);
             const meta=[...item.querySelectorAll('small,em')].map(read).filter(Boolean);
             if(meta.length) cell.append(make('small',meta.join(' · ')));
           }
@@ -348,7 +350,10 @@
       }));
     }
     const binding=bindings.get(article);
-    if(binding && !sourceKind) Object.assign(model,window.UGA_PUBLICATION_EDITION.build(model,article,binding,{make,read,vector}));
+    if(binding && !sourceKind){
+      Object.assign(model,window.UGA_PUBLICATION_EDITION.build(model,article,binding,{make,read,vector}));
+      for(const unit of [...model.executive,...model.units])window.UGA_V2_REPORT.markSignature(unit.element,binding.vm.record);
+    }
     return model;
   }
   function paginate(doc,model,imageData,full) {

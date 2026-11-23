@@ -48,7 +48,7 @@
             [relation,[record,climate]]=await Promise.all([related,context(primaryHexId)]);
         }else{
             relation=await related;
-            primaryHexId=String(relation?.primaryHexId||selection.primaryHexId||'')||null;
+            primaryHexId=String(relation?.primaryHexId||'')||null;
             [record,climate]=await context(primaryHexId);
         }
         const entities={
