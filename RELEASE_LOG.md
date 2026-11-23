@@ -2,7 +2,7 @@
 
 ## Report map and preparation
 
-Print shows preparation progress in the Atlas. The publication tab opens after the evidence, images and pages are ready. The report locator draws the base map and Signature tiles independently, with coordinates and a source note if a layer is unavailable. Report readers begin fetching the relevant Mobility evidence as the selection opens. [Application file manifest](release-manifest.json)
+Print shows preparation progress in the Atlas. The publication tab opens after the evidence, images and pages are ready. The report locator draws the basemap and release-matched Signature artwork independently, with coordinates and a source note if a layer is unavailable. Report readers begin fetching the relevant Mobility evidence as the selection opens. [Application file manifest](release-manifest.json)
 
 ## 23 November 2026 · Revision 04 publications
 

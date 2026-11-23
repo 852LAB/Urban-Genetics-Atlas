@@ -4,6 +4,41 @@
   'use strict';
   const width=960, height=390, zoom=14, tileSize=512/Math.sqrt(2), resolution=1.5;
   const archives=new Map();
+  const sheets=new URL('signature/',document.currentScript.src);
+  async function signatureGraphic(spec,tiles,signal) {
+    // This release's transparent print artwork contains only the public category colours.
+    const index=await (await resource(new URL('index.json',sheets),signal)).json();
+    if(index.release!==spec.tile.pmtilesUrl || index.source_layer!==spec.tile.sourceLayer || index.zoom!==zoom ||
+       Object.entries(index.palette).some(([code,colour])=>spec.palette[code]?.colour!==colour))throw Error('Print artwork does not match this release.');
+    const available=new Set(index.tiles),groups=new Map(),over=chart(),size=index.tile_pixels;
+    for(const t of tiles){
+      if(!available.has(t.x+'/'+t.y))continue;
+      const file=Math.floor(t.x/index.group)+'-'+Math.floor(t.y/index.group)+'.png';
+      if(!groups.has(file))groups.set(file,[]);
+      groups.get(file).push(t);
+    }
+    if(!groups.size)return null;
+    await Promise.all([...groups].map(async ([file,group])=>{
+      const blob=await (await resource(new URL(file,sheets),signal)).blob();
+      const url=URL.createObjectURL(blob),img=new Image();
+      try{
+        img.src=url;await img.decode();
+        if(img.width!==size*index.group || img.height!==img.width)throw Error('Print artwork size differs.');
+        for(const t of group)over.drawImage(img,(t.x%index.group)*size,(t.y%index.group)*size,size,size,t.left,t.top,tileSize,tileSize);
+      }finally{URL.revokeObjectURL(url);}
+    }));
+    return over.canvas;
+  }
+  async function signatureOverlay(spec,tiles,signal){
+    try{return await signatureGraphic(spec,tiles,signal);}
+    catch(error){if(signal.aborted)throw error;}
+    const data=await signatureTiles(spec,tiles,signal),over=chart();let visible=false;
+    tiles.forEach((t,i)=>tileAt(over,t,()=>features(data[i],f=>{
+      const colour=spec.palette[f.properties.signature_code]?.colour;
+      if(f.type===3 && colour){shape(over,f,colour);visible=true;}
+    })));
+    return visible?over.canvas:null;
+  }
   function frame(point) {
     const count=2**zoom, rad=point[1]*Math.PI/180;
     const left=(point[0]+180)/360*count*tileSize-width/2;
@@ -113,23 +148,18 @@
       const {tiles,scale}=frame(spec.point);
       const [base,signature]=await Promise.allSettled([
         bounded(signal=>basemapTiles(spec,tiles,signal)),
-        bounded(signal=>signatureTiles(spec,tiles,signal))
+        bounded(signal=>signatureOverlay(spec,tiles,signal))
       ]);
       const hasBase=base.status==='fulfilled',labels=[];
       const ctx=chart();ctx.fillStyle='#f7f7f4';ctx.fillRect(0,0,width,height);
       if(hasBase)tiles.forEach((t,i)=>tileAt(ctx,t,()=>paintBase(ctx,base.value[i],t,labels)));
-      let polygons=0;
-      if(signature.status==='fulfilled'){
-        const overlay=chart();
-        tiles.forEach((t,i)=>tileAt(overlay,t,()=>features(signature.value[i],f=>{
-          const colour=spec.palette[f.properties.signature_code]?.colour;
-          if(f.type===3 && colour){shape(overlay,f,colour);polygons++;}
-        })));
-        ctx.globalAlpha=.60;ctx.drawImage(overlay.canvas,0,0,width,height);ctx.globalAlpha=1;
+      const overlay=signature.status==='fulfilled' && signature.value;
+      if(overlay){
+        ctx.globalAlpha=.60;ctx.drawImage(overlay,0,0,width,height);ctx.globalAlpha=1;
       }
-      if(!hasBase&&!polygons)throw Error('No drawable cartography.');
+      if(!hasBase&&!overlay)throw Error('No drawable cartography.');
       paintLabels(ctx,labels);
-      return {...result,image:ctx.canvas.toDataURL('image/png'),scale,hasBase,hasSignature:polygons>0};
+      return {...result,image:ctx.canvas.toDataURL('image/png'),scale,hasBase,hasSignature:!!overlay};
     }catch(error){console.warn('[852LAB publication locator]',error.message);return result;}
   }
   window.UGA_PUBLICATION_LOCATOR=Object.freeze({render});
