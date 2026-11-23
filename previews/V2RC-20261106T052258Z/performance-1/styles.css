@@ -11420,8 +11420,11 @@ and (orientation:landscape){
 .atlas-share-icon {appearance:none;display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:transparent;color:#465762;border:1px solid transparent;cursor:pointer;}
 .atlas-share-icon:hover,.atlas-share-icon:focus-visible {background:#e8eff0;border-color:#a7b9bc;}
 .atlas-share-icon svg {width:16px;height:16px;}
-#shareMap {position:absolute;right:4px;bottom:3px;width:27px;height:27px;}
-#brand {padding-right:19px;}
+#brand > div {flex:1;min-width:0;}
+#brand .brand-footer {display:flex;align-items:center;justify-content:space-between;gap:8px;}
+#shareMap {position:relative;flex:none;width:21px;height:21px;padding:0;border:0;}
+#shareMap svg {display:block;width:100%;height:100%;}
+#shareMap::after {content:"";position:absolute;inset:-5px;}
 #shareReport {flex:none;}
 #atlasShareDialog {width:min(345px,calc(100vw - 32px));border:1px solid #b0babb;border-radius:10px;padding:18px;background:white;color:#23373b;box-shadow:0 14px 55px #152a342a;font:14px/1.5 Arial,sans-serif;}
 #atlasShareDialog::backdrop {background:#14252c38;}
@@ -11432,7 +11435,8 @@ and (orientation:landscape){
 #shareFeedback {display:block;margin-top:6px;}
 #shareLinkText {width:100%;margin-top:10px;}
 #shareStatus:not([hidden]) {position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#23353d;color:white;padding:6px 12px;border-radius:4px;z-index:2500;font:13px/1.4 Arial,sans-serif;}
-@media(max-width:600px){#shareMap{right:1px;bottom:0;}#shareReport{width:28px;height:28px;}}
+@media(max-width:900px){#shareMap{width:18px;height:18px;}}
+@media(max-width:600px){#shareReport{width:28px;height:28px;}}
 
 /* The category rectangle uses the palette's actual fill and contrast-selected ink. */
 .ugs-category,.v2-sheet-id .ugs-category,.axis-profile .ugs-category,.metrics .ugs-category {

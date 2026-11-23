@@ -1,6 +1,6 @@
 {
   "release_id": "V2RC-20261106T052258Z",
-  "entry_revision": "publication-sharing-20261122",
+  "entry_revision": "publication-v04-share-alignment",
   "shared_view_format": 1,
   "entry": "https://852lab.github.io/Urban-Genetics-Atlas/",
   "application": "previews/V2RC-20261106T052258Z/performance-1/",
@@ -20,7 +20,7 @@
     "assets/og-image.png": "20183a0bf7be3ea4a41431d110a3d26a0db5b6873b3f4a7d2fe8e6b28bdbb9c3",
     "atlas.js": "11428ae2696bd041ea2a9c0bb0cd38a1da313fc5361226343e8dc33fe2913890",
     "hosted-mobility-check.mjs": "8a53d5f68f1ae27d3d2ca4a2a708115f622a0a6f7c0f5dc40542e96b2e0328f8",
-    "index.html": "324597367806b3e98eb99c79be7c59934107c2b51f0ca006784696e1345faae4",
+    "index.html": "b9af469865d3f72e151a3b1e145a6dcb8735d09e2fe8dc967eb25dce8dffa813",
     "preview-status.json": "6f9e11eb4ecf340d0cf0c5ed8a7542d15566ebcef12d521ca29d7e2e83e01071",
     "qa-market-navigation-20261119.mjs": "e78c50c5d08c0c8426f6034719d44734060eaa3384fd52931ce9c07f503cf544",
     "site/atlas-stats.json": "4055ae9f9ca17fa87a1210cbcdddad1bcb27b1cf7e75f152aa101f47d1788baf",
@@ -85,7 +85,7 @@
     "site/v2-report.js": "827fbf782c8064085cd90b2798ad048ec05e72ac46a46b745ae1e2fe7fa69b71",
     "site/v2-selection.js": "70d8a8008bff778375e2d19167d3b86e37c2d4717e267191fbec4308f8e38f6e",
     "site/v2-site-config.js": "66d4aefd0755d9413d70ac9f07e22b9d724ff057f309152ec94809969e9c3fba",
-    "styles.css": "850f37ed1ab12ff46fdc6b4b50d47fd1e65975ad534197f1963bed16b54a48b0"
+    "styles.css": "b870294fcf84b09be947395ef617ebfabed63fce7853645027e4a56cdcf790c5"
   },
   "data_binding": "previews/V2RC-20261106T052258Z/performance-1/site/v2-site-config.js",
   "scope": "Public entry and application file binding. Runtime shard coverage and source vintages remain those of their respective products."
