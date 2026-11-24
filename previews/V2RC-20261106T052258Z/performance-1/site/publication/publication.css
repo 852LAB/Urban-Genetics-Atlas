@@ -175,3 +175,10 @@ h3,h4{color:#344849}
 .readings b,.metrics strong {word-break:normal;overflow-wrap:normal;hyphens:none}
 .readings .text-reading b {font-size:11.5pt;line-height:1.2}
 .readings.building-readings {grid-template-columns:1.5fr 1.05fr .9fr .75fr}
+
+.mob-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5mm;margin:3mm 0 1.8mm;break-inside:avoid}
+.mob-figure{margin:0;padding:2.2mm;border:1px solid #d6dfdd;border-radius:2mm;color:#273a3f;min-width:0}
+.mob-figure h4{font-size:10pt;margin:0 0 .6mm}.mob-figure>small,.mob-figure figcaption{display:block;font-size:7.6pt;line-height:1.3;color:#475b60}
+.mob-figure svg{display:block;width:100%;height:auto;max-width:none;max-height:none;margin:1mm auto;font:11px Arial,sans-serif}
+.mob-figure .ugsp-svg-text{font-size:12px;fill:#304440}.mob-figure .ugsp-scale{font-size:10px;fill:#667975}
+.mob-key{display:flex;gap:5mm;margin:1mm 0 2mm;font-size:8pt}.mob-key span:before{content:"";display:inline-block;width:5mm;height:1mm;margin-right:1mm;vertical-align:middle;background:var(--ink)}

@@ -113,14 +113,16 @@
     });
     features(layers.water,f=>{if(f.type===3)shape(ctx,f,'#d0dadd');else if(f.type===2)shape(ctx,f,'#c4d2d6',1);});
     features(layers.buildings,f=>{if(f.type===3)shape(ctx,f,'#e1e2df');});
-    features(layers.roads,f=>{
-      if(f.type===2)shape(ctx,f,'#fbfaf7',['highway','major_road'].includes(f.properties.kind)?2.6:1.1);
-    });
     features(layers.places,f=>{
       const name=f.properties['name:en']||f.properties.name;
       if(f.type!==1 || !name || !['neighbourhood','locality','quarter','suburb','borough'].includes(f.properties.kind))return;
       const p=f.loadGeometry()[0]?.[0];
       if(p)labels.push({name,x:t.left+p.x*tileSize/f.extent,y:t.top+p.y*tileSize/f.extent,rank:Number(f.properties.min_zoom)||14});
+    });
+  }
+  function paintRoads(ctx,layers){
+    features(layers.roads,f=>{
+      if(f.type===2)shape(ctx,f,'#fffefb',['highway','major_road'].includes(f.properties.kind)?2.15:.85);
     });
   }
   function paintLabels(ctx,labels) {
@@ -158,6 +160,7 @@
         ctx.globalAlpha=.60;ctx.drawImage(overlay,0,0,width,height);ctx.globalAlpha=1;
       }
       if(!hasBase&&!overlay)throw Error('No drawable cartography.');
+      if(hasBase)tiles.forEach((t,i)=>tileAt(ctx,t,()=>paintRoads(ctx,base.value[i])));
       paintLabels(ctx,labels);
       return {...result,image:ctx.canvas.toDataURL('image/png'),scale,hasBase,hasSignature:!!overlay};
     }catch(error){console.warn('[852LAB publication locator]',error.message);return result;}

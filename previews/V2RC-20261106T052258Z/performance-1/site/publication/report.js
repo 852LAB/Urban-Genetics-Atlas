@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const directory = new URL('.', document.currentScript.src);
-  const css = new URL('publication.css?v=4', directory);
+  const css = new URL('publication.css?v=radials-1', directory);
   const logo = new URL('../../assets/Logo.png', directory);
   const clean = value => String(value || '').replace(/\s+/g, ' ').trim();
   const read = node => clean(node?.textContent);

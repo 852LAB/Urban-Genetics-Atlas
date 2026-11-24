@@ -1,5 +1,9 @@
 # Urban Genetics Atlas — Live Release Log
 
+## 24 November 2026 · Mobility report graphics
+
+The executive Mobility sheet pairs radial diagrams for transport references and first road-class access with network reach and the Mobility profile. The cover map draws roads above the 60% Signature overlay.
+
 ## Report map and preparation
 
 Print shows preparation progress in the Atlas. The publication tab opens after the evidence, images and pages are ready. The report locator draws the basemap and release-matched Signature artwork independently, with coordinates and a source note if a layer is unavailable. Report readers begin fetching the relevant Mobility evidence as the selection opens. [Application file manifest](release-manifest.json)

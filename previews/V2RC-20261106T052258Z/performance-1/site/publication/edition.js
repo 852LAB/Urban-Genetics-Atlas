@@ -131,54 +131,110 @@
     const hasMob=groups.length||reach.length;
     chapter('02  /  Mobility',place?'What connects this place?':'Accessibility in the vicinity',!!hasMob);
     if(!place && vm.hexId)note('LAB-ID-'+vm.hexId+' · largest recorded intersection with this '+type.toLowerCase()+'. Travel and destinations use the cell’s network starts. Direct '+type.toLowerCase()+' access is unassessed.');
+    const publicInk='#267564', roadInk='#627f91';
+    const chartPair=()=>make('div','','mob-pair');
+    function panel(parent,title,subtitle){
+      const el=make('figure','','mob-figure');
+      el.append(make('h4',title),make('small',subtitle));parent.append(el);return el;
+    }
+    function connectionRadial(fig,items,road,band,withInside){
+      const chart=svg('svg',{viewBox:'0 0 320 216',role:'img','aria-label':read(fig.querySelector('h4'))});
+      const cx=160,cy=108,radius=62,stroke='#cedbd8';
+      const peak=Math.max(1,...items.flatMap(item=>[item.n,item.inside]).filter(finite));
+      const step=peak<=4?1:peak<=8?2:5,limit=Math.max(step,Math.ceil(peak/step)*step);
+      const ring=r=>chart.append(svg('circle',{cx,cy,r,fill:'none',stroke}));
+      const txt=(x,y,text,anchor='middle',ink='#293e43',weight=500)=>chart.append(svg('text',{x,y,'text-anchor':anchor,fill:ink,'font-size':11,'font-weight':weight},text));
+      const pos=(i,r)=>{const angle=2*Math.PI*i/items.length-Math.PI/2;return [cx+r*Math.cos(angle),cy+r*Math.sin(angle)];};
+      const dot=(x,y,n,ink)=>{
+        if(!finite(n))return;
+        const r=n===0?3.1:Math.sqrt(5+57*n/peak);
+        chart.append(svg('circle',{cx:x,cy:y,r,fill:n===0?'white':ink,stroke:n===0?'#95aaa5':'white','stroke-width':1}));
+      };
+      items.forEach((_,i)=>{const [x,y]=pos(i,radius);chart.append(svg('line',{x1:cx,y1:cy,x2:x,y2:y,stroke}));});
+      if(road){
+        for(let v=step;v<=limit;v+=step){ring(radius*v/limit);txt(cx-.73*radius*v/limit-4,cy-.69*radius*v/limit,String(v),'end','#6a7e80');}
+      }else{
+        ring(radius);if(withInside)ring(32);
+        chart.append(svg('circle',{cx,cy,r:16,fill:'#f3f6f4',stroke}));txt(cx,cy+4,'Cell');
+      }
+      items.forEach((item,i)=>{
+        const [x,y]=pos(i,road&&finite(item.n)?radius*item.n/limit:radius);
+        dot(x,y,item.n,road?roadInk:publicInk);
+        if(withInside){const [xx,yy]=pos(i,32);dot(xx,yy,item.inside,roadInk);}
+        const [lx,ly]=pos(i,radius+(i===0?28:16)),anchor=Math.abs(lx-cx)<2?'middle':lx<cx?'end':'start';
+        txt(lx,ly-3,item.name,anchor);
+        txt(lx,ly+10,item.label,anchor,road?roadInk:publicInk,700);
+      });
+      fig.append(chart,make('figcaption',road?'Ring interval '+step+' min. Larger dots indicate longer access times.':
+        withInside?'Inner ring · in cell. Outer ring · within '+band+'. Counts shown in that order.':'Dot size indicates count. Hollow dots indicate zero.'));
+    }
     if(groups.length){
-      const duo=make('div','','paired');
-      const refGroups=Array.from(mob?.querySelectorAll('.ugmp-mode-bars')||[]);
-      const reached=refGroups.find(g=>/network reach/i.test(g.getAttribute('aria-label')||''));
-      const inside=refGroups.find(g=>/inside the cell/i.test(g.getAttribute('aria-label')||''));
+      const top=chartPair(),bars=Array.from(mob.querySelectorAll('.ugmp-mode-bars'));
+      const reached=bars.find(g=>/network reach/i.test(g.getAttribute('aria-label')||''));
+      const inside=bars.find(g=>/inside the cell/i.test(g.getAttribute('aria-label')||''));
+      const readBars=g=>new Map(Array.from(g?.querySelectorAll('.ugmp-mode-row')||[],row=>[read(row.querySelector('span')),numeric(read(row.querySelector('b')))]));
+      function nodes(fig){
+        return Array.from(fig?.querySelectorAll('svg g:has(>title)')||[],g=>{
+          const n=read(g.querySelector('.ugsp-number')),name=read(g.querySelector('.ugsp-node-label'));
+          return {name,n:numeric(n),label:n==='?'?'Unassessed':n==='—'&&read(g.querySelector('title')).includes('20 minutes')?'>20 min':n};
+        });
+      }
       if(reached){
-        const el=make('div','','connection'),band=reached.getAttribute('aria-label').match(/\d[\d,]*\s*m\b/i)?.[0]||'selected band';
-        el.append(make('h4','Transport references'),make('small','Source-network distance · '+band));
-        const rows=g=>Array.from(g?.querySelectorAll('.ugmp-mode-row')||[],row=>[read(row.querySelector('span')),read(row.querySelector('b'))]);
-        const insideValues=new Map(rows(inside)),counts=rows(reached),max=Math.max(1,...counts.map(row=>numeric(row[1])??0));
-        const hdr=make('div','','ref-row');hdr.append(make('small','Mode'),make('small',inside?'In cell':''),make('small',band));el.append(hdr);
-        for(const [name,v] of counts){
-          const row=make('div','','ref-row');row.append(make('span',name),make('b',inside?insideValues.get(name)||'—':''),make('b',v));
-          const bar=track(numeric(v),max,colours[0]);row.append(bar);el.append(row);
-        }
-        duo.append(el);
+        const band=reached.getAttribute('aria-label').match(/\d[\d,]*\s*m\b/i)?.[0]||'selected band',inner=readBars(inside),outer=readBars(reached);
+        const order=['Bus','Minibus','Tram','Rail legacy','Rail provider','Ferry','Feeder bus','Peak Tram'];
+        const items=[...new Set([...order,...outer.keys()])].filter(name=>outer.has(name)).map(name=>{
+          const n=outer.get(name),inCell=inner.get(name);
+          return {name,n,inside:inCell,label:(inside?(inCell??'—')+' / ':'')+(n??'—')};
+        });
+        connectionRadial(panel(top,'Source references by mode',band+' source-network distance'),items,false,band,!!inside);
+      }else if(groups[0]){
+        connectionRadial(panel(top,read(groups[0].querySelector('figcaption')),'Public transport connections'),nodes(groups[0]),false,'',false);
       }
-      for(const fig of (reached?groups.slice(1):groups)){
-        const el=make('div','','connection'),items=Array.from(fig.querySelectorAll('svg g:has(>title)')).map(g=>[read(g.querySelector('.ugsp-node-label')),read(g.querySelector('.ugsp-number')),read(g.querySelector('title'))]).filter(x=>x[0]);
-        el.append(make('h4',read(fig.querySelector('figcaption'))),make('small',read(fig.querySelector('p')).split(' · ')[0]));
-        const max=Math.max(1,...items.map(x=>numeric(x[1])??0));
-        for(const [key,v,detail] of items){const missing=v==='?'?'Unassessed':v==='—'&&detail.includes('20 minutes')?'>20 min':v;const line=make('div','','connection-row');line.append(make('span',key),track(numeric(v),max,colours[0]),make('b',missing||'Unassessed'));el.append(line);}
-        duo.append(el);
+      if(groups[1]){
+        const items=nodes(groups[1]);items.forEach(item=>{if(item.n!==null)item.label+=' min';});
+        connectionRadial(panel(top,'First road-class access',modes[1]+' · minutes'),items,true,'',false);
       }
-      put(duo);
-      const origin=mob?.querySelector('.ugmp-network-evidence >h4 + p');
-      if(origin)note(read(origin));
+      put(top);
+      const origin=mob.querySelector('.ugmp-network-evidence >h4 + p');if(origin)note(read(origin));
       if(reached)note('Reference counts follow each source feed. Legacy and provider rail can overlap. Road times indicate the first matched link completed in each class.');
     }
+    const lower=chartPair();
     const reachAvailable=reach.some(row=>Array.from(row.querySelectorAll('.ugsp-bar-value'),read).some(v=>numeric(v)!==null));
     const modeStatus=read(mob?.querySelector('.ugsp-status'));
     if(reach.length && !reachAvailable){
-      label('Network-supported reach');
-      note('Travel-time reach is unavailable for the selected origin and modes.'+(modeStatus?' '+modeStatus+'.':''));
+      panel(lower,'Network-supported reach','Travel-time reach is unavailable for the selected origin and modes.');
     }
     if(reachAvailable){
-      label('Network-supported reach');
+      const el=panel(lower,'Network-supported reach','Modelled cells by journey time');
       const rows=reach.map(row=>[read(row.firstElementChild),...Array.from(row.querySelectorAll('.ugsp-bar-value'),read)]);
-      const nums=rows.map(v=>v.slice(1).map(numeric)),max=Math.max(1,...nums.flat().filter(finite)),chart=svg('svg',{viewBox:'0 0 660 146',role:'img','aria-label':'Network-supported analytical cells by time band'}),px=i=>65+i*565/Math.max(1,rows.length-1),py=n=>110-88*n/max;
-      for(const ratio of [0,.5,1]){const y=py(max*ratio);chart.append(svg('line',{x1:65,x2:630,y1:y,y2:y,stroke:'#d5dcd9'}),svg('text',{x:54,y:y+4,'text-anchor':'end'},number(Math.round(max*ratio))));}
-      rows.forEach(([time],i)=>chart.append(svg('text',{x:px(i),y:134,'text-anchor':'middle'},time)));
+      const nums=rows.map(v=>v.slice(1).map(numeric)),max=Math.max(1,...nums.flat().filter(finite)),chart=svg('svg',{viewBox:'0 0 320 178',role:'img','aria-label':'Network-supported analytical cells by time band'}),px=i=>45+i*251/Math.max(1,rows.length-1),py=n=>138-108*n/max;
+      for(const ratio of [0,.5,1]){const y=py(max*ratio);chart.append(svg('line',{x1:45,x2:296,y1:y,y2:y,stroke:'#d5dcd9'}),svg('text',{x:40,y:y+4,'text-anchor':'end'},number(Math.round(max*ratio))));}
+      rows.forEach(([time],i)=>chart.append(svg('text',{x:px(i),y:161,'text-anchor':'middle'},time.replace(/ min$/,''))));
       for(const k of [0,1]){
         let prev=null;
-        nums.forEach((vals,i)=>{const value=vals[k];if(value===null||value===undefined){prev=null;return;}const x=px(i),y=py(value);if(prev)chart.append(svg('line',{x1:prev[0],y1:prev[1],x2:x,y2:y,stroke:colours[k],'stroke-width':2.6}));chart.append(svg('circle',{cx:x,cy:y,r:3.5,fill:colours[k]}));prev=[x,y];});
+        nums.forEach((vals,i)=>{const value=vals[k];if(value===null||value===undefined){prev=null;return;}const x=px(i),y=py(value);if(prev)chart.append(svg('line',{x1:prev[0],y1:prev[1],x2:x,y2:y,stroke:(k?roadInk:publicInk),'stroke-width':2.6}));chart.append(svg('circle',{cx:x,cy:y,r:3.5,fill:(k?roadInk:publicInk)}));prev=[x,y];});
       }
-      const fig=make('figure','','reach-plot'),legend=make('figcaption');modes.forEach((v,i)=>{const k=make('b',v);k.style.setProperty('--ink',colours[i]);legend.append(k);});fig.append(legend,chart);put(fig);
-      if(modeStatus)note(modeStatus);
-      const selected=mob?.querySelector('.ugsp-reach-row.ugsp-selected')||reach[0];
+      el.append(chart,make('figcaption','Time bands in minutes.'));
+    }
+    const sourceProfile=mob?.querySelector('.ugsp-spider svg');
+    if(sourceProfile){
+      const el=panel(lower,'Mobility profile','Trial scores · 0–100');
+      const copy=sourceProfile.cloneNode(true);
+      copy.querySelectorAll('polygon[fill-opacity],circle[fill]').forEach(n=>{
+        const replace=c=>c==='#8e4d1f'?roadInk:c==='#087d73'?publicInk:c;
+        for(const k of ['fill','stroke'])if(n.hasAttribute(k))n.setAttribute(k,replace(n.getAttribute(k)));
+      });
+      const values=Array.from(mob.querySelectorAll('.ugsp-values > div'),v=>read(v.querySelector('span'))+' '+Array.from(v.querySelectorAll('b'),read).join(' / '));
+      el.append(copy,make('figcaption',values.join(' · ')));
+    }
+    if(lower.children.length){
+      put(lower);
+      const legend=make('div','','mob-key');
+      modes.forEach((name,i)=>{const key=make('span',name);key.style.setProperty('--ink',i?roadInk:publicInk);legend.append(key);});put(legend);
+    }
+    if(modeStatus)note(modeStatus);
+    if(reachAvailable){
+      const selected=reach.find(row=>row.classList.contains('ugsp-selected'))||reach[0];
       strip(Array.from(selected.querySelectorAll('.ugsp-bar-value'),(n,i)=>[modes[i],read(n),read(selected.firstElementChild)+' · supported cells']));
       note('Reach counts modelled analytical cells within each time band.'+(finite(mapStyle.publicCells)?' The public release contains '+number(mapStyle.publicCells)+' mapped report cells.':'')+' A cell count measures network-supported potential and gives no guarantee of a trip to a particular entrance.');
     }
